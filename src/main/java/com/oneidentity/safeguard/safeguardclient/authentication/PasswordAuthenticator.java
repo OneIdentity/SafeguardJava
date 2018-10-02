@@ -1,11 +1,20 @@
 package com.oneidentity.safeguard.safeguardclient.authentication;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneidentity.safeguard.safeguardclient.StringUtils;
 import com.oneidentity.safeguard.safeguardclient.data.OauthBody;
 import com.oneidentity.safeguard.safeguardclient.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.ws.rs.core.Response;
 
 public class PasswordAuthenticator extends AuthenticatorBase 
@@ -23,8 +32,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
         super(networkAddress, null, null, apiVersion, ignoreSsl);
         this.provider = provider;
         
-        //TODO: What is the providerScope of it isn't null?
-        if (StringUtils.isNullOrEmpty(this.provider) || provider.equalsIgnoreCase("local"))
+        if (StringUtils.isNullOrEmpty(this.provider) || this.provider.equalsIgnoreCase("local"))
             providerScope = "rsts:sts:primaryproviderid:local";
         
         this.username = username;
@@ -33,56 +41,52 @@ public class PasswordAuthenticator extends AuthenticatorBase
 
     private void ResolveProviderToScope() throws SafeguardForJavaException
     {
-//        try
-//        {
-//            IRestResponse response;
-//            try
-//            {
-//                var request = new RestRequest("UserLogin/LoginController", RestSharp.Method.POST)
-//                    .AddHeader("Accept", "application/json")
-//                    .AddHeader("Content-type", "application/x-www-form-urlencoded")
-//                    .AddParameter("response_type", "token", ParameterType.QueryString)
-//                    .AddParameter("redirect_uri", "urn:InstalledApplication", ParameterType.QueryString)
-//                    .AddParameter("loginRequestStep", 1, ParameterType.QueryString)
-//                    .AddBody("RelayState=");
-//                response = RstsClient.Execute(request);
-//            }
-//            catch (WebException)
-//            {
-//                Log.Debug("Caught exception with POST to find identity provider scopes, trying GET");
-//                var request = new RestRequest("UserLogin/LoginController", RestSharp.Method.GET)
-//                    .AddHeader("Accept", "application/json")
-//                    .AddHeader("Content-type", "application/x-www-form-urlencoded")
-//                    .AddParameter("response_type", "token", ParameterType.QueryString)
-//                    .AddParameter("redirect_uri", "urn:InstalledApplication", ParameterType.QueryString)
-//                    .AddParameter("loginRequestStep", 1, ParameterType.QueryString);
-//                response = RstsClient.Execute(request);
-//            }
+        try
+        {
+            Response response;
+            Map<String,String> headers = new HashMap<>();
+            Map<String,String> parameters = new HashMap<>();
+            try
+            {
+                headers.clear();
+                parameters.clear();
+                
+                headers.put("Content-type", "application/x-www-form-urlencoded");
+                parameters.put("response_type", "token");
+                parameters.put("redirect_uri", "urn:InstalledApplication");
+                parameters.put("loginRequestStep", "1");
+                
+                response = RstsClient.execPOST("UserLogin/LoginController", parameters, headers, "RelayState=");
+            }
+            catch (Exception ex)
+            {
+                response = RstsClient.execGET("UserLogin/LoginController", parameters, headers);
+            }
 //            if (response.ResponseStatus != ResponseStatus.Completed)
 //                throw new SafeguardForJavaException("Unable to connect to RSTS to find identity provider scopes, Error: " +
 //                                                   response.ErrorMessage);
-//            if (!response.IsSuccessful)
-//                throw new SafeguardForJavaException("Error requesting identity provider scopes from RSTS, Error: " +
-//                                                   String.format("%d %s", response.StatusCode, response.Content), response.Content);
-//            var jObject = JObject.Parse(response.Content);
-//            var jProviders = (JArray)jObject["Providers"];
-//            var knownScopes = jProviders.Select(s => s["Id"]).Values<string>().ToArray();
-//            var scope = knownScopes.FirstOrDefault(s => s.EqualsNoCase(provider));
-//            if (scope != null)
-//                providerScope = String.format("rsts:sts:primaryproviderid:%s", scope);
-//            else
-//            {
-//                scope = knownScopes.FirstOrDefault(s => s.ContainsNoCase(provider));
-//                if (providerScope != null)
-//                    providerScope = String.format("rsts:sts:primaryproviderid:%s", scope);
-//                else
-//                    throw new SafeguardForJavaException(String.format("Unable to find scope matching '%s' in [%s]", provider, String.Join(",", knownScopes)));
-//            }
-//        }
-//        catch (Exception ex)
-//        {
-//            throw new SafeguardForJavaException("Unable to connect to determine identity provider", ex);
-//        }
+            if (response.getStatus() != 200)
+                throw new SafeguardForJavaException("Error requesting identity provider scopes from RSTS, Error: " +
+                        String.format("%d %s", response.getStatus(), response.readEntity(String.class)));
+
+            List<String> knownScopes = parseLoginResponse(response);
+            String scope = getMatchingScope(knownScopes, true);
+
+            if (scope != null)
+                providerScope = String.format("rsts:sts:primaryproviderid:%s", scope);
+            else
+            {
+                scope = getMatchingScope(knownScopes, false);
+                if (providerScope != null)
+                    providerScope = String.format("rsts:sts:primaryproviderid:%s", scope);
+                else
+                    throw new SafeguardForJavaException(String.format("Unable to find scope matching '%s' in [%s]", provider, String.join(",", knownScopes)));
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new SafeguardForJavaException("Unable to connect to determine identity provider", ex);
+        }
     }
 
     @Override
@@ -125,5 +129,47 @@ public class PasswordAuthenticator extends AuthenticatorBase
             super.finalize();
         }
     }
+    
+    private List<String> parseLoginResponse(Response response) {
+        
+        List<String> providers = new ArrayList<String>();
+        ObjectMapper mapper = new ObjectMapper();
+        
+        try {
+            JsonNode jsonNodeRoot = mapper.readTree(response.readEntity(String.class));
+            JsonNode jsonNodeProviders = jsonNodeRoot.get("Providers");
+            Iterator<JsonNode> iter = jsonNodeProviders.elements();
+            
+            while(iter.hasNext()){
+		JsonNode providerNode=iter.next();
+		providers.add(getJsonValue(providerNode, "Id"));
+            }            
+        } catch (IOException ex) {
+            Logger.getLogger(StringUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return providers;
+    }
+    
+    private String getMatchingScope(List<String> providers, boolean equals) {
+        for (String s : providers) {
+            if (equals) {
+                if (s.equalsIgnoreCase(provider))
+                    return s;
+            } else {
+                if (s.toLowerCase().contains(provider.toLowerCase()))
+                    return s;
+            }
+        }
+        return null;
+    }
+    
+    private String getJsonValue(JsonNode node, String propName) {
+        if (node.get(propName) != null) {
+            return node.get(propName).asText();
+        }
+        return null;
+    }
+    
     
 }
