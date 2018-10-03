@@ -34,4 +34,7 @@ public interface ISafeguardA2AContext
     /// <param name="handler">A delegate to call any time the AssetAccountPasswordUpdate event occurs.</param>
     /// <returns>The event listener.</returns>
 //    ISafeguardEventListener GetEventListener(SecureString apiKey, SafeguardParsedEventHandler handler);
+    
+    public void Dispose();
+
 }

@@ -76,7 +76,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: " +
                     String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
         
-        char[] password =  response.readEntity(String.class).toCharArray();
+        char[] password = response.readEntity(String.class).replaceAll("\"", "").toCharArray();
         return password;
     }
 
