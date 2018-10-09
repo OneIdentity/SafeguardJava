@@ -9,9 +9,9 @@ import com.oneidentity.safeguard.safeguardclient.exceptions.ObjectDisposedExcept
 import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
 
 
-/// <summary>
-/// This static class provides static methods for connecting to Safeguard API.
-/// </summary>
+/** 
+* This static class provides static methods for connecting to Safeguard API.
+*/
 public final class Safeguard
 {
     private static final int DEFAULTAPIVERSION = 2;
@@ -22,18 +22,19 @@ public final class Safeguard
 
     private static SafeguardConnection GetConnection(IAuthenticationMechanism authenticationMechanism) throws ObjectDisposedException, SafeguardForJavaException
     {
-        authenticationMechanism.RefreshAccessToken();
+        authenticationMechanism.refreshAccessToken();
         return new SafeguardConnection(authenticationMechanism);
     }
 
-    /// <summary>
-    /// Connect to Safeguard API using an API access token.
-    /// </summary>
-    /// <param name="networkAddress">Network address of Safeguard appliance.</param>
-    /// <param name="accessToken">Existing API access token.</param>
-    /// <param name="apiVersion">Target API version to use.</param>
-    /// <param name="ignoreSsl">Ignore server certificate validation.</param>
-    /// <returns>Reusable Safeguard API connection.</returns>
+    /**
+     *  Connect to Safeguard API using an API access token.
+     *
+     *   @param networkAddress  Network address of Safeguard appliance.
+     *   @param accessToken     Existing API access token.
+     *   @param apiVersion      Target API version to use.
+     *   @param ignoreSsl       Ignore server certificate validation.
+     *   @return                Reusable Safeguard API connection.
+     */ 
     public static ISafeguardConnection Connect(String networkAddress, char[] accessToken,
         Integer apiVersion, Boolean ignoreSsl)
     {
@@ -50,16 +51,17 @@ public final class Safeguard
         return new SafeguardConnection(new AccessTokenAuthenticator(networkAddress, accessToken, version, sslIgnore));
     }
 
-    /// <summary>
-    /// Connect to Safeguard API using a user name and password.
-    /// </summary>
-    /// <param name="networkAddress">Network address of Safeguard appliance.</param>
-    /// <param name="provider">Safeguard authentication provider name (e.g. local).</param>
-    /// <param name="username">User name to use for authentication.</param>
-    /// <param name="password">User password to use for authentication.</param>
-    /// <param name="apiVersion">Target API version to use.</param>
-    /// <param name="ignoreSsl">Ignore server certificate validation.</param>
-    /// <returns>Reusable Safeguard API connection.</returns>
+    /**
+     *  Connect to Safeguard API using a user name and password.
+     *
+     *   @param networkAddress  Network address of Safeguard appliance.
+     *   @param provider        Safeguard authentication provider name (e.g. local).
+     *   @param username        User name to use for authentication.
+     *   @param password        User password to use for authentication.
+     *   @param apiVersion      Target API version to use.
+     *   @param ignoreSsl       Ignore server certificate validation.
+     *   @return                Reusable Safeguard API connection.
+     */ 
     public static ISafeguardConnection Connect(String networkAddress, String provider, String username,
         char[] password, Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, SafeguardForJavaException
     {
@@ -75,15 +77,16 @@ public final class Safeguard
             sslIgnore));
     }
 
-    /// <summary>
-    /// Connect to Safeguard API using a certificate from the certificate store.  Use PowerShell to list certificates with
-    /// SHA-1 thumbprint.  PS> gci Cert:\CurrentUser\My
-    /// </summary>
-    /// <param name="networkAddress">Network address of Safeguard appliance.</param>
-    /// <param name="certificateThumbprint">SHA-1 hash identifying a client certificate in personal (My) store.</param>
-    /// <param name="apiVersion">Target API version to use.</param>
-    /// <param name="ignoreSsl">Ignore server certificate validation.</param>
-    /// <returns>Reusable Safeguard API connection.</returns>
+    /**
+     *  Connect to Safeguard API using a certificate from the certificate store.  Use PowerShell to list certificates with
+     *  SHA-1 thumbprint.  PS> gci Cert:\CurrentUser\My
+     *
+     *   @param networkAddress          Network address of Safeguard appliance.
+     *   @param certificateThumbprint   SHA-1 hash identifying a client certificate in personal (My) store.
+     *   @param apiVersion              Target API version to use.
+     *   @param ignoreSsl               Ignore server certificate validation.
+     *   @return                        Reusable Safeguard API connection.
+     */ 
     public static ISafeguardConnection Connect(String networkAddress, String certificateThumbprint,
         Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, SafeguardForJavaException
     {
@@ -98,15 +101,16 @@ public final class Safeguard
         return GetConnection(new CertificateAuthenticator(networkAddress, certificateThumbprint, version, sslIgnore));
     }
 
-    /// <summary>
-    /// Connect to Safeguard API using a certificate stored in a file.
-    /// </summary>
-    /// <param name="networkAddress">Network address of Safeguard appliance.</param>
-    /// <param name="certificatePath">Path to PFX (or PKCS12) certificate file also containing private key.</param>
-    /// <param name="certificatePassword">Password to decrypt the certificate file.</param>
-    /// <param name="apiVersion">Target API version to use.</param>
-    /// <param name="ignoreSsl">Ignore server certificate validation.</param>
-    /// <returns>Reusable Safeguard API connection.</returns>
+    /**
+     *  Connect to Safeguard API using a certificate stored in a file.
+     *
+     *   @param networkAddress      Network address of Safeguard appliance.
+     *   @param certificatePath     Path to PFX (or PKCS12) certificate file also containing private key.
+     *   @param certificatePassword Password to decrypt the certificate file.
+     *   @param apiVersion          Target API version to use.
+     *   @param ignoreSsl           Ignore server certificate validation.
+     *   @return                    Reusable Safeguard API connection.
+     */ 
     public static ISafeguardConnection Connect(String networkAddress, String certificatePath,
         char[] certificatePassword, Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, SafeguardForJavaException
     {
@@ -122,13 +126,14 @@ public final class Safeguard
             version, sslIgnore));
     }
 
-    /// <summary>
-    /// Connect to Safeguard API anonymously.
-    /// </summary>
-    /// <returns>The connect.</returns>
-    /// <param name="networkAddress">Network address.</param>
-    /// <param name="apiVersion">API version.</param>
-    /// <param name="ignoreSsl">If set to <c>true</c> ignore ssl.</param>
+    /**
+     *  Connect to Safeguard API anonymously.
+     *
+     *   @param networkAddress  Network address.
+     *   @param apiVersion      API version.
+     *   @param ignoreSsl       If set to <c>true</c> ignore ssl.
+     *   @return                The connect.
+     */ 
     public static ISafeguardConnection Connect(String networkAddress, Integer apiVersion, Boolean ignoreSsl)
     {
         int version = DEFAULTAPIVERSION;
@@ -144,20 +149,22 @@ public final class Safeguard
         return new SafeguardConnection(new AnonymousAuthenticator(networkAddress, version, sslIgnore));
     }
 
-    /// <summary>
-    /// This static class provides access to Safeguard A2A functionality.
-    /// </summary>
+    /**
+     *  This static class provides access to Safeguard A2A functionality.
+     *
+     */ 
     public static class A2A
     {
-        /// <summary>
-        /// Establish a Safeguard A2A context using a certificate from the certificate store.  Use PowerShell to
-        /// list certificates with SHA-1 thumbprint.  PS> gci Cert:\CurrentUser\My
-        /// </summary>
-        /// <param name="networkAddress">Network address of Safeguard appliance.</param>
-        /// <param name="certificateThumbprint">SHA-1 hash identifying a client certificate in personal (My) store.</param>
-        /// <param name="apiVersion">Target API version to use.</param>
-        /// <param name="ignoreSsl">Ignore server certificate validation.</param>
-        /// <returns>Reusable Safeguard A2A context.</returns>
+        /**
+         *  Establish a Safeguard A2A context using a certificate from the certificate store.  Use PowerShell to
+         *  list certificates with SHA-1 thumbprint.  PS> gci Cert:\CurrentUser\My
+         *
+         *   @param networkAddress          Network address of Safeguard appliance.
+         *   @param certificateThumbprint   SHA-1 hash identifying a client certificate in personal (My) store.
+         *   @param apiVersion              Target API version to use.
+         *   @param ignoreSsl               Ignore server certificate validation.
+         *   @return                        Reusable Safeguard A2A context.
+         */
         public static ISafeguardA2AContext GetContext(String networkAddress, String certificateThumbprint,
             Integer apiVersion, Boolean ignoreSsl)
         {
@@ -172,15 +179,16 @@ public final class Safeguard
             return new SafeguardA2AContext(networkAddress, certificateThumbprint, version, sslIgnore);
         }
 
-        /// <summary>
-        /// Establish a Safeguard A2A context using a certificate stored in a file.
-        /// </summary>
-        /// <param name="networkAddress">Network address of Safeguard appliance.</param>
-        /// <param name="certificatePath">Path to PFX (or PKCS12) certificate file also containing private key.</param>
-        /// <param name="certificatePassword">Password to decrypt the certificate file.</param>
-        /// <param name="apiVersion">Target API version to use.</param>
-        /// <param name="ignoreSsl">Ignore server certificate validation.</param>
-        /// <returns>Reusable Safeguard A2A context.</returns>
+        /**
+         *  Establish a Safeguard A2A context using a certificate stored in a file.
+         *
+         *   @param networkAddress      Network address of Safeguard appliance.
+         *   @param certificatePath     Path to PFX (or PKCS12) certificate file also containing private key.
+         *   @param certificatePassword Password to decrypt the certificate file.
+         *   @param apiVersion          Target API version to use.
+         *   @param ignoreSsl           Ignore server certificate validation.
+         *   @return                    Reusable Safeguard A2A context.
+         */ 
         public static ISafeguardA2AContext GetContext(String networkAddress, String certificatePath,
             char[] certificatePassword, Integer apiVersion, Boolean ignoreSsl)
         {

@@ -12,75 +12,75 @@ import javax.ws.rs.core.Response;
 
 abstract class AuthenticatorBase implements IAuthenticationMechanism
 {
-    private boolean _disposed;
+    private boolean disposed;
 
-    private final String NetworkAddress; 
-    private final int ApiVersion;
-    private boolean IgnoreSsl;
+    private final String networkAddress; 
+    private final int apiVersion;
+    private boolean ignoreSsl;
     
-    protected char[] AccessToken;
+    protected char[] accessToken;
 
-    protected final String SafeguardRstsUrl;
-    protected final String SafeguardCoreUrl;
+    protected final String safeguardRstsUrl;
+    protected final String safeguardCoreUrl;
 
-    protected RestClient RstsClient;
-    protected RestClient CoreClient;
+    protected RestClient rstsClient;
+    protected RestClient coreClient;
 
     protected AuthenticatorBase(String networkAddress, String certificatePath, char[] certificatePassword, int apiVersion, boolean ignoreSsl)
     {
-        NetworkAddress = networkAddress;
-        ApiVersion = apiVersion;
+        this.networkAddress = networkAddress;
+        this.apiVersion = apiVersion;
+        this.ignoreSsl = ignoreSsl;
 
-        SafeguardRstsUrl = String.format("https://%s/RSTS", NetworkAddress);
-        RstsClient = new RestClient(SafeguardRstsUrl);
+        this.safeguardRstsUrl = String.format("https://%s/RSTS", this.networkAddress);
+        this.rstsClient = new RestClient(safeguardRstsUrl, ignoreSsl);
 
-        SafeguardCoreUrl = String.format("https://%s/service/core/v%d", NetworkAddress, ApiVersion);
-        CoreClient = new RestClient(SafeguardCoreUrl);
-
-//        if (ignoreSsl)
-//        {
-//            IgnoreSsl = true;
-//            RstsClient.RemoteCertificateValidationCallback += (sender, certificate, chain, errors) => true;
-//            CoreClient.RemoteCertificateValidationCallback += (sender, certificate, chain, errors) => true;
-//        }
+        this.safeguardCoreUrl = String.format("https://%s/service/core/v%d", this.networkAddress, this.apiVersion);
+        this.coreClient = new RestClient(safeguardCoreUrl, ignoreSsl);
     }
 
+    @Override
     public String getNetworkAddress() {
-        return NetworkAddress;
+        return networkAddress;
     }
 
+    @Override
     public int getApiVersion() {
-        return ApiVersion;
+        return apiVersion;
     }
 
+    @Override
     public boolean isIgnoreSsl() {
-        return IgnoreSsl;
+        return ignoreSsl;
     }
 
-    public boolean HasAccessToken() {
-        return AccessToken != null;
+    @Override
+    public boolean hasAccessToken() {
+        return accessToken != null;
     }
 
-    public char[] GetAccessToken() throws ObjectDisposedException {
-        if (_disposed)
+    @Override
+    public char[] getAccessToken() throws ObjectDisposedException {
+        if (disposed)
             throw new ObjectDisposedException("AuthenticatorBase");
-        return AccessToken;
+        return accessToken;
     }
 
-    public int GetAccessTokenLifetimeRemaining() throws ObjectDisposedException, SafeguardForJavaException {
-        if (_disposed)
+    @Override
+    public int getAccessTokenLifetimeRemaining() throws ObjectDisposedException, SafeguardForJavaException {
+        if (disposed)
             throw new ObjectDisposedException("AuthenticatorBase");
-        if (!HasAccessToken())
+        if (!hasAccessToken())
             return 0;
         
         Map<String,String> headers = new HashMap<>();
-        headers.put("Authorization", String.format("Bearer %s", new String(AccessToken)));
+        headers.put("Authorization", String.format("Bearer %s", new String(accessToken)));
         headers.put("X-TokenLifetimeRemaining", "");
         
-        Response response = CoreClient.execGET("LoginMessage", null, headers);
+        Response response = coreClient.execGET("LoginMessage", null, headers);
         
-//        if (response.getStatus() != 200)
-//            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s, Error: ", CoreClient.getBaseURL()) + response.readEntity(String.class));
+        if (response == null)
+            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", coreClient.getBaseURL()));
         if (response.getStatus() != 200)
             return 0;
 
@@ -99,39 +99,41 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
     }
 
     @Override
-    public void RefreshAccessToken() throws ObjectDisposedException, SafeguardForJavaException {
+    public void refreshAccessToken() throws ObjectDisposedException, SafeguardForJavaException {
         
-        if (_disposed)
+        if (disposed)
             throw new ObjectDisposedException("AuthenticatorBase");
         
-        char[] rStsToken = GetRstsTokenInternal();
+        char[] rStsToken = getRstsTokenInternal();
         AccessTokenBody body = new AccessTokenBody(rStsToken);
-        Response response = CoreClient.execPOST("Token/LoginResponse", null, null, body);
+        Response response = coreClient.execPOST("Token/LoginResponse", null, null, body);
 
-//        if (response.getStatus() != 200)
-//            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s, Error: ", CoreClient.getBaseURL()) + response.readEntity(String.class));
+        if (response == null)
+            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", coreClient.getBaseURL()));
         if (response.getStatus() != 200)
             throw new SafeguardForJavaException("Error exchanging RSTS token for Safeguard API access token, Error: " +
                                                String.format("%d %s", response.getStatus(), response.readEntity(String.class)));
 
-        Map<String,String> map = StringUtils.ParseResponse(response);
-        AccessToken =  map.get("UserToken").toCharArray();
+        Map<String,String> map = StringUtils.parseResponse(response);
+        if (map.containsKey("UserToken"))
+            accessToken =  map.get("UserToken").toCharArray();
     }
 
-    protected abstract char[] GetRstsTokenInternal() throws ObjectDisposedException, SafeguardForJavaException;
+    protected abstract char[] getRstsTokenInternal() throws ObjectDisposedException, SafeguardForJavaException;
     
-    public void Dispose()
+    @Override
+    public void dispose()
     {
-        Arrays.fill(AccessToken, '0');
-        _disposed = true;
+        Arrays.fill(accessToken, '0');
+        disposed = true;
     }
 
     @Override
     protected void finalize() throws Throwable {
         try {
-            Arrays.fill(AccessToken, '0');
+            Arrays.fill(accessToken, '0');
         } finally {
-            _disposed = true;
+            disposed = true;
             super.finalize();
         }
     }

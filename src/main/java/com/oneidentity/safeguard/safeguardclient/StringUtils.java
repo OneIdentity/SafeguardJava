@@ -19,11 +19,11 @@ public class StringUtils {
         return param == null || param.trim().length() == 0;
     }
     
-    public static Map<String,String> ParseResponse(Response response) {
+    public static Map<String,String> parseResponse(Response response) {
         String resp = response.readEntity(String.class);
         
         ObjectMapper mapper = new ObjectMapper();
-        Map<String,String> map = new HashMap<String,String>();
+        Map<String,String> map = new HashMap<>();
         try {
             map = mapper.readValue(resp, new TypeReference<Map<String,String>>(){});
         } catch (IOException ex) {

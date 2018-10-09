@@ -2,9 +2,9 @@ package com.oneidentity.safeguard.safeguardclient.data;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-/// <summary>
-/// A simple class for returning extended information from a Safeguard API method call.
-/// </summary>
+/**
+ * A simple class for returning extended information from a Safeguard API method call.
+ */
 public class FullResponse {
     
     private int statusCode;

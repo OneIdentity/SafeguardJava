@@ -4,28 +4,28 @@ import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaExce
 
 public class AnonymousAuthenticator extends AuthenticatorBase {
 
-    private boolean _disposed;
+    private boolean disposed;
 
     public AnonymousAuthenticator(String networkAddress, int apiVersion, boolean ignoreSsl) {
         super(networkAddress, null, null, apiVersion, ignoreSsl);
     }
 
     @Override
-    protected char[] GetRstsTokenInternal() throws SafeguardForJavaException {
+    protected char[] getRstsTokenInternal() throws SafeguardForJavaException {
         throw new SafeguardForJavaException("Anonymous connection cannot be used to get an API access token, Error: Unsupported operation");
     }
 
     @Override
-    public void Dispose() {
-        super.Dispose();
-        _disposed = true;
+    public void dispose() {
+        super.dispose();
+        disposed = true;
     }
 
     @Override
     protected void finalize() throws Throwable {
         try {
         } finally {
-            _disposed = true;
+            disposed = true;
             super.finalize();
         }
     }

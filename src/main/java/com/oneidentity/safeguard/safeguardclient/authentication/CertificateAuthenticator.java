@@ -10,7 +10,7 @@ import javax.ws.rs.core.Response;
 
 public class CertificateAuthenticator extends AuthenticatorBase
 {
-    private boolean _disposed;
+    private boolean disposed;
 
     private final String certificateThumbprint;
     private final String certificatePath;
@@ -35,22 +35,21 @@ public class CertificateAuthenticator extends AuthenticatorBase
     }
 
     @Override
-    protected char[] GetRstsTokenInternal() throws ObjectDisposedException, SafeguardForJavaException
+    protected char[] getRstsTokenInternal() throws ObjectDisposedException, SafeguardForJavaException
     {
-        if (_disposed)
+        if (disposed)
             throw new ObjectDisposedException("CertificateAuthenticator");
 
         OauthBody body = new OauthBody("client_credentials", "rsts:sts:primaryproviderid:certificate");
-        Response response = RstsClient.execPOST("oauth2/token", null, null, body, certificatePath, certificatePassword);
+        Response response = rstsClient.execPOST("oauth2/token", null, null, body, certificatePath, certificatePassword);
         
 //        var userCert = !StringUtils.isNullOrEmpty(certificateThumbprint)
 //            ? CertificateUtilities.GetClientCertificateFromStore(_certificateThumbprint)
 //            : CertificateUtilities.GetClientCertificateFromFile(_certificatePath, _certificatePassword);
-//        RstsClient.ClientCertificates = new X509Certificate2Collection() { userCert };
+//        rstsClient.ClientCertificates = new X509Certificate2Collection() { userCert };
 
-//        if (response.ResponseStatus != ResponseStatus.Completed)
-//            throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s, Error: ", RstsClient.BaseUrl) +
-//                    response.ErrorMessage);
+        if (response == null)
+            throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s", rstsClient.getBaseURL()));
         if (response.getStatus() != 200) {
             String msg = StringUtils.isNullOrEmpty(certificatePath) ? String.format("thumbprint=%s", certificateThumbprint) : String.format("file=%s", certificatePath);
             String content = response.readEntity(String.class);
@@ -58,18 +57,21 @@ public class CertificateAuthenticator extends AuthenticatorBase
                     String.format(", Error: %d %s", response.getStatus(), content));
         }
         
-        Map<String,String> map = StringUtils.ParseResponse(response);
+        Map<String,String> map = StringUtils.parseResponse(response);
         
-        String accessToken = map.get("access_token");
-        return accessToken.toCharArray();
+        if (!map.containsKey("access_token")) {
+            throw new SafeguardForJavaException(String.format("Error retrieving the access token for certificate: %s", certificatePath));
+        }
+        
+        return map.get("access_token").toCharArray();
     }
 
     @Override
-    public void Dispose()
+    public void dispose()
     {
-        super.Dispose();
+        super.dispose();
         Arrays.fill(certificatePassword, '0');
-        _disposed = true;
+        disposed = true;
     }
     
     @Override
@@ -77,7 +79,7 @@ public class CertificateAuthenticator extends AuthenticatorBase
         try {
             Arrays.fill(certificatePassword, '0');
         } finally {
-            _disposed = true;
+            disposed = true;
             super.finalize();
         }
     }
