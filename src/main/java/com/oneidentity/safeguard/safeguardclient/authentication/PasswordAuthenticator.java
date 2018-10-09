@@ -19,7 +19,7 @@ import javax.ws.rs.core.Response;
 
 public class PasswordAuthenticator extends AuthenticatorBase 
 {
-    private boolean _disposed;
+    private boolean disposed;
 
     private final String provider;
     private String providerScope;
@@ -39,32 +39,29 @@ public class PasswordAuthenticator extends AuthenticatorBase
         this.password = password;
     }
 
-    private void ResolveProviderToScope() throws SafeguardForJavaException
+    private void resolveProviderToScope() throws SafeguardForJavaException
     {
         try
         {
             Response response;
             Map<String,String> headers = new HashMap<>();
             Map<String,String> parameters = new HashMap<>();
-            try
-            {
-                headers.clear();
-                parameters.clear();
+            
+            headers.clear();
+            parameters.clear();
+
+            headers.put("Content-type", "application/x-www-form-urlencoded");
+            parameters.put("response_type", "token");
+            parameters.put("redirect_uri", "urn:InstalledApplication");
+            parameters.put("loginRequestStep", "1");
+
+            response = rstsClient.execPOST("UserLogin/LoginController", parameters, headers, "RelayState=");
                 
-                headers.put("Content-type", "application/x-www-form-urlencoded");
-                parameters.put("response_type", "token");
-                parameters.put("redirect_uri", "urn:InstalledApplication");
-                parameters.put("loginRequestStep", "1");
-                
-                response = RstsClient.execPOST("UserLogin/LoginController", parameters, headers, "RelayState=");
-            }
-            catch (Exception ex)
-            {
-                response = RstsClient.execGET("UserLogin/LoginController", parameters, headers);
-            }
-//            if (response.ResponseStatus != ResponseStatus.Completed)
-//                throw new SafeguardForJavaException("Unable to connect to RSTS to find identity provider scopes, Error: " +
-//                                                   response.ErrorMessage);
+            if (response == null || response.getStatus() != 200)
+                response = rstsClient.execGET("UserLogin/LoginController", parameters, headers);
+            
+            if (response == null)
+                throw new SafeguardForJavaException("Unable to connect to RSTS to find identity provider scopes");
             if (response.getStatus() != 200)
                 throw new SafeguardForJavaException("Error requesting identity provider scopes from RSTS, Error: " +
                         String.format("%d %s", response.getStatus(), response.readEntity(String.class)));
@@ -90,34 +87,36 @@ public class PasswordAuthenticator extends AuthenticatorBase
     }
 
     @Override
-    protected char[] GetRstsTokenInternal() throws ObjectDisposedException, SafeguardForJavaException
+    protected char[] getRstsTokenInternal() throws ObjectDisposedException, SafeguardForJavaException
     {
-        if (_disposed)
+        if (disposed)
             throw new ObjectDisposedException("PasswordAuthenticator");
         if (providerScope == null)
-            ResolveProviderToScope();
+            resolveProviderToScope();
 
         OauthBody body = new OauthBody("password", username, password, providerScope);
-        Response response = RstsClient.execPOST("oauth2/token", null, null, body);
+        Response response = rstsClient.execPOST("oauth2/token", null, null, body);
 
-//        if (response.getStatus() != 200)
-//            throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s, Error: %s", RstsClient.getBaseURL(), response.readEntity(String.class)));
+        if (response == null)
+            throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s", rstsClient.getBaseURL()));
         if (response.getStatus() != 200)
             throw new SafeguardForJavaException(String.format("Error using password grant_type with scope %s, Error: ", providerScope) +
                     String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
 
-        Map<String,String> map = StringUtils.ParseResponse(response);
+        Map<String,String> map = StringUtils.parseResponse(response);
 
-        String accessToken = map.get("access_token");
-        return accessToken.toCharArray();
+        if (!map.containsKey("access_token"))
+            throw new SafeguardForJavaException(String.format("Error retrieving the access key for scope: %s", providerScope));
+        
+        return map.get("access_token").toCharArray();
     }
 
     @Override
-    public void Dispose()
+    public void dispose()
     {
-        super.Dispose();
+        super.dispose();
         Arrays.fill(password, '0');
-        _disposed = true;
+        disposed = true;
     }
     
     @Override
@@ -125,7 +124,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
         try {
             Arrays.fill(password, '0');
         } finally {
-            _disposed = true;
+            disposed = true;
             super.finalize();
         }
     }

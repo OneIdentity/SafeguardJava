@@ -26,51 +26,45 @@ class SafeguardConnection implements ISafeguardConnection {
 
         String safeguardCoreUrl = String.format("https://%s/service/core/v%d",
                 this.authenticationMechanism.getNetworkAddress(), this.authenticationMechanism.getApiVersion());
-        coreClient = new RestClient(safeguardCoreUrl);
+        coreClient = new RestClient(safeguardCoreUrl, authenticationMechanism.isIgnoreSsl());
 
         String safeguardApplianceUrl = String.format("https://%s/service/appliance/v%d",
                 this.authenticationMechanism.getNetworkAddress(), this.authenticationMechanism.getApiVersion());
-        applianceClient = new RestClient(safeguardApplianceUrl);
+        applianceClient = new RestClient(safeguardApplianceUrl, authenticationMechanism.isIgnoreSsl());
 
         String safeguardNotificationUrl = String.format("https://%s/service/notification/v%d",
                 this.authenticationMechanism.getNetworkAddress(), this.authenticationMechanism.getApiVersion());
-        notificationClient = new RestClient(safeguardNotificationUrl);
-
-//        if (authenticationMechanism.isIgnoreSsl()) {
-//            coreClient.RemoteCertificateValidationCallback += (sender, certificate, chain, errors) =  >   true;
-//            applianceClient.RemoteCertificateValidationCallback += (sender, certificate, chain, errors) =  >   true;
-//            notificationClient.RemoteCertificateValidationCallback += (sender, certificate, chain, errors) =  >   true;
-//        }
+        notificationClient = new RestClient(safeguardNotificationUrl, authenticationMechanism.isIgnoreSsl());
     }
 
     @Override
-    public int GetAccessTokenLifetimeRemaining() throws ObjectDisposedException, SafeguardForJavaException {
+    public int getAccessTokenLifetimeRemaining() throws ObjectDisposedException, SafeguardForJavaException {
         if (disposed) {
             throw new ObjectDisposedException("SafeguardConnection");
         }
-        return authenticationMechanism.GetAccessTokenLifetimeRemaining();
+        return authenticationMechanism.getAccessTokenLifetimeRemaining();
     }
 
     @Override
-    public void RefreshAccessToken() throws ObjectDisposedException, SafeguardForJavaException {
+    public void refreshAccessToken() throws ObjectDisposedException, SafeguardForJavaException {
         if (disposed) {
             throw new ObjectDisposedException("SafeguardConnection");
         }
-        authenticationMechanism.RefreshAccessToken();
+        authenticationMechanism.refreshAccessToken();
     }
 
     @Override
-    public String InvokeMethod(Service service, Method method, String relativeUrl, String body,
+    public String invokeMethod(Service service, Method method, String relativeUrl, String body,
             Map<String, String> parameters, Map<String, String> additionalHeaders)
             throws ObjectDisposedException, SafeguardForJavaException {
         if (disposed) {
             throw new ObjectDisposedException("SafeguardConnection");
         }
-        return InvokeMethodFull(service, method, relativeUrl, body, parameters, additionalHeaders).getBody();
+        return invokeMethodFull(service, method, relativeUrl, body, parameters, additionalHeaders).getBody();
     }
 
     @Override
-    public FullResponse InvokeMethodFull(Service service, Method method, String relativeUrl,
+    public FullResponse invokeMethodFull(Service service, Method method, String relativeUrl,
             String body, Map<String, String> parameters, Map<String, String> additionalHeaders)
             throws ObjectDisposedException, SafeguardForJavaException {
 
@@ -78,7 +72,7 @@ class SafeguardConnection implements ISafeguardConnection {
             throw new ObjectDisposedException("SafeguardConnection");
         }
         
-        RestClient client = GetClientForService(service);
+        RestClient client = getClientForService(service);
         
         Map<String,String> headers = prepareHeaders(additionalHeaders, service);
         Response response = null;
@@ -98,9 +92,9 @@ class SafeguardConnection implements ISafeguardConnection {
                 break;
         }
         
-//        if (response.ResponseStatus != ResponseStatus.Completed) {
-//            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s, Error: %s", client.BaseUrl, response.ErrorMessage));
-//        };
+        if (response == null) {
+            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", client.getBaseURL()));
+        };
         if (response.getStatus() != 200) {
             String reply = response.readEntity(String.class);
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
@@ -118,7 +112,7 @@ class SafeguardConnection implements ISafeguardConnection {
 //        return eventListener;
 //    }
 
-    private RestClient GetClientForService(Service service) throws SafeguardForJavaException {
+    private RestClient getClientForService(Service service) throws SafeguardForJavaException {
         switch (service) {
             case Core:
                 return coreClient;
@@ -140,7 +134,7 @@ class SafeguardConnection implements ISafeguardConnection {
         Map<String,String> headers = new HashMap<>();
         if (service != Service.Notification) { // SecureString handling here basically negates the use of a secure string anyway, but when calling a Web API
                                                // I'm not sure there is anything you can do about it.
-            headers.put("Authorization", String.format("Bearer %s", new String(authenticationMechanism.GetAccessToken())));
+            headers.put("Authorization", String.format("Bearer %s", new String(authenticationMechanism.getAccessToken())));
         }
         
         if (additionalHeaders != null) 
@@ -149,10 +143,11 @@ class SafeguardConnection implements ISafeguardConnection {
         return headers;
     }
 
-    public void Dispose()
+    @Override
+    public void dispose()
     {
         if (authenticationMechanism != null)
-            authenticationMechanism.Dispose();
+            authenticationMechanism.dispose();
         disposed = true;
     }
 
@@ -160,11 +155,10 @@ class SafeguardConnection implements ISafeguardConnection {
     protected void finalize() throws Throwable {
         try {
             if (authenticationMechanism != null)
-                authenticationMechanism.Dispose();
+                authenticationMechanism.dispose();
         } finally {
             disposed = true;
             super.finalize();
         }
     }
-    
 }

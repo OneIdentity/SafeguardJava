@@ -9,9 +9,9 @@ public interface IAuthenticationMechanism
     String getNetworkAddress();
     int getApiVersion();
     boolean isIgnoreSsl();
-    boolean HasAccessToken();
-    char[] GetAccessToken() throws ObjectDisposedException;
-    int GetAccessTokenLifetimeRemaining() throws ObjectDisposedException, SafeguardForJavaException;
-    void RefreshAccessToken() throws ObjectDisposedException, SafeguardForJavaException;
-    void Dispose();
+    boolean hasAccessToken();
+    char[] getAccessToken() throws ObjectDisposedException;
+    int getAccessTokenLifetimeRemaining() throws ObjectDisposedException, SafeguardForJavaException;
+    void refreshAccessToken() throws ObjectDisposedException, SafeguardForJavaException;
+    void dispose();
 }

@@ -4,33 +4,33 @@ import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaExce
 
 public class AccessTokenAuthenticator extends AuthenticatorBase
 {
-    private boolean _disposed;
+    private boolean disposed;
 
     public AccessTokenAuthenticator(String networkAddress, char[] accessToken,
         int apiVersion, boolean ignoreSsl)
     {
         super(networkAddress, null, null, apiVersion, ignoreSsl);
-        AccessToken = accessToken.clone();
+        this.accessToken = accessToken.clone();
     }
 
     @Override
-    protected  char[] GetRstsTokenInternal() throws SafeguardForJavaException
+    protected  char[] getRstsTokenInternal() throws SafeguardForJavaException
     {
         throw new SafeguardForJavaException("Original authentication was with access token unable to refresh, Error: Unsupported operation");
     }
 
     @Override
-    public void Dispose()
+    public void dispose()
     {
-        super.Dispose();
-        _disposed = true;
+        super.dispose();
+        disposed = true;
     }
     
     @Override
     protected void finalize() throws Throwable {
         try {
         } finally {
-            _disposed = true;
+            disposed = true;
             super.finalize();
         }
     }

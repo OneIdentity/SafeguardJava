@@ -11,38 +11,36 @@ import javax.ws.rs.core.Response;
 
 public class SafeguardA2AContext implements ISafeguardA2AContext
 {
-    private boolean _disposed;
+    private boolean disposed;
 
-    private final String _networkAddress;
-    private final boolean _ignoreSsl;
+    private final String networkAddress;
+    private final boolean ignoreSsl;
 
-    private final X509Certificate _clientCertificate;
-    private final String _certificatePath;
-    private final char[] _certificatePassword;
-    private final RestClient _a2AClient;
+    private final X509Certificate clientCertificate;
+    private final String certificatePath;
+    private final char[] certificatePassword;
+    private final RestClient a2AClient;
 
     private SafeguardA2AContext(String networkAddress, String certificateThumbprint, String certificatePath,
         char[] certificatePassword, int apiVersion, boolean ignoreSsl)
     {
-        _networkAddress = networkAddress;
-        String safeguardA2AUrl = String.format("https://%s/service/a2a/v%d", _networkAddress, apiVersion);
-        _a2AClient = new RestClient(safeguardA2AUrl);
+        this.networkAddress = networkAddress;
+        String safeguardA2AUrl = String.format("https://%s/service/a2a/v%d", this.networkAddress, apiVersion);
+        this.a2AClient = new RestClient(safeguardA2AUrl, ignoreSsl);
         
-        _certificatePath = certificatePath;
+        this.certificatePath = certificatePath;
         if (certificatePassword != null )
-            _certificatePassword = certificatePassword.clone();
+            this.certificatePassword = certificatePassword.clone();
         else
-            _certificatePassword = null;
+            this.certificatePassword = null;
         
-        _clientCertificate = null;
-        _ignoreSsl = ignoreSsl;
-//        if (ignoreSsl) {
-//            _a2AClient.RemoteCertificateValidationCallback += (sender, certificate, chain, errors) => true;
-//        }
-//        _clientCertificate = !StringUtils.isNullOrEmpty(certificateThumbprint)
+        this.clientCertificate = null;
+        this.ignoreSsl = ignoreSsl;
+        
+//        clientCertificate = !StringUtils.isNullOrEmpty(certificateThumbprint)
 //            ? CertificateUtilities.GetClientCertificateFromStore(certificateThumbprint)
 //            : CertificateUtilities.GetClientCertificateFromFile(certificatePath, certificatePassword);
-//        _a2AClient.ClientCertificates = new X509Certificate2Collection() { _clientCertificate };
+//        a2AClient.ClientCertificates = new X509Certificate2Collection() { clientCertificate };
     }
 
     public SafeguardA2AContext(String networkAddress, String certificateThumbprint, int apiVersion, boolean ignoreSsl) 
@@ -56,9 +54,9 @@ public class SafeguardA2AContext implements ISafeguardA2AContext
         this(networkAddress, null, certificatePath, certificatePassword, apiVersion, ignoreSsl);
     }
 
-    public char[] RetrievePassword(char[] apiKey) throws ObjectDisposedException, SafeguardForJavaException
+    public char[] retrievePassword(char[] apiKey) throws ObjectDisposedException, SafeguardForJavaException
     {
-        if (_disposed)
+        if (disposed)
             throw new ObjectDisposedException("SafeguardA2AContext");
 
         Map<String,String> headers = new HashMap<>();
@@ -67,11 +65,10 @@ public class SafeguardA2AContext implements ISafeguardA2AContext
         Map<String,String> parameters = new HashMap<>();
         parameters.put("type", "Password");
         
-        Response response = _a2AClient.execGET("Credentials", parameters, headers, _certificatePath, _certificatePassword);
+        Response response = a2AClient.execGET("Credentials", parameters, headers, certificatePath, certificatePassword);
         
-//        if (response.ResponseStatus != ResponseStatus.Completed)
-//            throw new SafeguardDotNetException($"Unable to connect to web service {_a2AClient.BaseUrl}, Error: " +
-//                                               response.ErrorMessage);
+        if (response == null)
+            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
         if (response.getStatus() != 200)
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: " +
                     String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
@@ -80,44 +77,44 @@ public class SafeguardA2AContext implements ISafeguardA2AContext
         return password;
     }
 
-//    private ISafeguardEventListener GetEventListenerInternal(SecureString apiKey)
+//    private ISafeguardEventListener getEventListenerInternal(SecureString apiKey)
 //    {
-//        var eventListener = new SafeguardEventListener($"https://{_networkAddress}/service/a2a", _clientCertificate,
-//            apiKey, _ignoreSsl);
+//        var eventListener = new SafeguardEventListener($"https://{networkAddress}/service/a2a", clientCertificate,
+//            apiKey, ignoreSsl);
 //        return eventListener;
 //    }
 
-//    public ISafeguardEventListener GetEventListener(SecureString apiKey, SafeguardEventHandler handler)
+//    public ISafeguardEventListener getEventListener(SecureString apiKey, SafeguardEventHandler handler)
 //    {
-//        if (_disposed)
+//        if (disposed)
 //            throw new ObjectDisposedException("SafeguardA2AContext");
 //        var eventListener = GetEventListenerInternal(apiKey);
 //        eventListener.RegisterEventHandler("AssetAccountPasswordUpdated", handler);
 //        return eventListener;
 //    }
 
-//    public ISafeguardEventListener GetEventListener(SecureString apiKey, SafeguardParsedEventHandler handler)
+//    public ISafeguardEventListener getEventListener(SecureString apiKey, SafeguardParsedEventHandler handler)
 //    {
-//        if (_disposed)
+//        if (disposed)
 //            throw new ObjectDisposedException("SafeguardA2AContext");
 //        var eventListener = GetEventListenerInternal(apiKey);
 //        eventListener.RegisterEventHandler("AssetAccountPasswordUpdated", handler);
 //        return eventListener;
 //    }
 
-    public void Dispose()
+    public void dispose()
     {
-        if (_certificatePassword != null)
-            Arrays.fill(_certificatePassword, '0');
-        _disposed = true;
+        if (certificatePassword != null)
+            Arrays.fill(certificatePassword, '0');
+        disposed = true;
     }
     
     protected void finalize() throws Throwable {
         try {
-        if (_certificatePassword != null)
-            Arrays.fill(_certificatePassword, '0');
+        if (certificatePassword != null)
+            Arrays.fill(certificatePassword, '0');
         } finally {
-            _disposed = true;
+            disposed = true;
             super.finalize();
         }
     }
