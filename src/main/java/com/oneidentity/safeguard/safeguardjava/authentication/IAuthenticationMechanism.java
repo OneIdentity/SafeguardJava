@@ -1,7 +1,7 @@
-package com.oneidentity.safeguard.safeguardclient.authentication;
+package com.oneidentity.safeguard.safeguardjava.authentication;
 
-import com.oneidentity.safeguard.safeguardclient.exceptions.ObjectDisposedException;
-import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 
 
 public interface IAuthenticationMechanism

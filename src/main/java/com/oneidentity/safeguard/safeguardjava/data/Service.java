@@ -1,4 +1,4 @@
-package com.oneidentity.safeguard.safeguardclient.data;
+package com.oneidentity.safeguard.safeguardjava.data;
 
 /**
  * Service identifiers for the different services in the Safeguard API.

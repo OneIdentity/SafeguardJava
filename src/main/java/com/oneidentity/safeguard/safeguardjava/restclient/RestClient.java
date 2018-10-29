@@ -1,4 +1,4 @@
-package com.oneidentity.safeguard.safeguardclient.restclient;
+package com.oneidentity.safeguard.safeguardjava.restclient;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;

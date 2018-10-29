@@ -1,8 +1,8 @@
-package com.oneidentity.safeguard.safeguardclient;
+package com.oneidentity.safeguard.safeguardjava;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.oneidentity.safeguard.safeguardclient.authentication.PasswordAuthenticator;
+import com.oneidentity.safeguard.safeguardjava.authentication.PasswordAuthenticator;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

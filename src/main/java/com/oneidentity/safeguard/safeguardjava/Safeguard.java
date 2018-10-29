@@ -1,12 +1,12 @@
-package com.oneidentity.safeguard.safeguardclient;
+package com.oneidentity.safeguard.safeguardjava;
 
-import com.oneidentity.safeguard.safeguardclient.authentication.AccessTokenAuthenticator;
-import com.oneidentity.safeguard.safeguardclient.authentication.AnonymousAuthenticator;
-import com.oneidentity.safeguard.safeguardclient.authentication.CertificateAuthenticator;
-import com.oneidentity.safeguard.safeguardclient.authentication.IAuthenticationMechanism;
-import com.oneidentity.safeguard.safeguardclient.authentication.PasswordAuthenticator;
-import com.oneidentity.safeguard.safeguardclient.exceptions.ObjectDisposedException;
-import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.authentication.AccessTokenAuthenticator;
+import com.oneidentity.safeguard.safeguardjava.authentication.AnonymousAuthenticator;
+import com.oneidentity.safeguard.safeguardjava.authentication.CertificateAuthenticator;
+import com.oneidentity.safeguard.safeguardjava.authentication.IAuthenticationMechanism;
+import com.oneidentity.safeguard.safeguardjava.authentication.PasswordAuthenticator;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 
 
 /** 

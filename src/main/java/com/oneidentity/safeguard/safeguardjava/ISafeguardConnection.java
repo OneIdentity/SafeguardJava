@@ -1,10 +1,10 @@
-package com.oneidentity.safeguard.safeguardclient;
+package com.oneidentity.safeguard.safeguardjava;
 
-import com.oneidentity.safeguard.safeguardclient.data.FullResponse;
-import com.oneidentity.safeguard.safeguardclient.data.Method;
-import com.oneidentity.safeguard.safeguardclient.data.Service;
-import com.oneidentity.safeguard.safeguardclient.exceptions.ObjectDisposedException;
-import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
+import com.oneidentity.safeguard.safeguardjava.data.Method;
+import com.oneidentity.safeguard.safeguardjava.data.Service;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.util.Map;
 
 /**

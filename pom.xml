@@ -3,14 +3,31 @@
     <modelVersion>4.0.0</modelVersion>
     
     <groupId>com.oneidentity.safeguard</groupId>
-    <artifactId>safeguardclientlib</artifactId>
+    <artifactId>safeguardjava</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
     
+    <name>safeguardjava</name>
+    <description>One Identity Safeguard Web API Java SDK</description>
+    <url>https://github.com/OneIdentity/SafeguardJava</url>
+      
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     
+    <organization>
+      <name>One Identity LLC</name>
+      <url>https://www.oneidentity.com/</url>
+    </organization>
+  
+    <licenses>
+      <license>
+        <name>Apache License, Version 2.0</name>
+        <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        <distribution>repo</distribution>
+      </license>
+    </licenses>
+      
     <dependencies>
         <dependency>
             <groupId>org.glassfish.jersey.core</groupId>
@@ -31,7 +48,7 @@
     </dependencies>
 
     <build>
-        <finalName>safeguardclientlib</finalName>
+        <finalName>safeguardjava</finalName>
         
         <plugins>
             <plugin>
@@ -66,4 +83,10 @@
         </plugins>
     </build>
 
+    <scm>
+      <connection>scm:git:git://github.com/OneIdentity/SafeguardJava</connection>
+      <tag>HEAD</tag>
+      <url>https://github.com/OneIdentity/SafeguardJava</url>
+    </scm>
+  
 </project>

@@ -1,4 +1,4 @@
-package com.oneidentity.safeguard.safeguardclient.data;
+package com.oneidentity.safeguard.safeguardjava.data;
 
 public class AccessTokenBody {
     

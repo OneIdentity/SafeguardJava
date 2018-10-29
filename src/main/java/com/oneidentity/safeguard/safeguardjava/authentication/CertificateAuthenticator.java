@@ -1,9 +1,9 @@
-package com.oneidentity.safeguard.safeguardclient.authentication;
+package com.oneidentity.safeguard.safeguardjava.authentication;
 
-import com.oneidentity.safeguard.safeguardclient.StringUtils;
-import com.oneidentity.safeguard.safeguardclient.data.OauthBody;
-import com.oneidentity.safeguard.safeguardclient.exceptions.ObjectDisposedException;
-import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.StringUtils;
+import com.oneidentity.safeguard.safeguardjava.data.OauthBody;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.util.Arrays;
 import java.util.Map;
 import javax.ws.rs.core.Response;

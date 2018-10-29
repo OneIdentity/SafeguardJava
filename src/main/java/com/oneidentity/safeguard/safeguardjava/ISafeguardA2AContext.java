@@ -1,7 +1,7 @@
-package com.oneidentity.safeguard.safeguardclient;
+package com.oneidentity.safeguard.safeguardjava;
 
-import com.oneidentity.safeguard.safeguardclient.exceptions.ObjectDisposedException;
-import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 
 /**
  *  This is a reusable interface for calling Safeguard A2A without having to continually
