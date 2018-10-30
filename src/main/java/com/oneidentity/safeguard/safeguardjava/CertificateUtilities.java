@@ -1,6 +1,6 @@
-package com.oneidentity.safeguard.safeguardclient;
+package com.oneidentity.safeguard.safeguardjava;
 
-import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.security.cert.X509Certificate;
 
 public class CertificateUtilities

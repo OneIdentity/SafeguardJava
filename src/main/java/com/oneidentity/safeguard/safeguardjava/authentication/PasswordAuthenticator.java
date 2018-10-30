@@ -1,11 +1,11 @@
-package com.oneidentity.safeguard.safeguardclient.authentication;
+package com.oneidentity.safeguard.safeguardjava.authentication;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.oneidentity.safeguard.safeguardclient.StringUtils;
-import com.oneidentity.safeguard.safeguardclient.data.OauthBody;
-import com.oneidentity.safeguard.safeguardclient.exceptions.ObjectDisposedException;
-import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.StringUtils;
+import com.oneidentity.safeguard.safeguardjava.data.OauthBody;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -1,8 +1,8 @@
-package com.oneidentity.safeguard.safeguardclient;
+package com.oneidentity.safeguard.safeguardjava;
 
-import com.oneidentity.safeguard.safeguardclient.exceptions.ObjectDisposedException;
-import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
-import com.oneidentity.safeguard.safeguardclient.restclient.RestClient;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.restclient.RestClient;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.HashMap;

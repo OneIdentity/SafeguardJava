@@ -1,6 +1,6 @@
-package com.oneidentity.safeguard.safeguardclient.authentication;
+package com.oneidentity.safeguard.safeguardjava.authentication;
 
-import com.oneidentity.safeguard.safeguardclient.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 
 public class AnonymousAuthenticator extends AuthenticatorBase {
 

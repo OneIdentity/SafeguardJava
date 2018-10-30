@@ -1,4 +1,4 @@
-package com.oneidentity.safeguard.safeguardclient.exceptions;
+package com.oneidentity.safeguard.safeguardjava.exceptions;
 
 public class ObjectDisposedException extends Exception {
 
