@@ -84,14 +84,16 @@ public final class Safeguard
      *   have been loaded in the java process.
      *
      *   @param networkAddress          Network address of Safeguard appliance.
-     *   @param certificateThumbprint   SHA-1 hash identifying a client certificate in personal (My) store.
+     *   @param keystorePath            Path to the keystore containing the client certificate.
+     *   @param keystorePassword        Keystore password.
+     *   @param certificateAlias        Alias identifying a client certificate in the keystore.
      *   @param apiVersion              Target API version to use.
      *   @param ignoreSsl               Ignore server certificate validation.
      *   @return                        Reusable Safeguard API connection.
      *   @throws ObjectDisposedException Object has already been disposed.
      *   @throws SafeguardForJavaException General Safeguard for Java exception.
      */ 
-    public static ISafeguardConnection Connect(String networkAddress, String certificateThumbprint,
+    public static ISafeguardConnection Connect(String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias,
         Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, SafeguardForJavaException
     {
         int version = DEFAULTAPIVERSION;
@@ -102,7 +104,7 @@ public final class Safeguard
         if (ignoreSsl != null)
             sslIgnore = ignoreSsl;
         
-        return GetConnection(new CertificateAuthenticator(networkAddress, certificateThumbprint, version, sslIgnore));
+        return GetConnection(new CertificateAuthenticator(networkAddress, keystorePath, keystorePassword, certificateAlias, version, sslIgnore));
     }
 
     /**

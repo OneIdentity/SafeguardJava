@@ -103,7 +103,7 @@ public class RestClient {
 
     public Response execGET(String path, Map<String, String> queryParams, Map<String, String> headers, String certificatePath, char[] keyPass) {
 
-        Client certClient = getClientWithCertificate(certificatePath, keyPass);
+        Client certClient = getClientWithCertificate(certificatePath, keyPass, null);
 
         if (certClient != null) {
             WebTarget service = prepareService(certClient, path, queryParams);
@@ -156,9 +156,10 @@ public class RestClient {
         }
     }
 
-    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, Object requestEntity, String certificatePath, char[] keyPass) {
+    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, Object requestEntity, 
+            String certificatePath, char[] keyPass, String certificateAlias) {
 
-        Client certClient = getClientWithCertificate(certificatePath, keyPass);
+        Client certClient = getClientWithCertificate(certificatePath, keyPass, certificateAlias);
 
         if (certClient != null) {
             WebTarget service = prepareService(certClient, path, queryParams);
@@ -204,7 +205,7 @@ public class RestClient {
         }
     }
 
-    private Client getClientWithCertificate(String certificatePath, char[] keyPass) {
+    private Client getClientWithCertificate(String certificatePath, char[] keyPass, String certificateAlias) {
 
         Client certClient = null;
         if (certificatePath != null) {
@@ -226,7 +227,7 @@ public class RestClient {
             }
 
             certClient = ClientBuilder.newBuilder()
-                    .sslContext(getSSLContext(clientKs, keyPass, aliases))
+                    .sslContext(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias))
                     .hostnameVerifier(allowAll)
                     .register(new LoggingFeature(logger, Level.FINE, null, null)).build();
         }
@@ -259,7 +260,7 @@ public class RestClient {
         return requestBuilder;
     }
 
-    private SSLContext getSSLContext(KeyStore keyStorePath, char[] keyStorePassword, List<String> aliases) {
+    private SSLContext getSSLContext(KeyStore keyStorePath, char[] keyStorePassword, String alias) {
 
         TrustManager[] customTrustManager = null;
         KeyManager[] customKeyManager = null;
@@ -281,11 +282,11 @@ public class RestClient {
             }};
         }
   
-        if (keyStorePath != null && keyStorePassword != null && aliases != null) {
+        if (keyStorePath != null && keyStorePassword != null && alias != null) {
             try {
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
                 keyManagerFactory.init(keyStorePath, keyStorePassword);
-                customKeyManager = new KeyManager[]{new SafeguardExtendedX509KeyManager((X509KeyManager) keyManagerFactory.getKeyManagers()[0], aliases.get(0))};
+                customKeyManager = new KeyManager[]{new SafeguardExtendedX509KeyManager((X509KeyManager) keyManagerFactory.getKeyManagers()[0], alias)};
             } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException ex) {
                 ex.printStackTrace();
             }
