@@ -14,6 +14,8 @@ public interface ISafeguardA2AContext
     
      *  @param apiKey   API key corresponding to the configured account.
      *  @return         The password.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
     char[] retrievePassword(char[] apiKey) throws ObjectDisposedException, SafeguardForJavaException;
 

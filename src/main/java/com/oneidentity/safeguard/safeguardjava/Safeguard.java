@@ -61,6 +61,8 @@ public final class Safeguard
      *   @param apiVersion      Target API version to use.
      *   @param ignoreSsl       Ignore server certificate validation.
      *   @return                Reusable Safeguard API connection.
+     *   @throws ObjectDisposedException Object has already been disposed.
+     *   @throws SafeguardForJavaException General Safeguard for Java exception.
      */ 
     public static ISafeguardConnection Connect(String networkAddress, String provider, String username,
         char[] password, Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, SafeguardForJavaException
@@ -78,14 +80,16 @@ public final class Safeguard
     }
 
     /**
-     *  Connect to Safeguard API using a certificate from the certificate store.  Use PowerShell to list certificates with
-     *  SHA-1 thumbprint.  PS> gci Cert:\CurrentUser\My
+     *  Connect to Safeguard API using a certificate from the keystore.  The appropriate keystore must
+     *   have been loaded in the java process.
      *
      *   @param networkAddress          Network address of Safeguard appliance.
      *   @param certificateThumbprint   SHA-1 hash identifying a client certificate in personal (My) store.
      *   @param apiVersion              Target API version to use.
      *   @param ignoreSsl               Ignore server certificate validation.
      *   @return                        Reusable Safeguard API connection.
+     *   @throws ObjectDisposedException Object has already been disposed.
+     *   @throws SafeguardForJavaException General Safeguard for Java exception.
      */ 
     public static ISafeguardConnection Connect(String networkAddress, String certificateThumbprint,
         Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, SafeguardForJavaException
@@ -110,6 +114,8 @@ public final class Safeguard
      *   @param apiVersion          Target API version to use.
      *   @param ignoreSsl           Ignore server certificate validation.
      *   @return                    Reusable Safeguard API connection.
+     *   @throws ObjectDisposedException Object has already been disposed.
+     *   @throws SafeguardForJavaException General Safeguard for Java exception.
      */ 
     public static ISafeguardConnection Connect(String networkAddress, String certificatePath,
         char[] certificatePassword, Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, SafeguardForJavaException
@@ -131,7 +137,7 @@ public final class Safeguard
      *
      *   @param networkAddress  Network address.
      *   @param apiVersion      API version.
-     *   @param ignoreSsl       If set to <c>true</c> ignore ssl.
+     *   @param ignoreSsl       If set to <code>true</code> ignore ssl.
      *   @return                The connect.
      */ 
     public static ISafeguardConnection Connect(String networkAddress, Integer apiVersion, Boolean ignoreSsl)
@@ -156,8 +162,8 @@ public final class Safeguard
     public static class A2A
     {
         /**
-         *  Establish a Safeguard A2A context using a certificate from the certificate store.  Use PowerShell to
-         *  list certificates with SHA-1 thumbprint.  PS> gci Cert:\CurrentUser\My
+         *  Establish a Safeguard A2A context using a certificate from the keystore.  The appropriate keystore must
+         *   have been loaded in the java process.
          *
          *   @param networkAddress          Network address of Safeguard appliance.
          *   @param certificateThumbprint   SHA-1 hash identifying a client certificate in personal (My) store.
