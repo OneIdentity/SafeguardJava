@@ -12,17 +12,17 @@ public class CertificateAuthenticator extends AuthenticatorBase
 {
     private boolean disposed;
 
-    private final String certificateThumbprint;
+    private final String certificateAlias;
     private final String certificatePath;
     private final char[] certificatePassword;
 
-    public CertificateAuthenticator(String networkAddress, String certificateThumbprint, int apiVersion,
+    public CertificateAuthenticator(String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias, int apiVersion,
         boolean ignoreSsl)
     {
         super(networkAddress, null, null, apiVersion, ignoreSsl);
-        this.certificateThumbprint = certificateThumbprint;
-        this.certificatePath = null;
-        this.certificatePassword = null;
+        this.certificateAlias = certificateAlias;
+        this.certificatePath = keystorePath;
+        this.certificatePassword = keystorePassword.clone();
     }
 
     public CertificateAuthenticator(String networkAddress, String certificatePath, char[] certificatePassword,
@@ -31,7 +31,7 @@ public class CertificateAuthenticator extends AuthenticatorBase
         super(networkAddress, certificatePath, certificatePassword, apiVersion, ignoreSsl);
         this.certificatePath = certificatePath;
         this.certificatePassword = certificatePassword.clone();
-        this.certificateThumbprint = null;
+        this.certificateAlias = null;
     }
 
     @Override
@@ -40,18 +40,15 @@ public class CertificateAuthenticator extends AuthenticatorBase
         if (disposed)
             throw new ObjectDisposedException("CertificateAuthenticator");
 
+        Response response = null;
         OauthBody body = new OauthBody("client_credentials", "rsts:sts:primaryproviderid:certificate");
-        Response response = rstsClient.execPOST("oauth2/token", null, null, body, certificatePath, certificatePassword);
         
-//        var userCert = !StringUtils.isNullOrEmpty(certificateThumbprint)
-//            ? CertificateUtilities.GetClientCertificateFromStore(_certificateThumbprint)
-//            : CertificateUtilities.GetClientCertificateFromFile(_certificatePath, _certificatePassword);
-//        rstsClient.ClientCertificates = new X509Certificate2Collection() { userCert };
-
+        response = rstsClient.execPOST("oauth2/token", null, null, body, certificatePath, certificatePassword, certificateAlias);
+            
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s", rstsClient.getBaseURL()));
         if (response.getStatus() != 200) {
-            String msg = StringUtils.isNullOrEmpty(certificatePath) ? String.format("thumbprint=%s", certificateThumbprint) : String.format("file=%s", certificatePath);
+            String msg = StringUtils.isNullOrEmpty(certificateAlias) ? String.format("file=%s", certificatePath) : String.format("alias=%s", certificateAlias);
             String content = response.readEntity(String.class);
             throw new SafeguardForJavaException("Error using client_credentials grant_type with " + msg +
                     String.format(", Error: %d %s", response.getStatus(), content));
