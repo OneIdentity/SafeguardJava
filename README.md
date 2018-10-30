@@ -1,4 +1,5 @@
 [![GitHub](https://img.shields.io/github/license/OneIdentity/SafeguardDotNet.svg)](https://github.com/OneIdentity/SafeguardDotNet/blob/master/LICENSE)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.oneidentity.safeguard/safeguardjava/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.oneidentity.safeguard/safeguard)
 
 # SafeguardJava
 
