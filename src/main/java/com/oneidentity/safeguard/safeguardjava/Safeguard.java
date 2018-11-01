@@ -164,16 +164,17 @@ public final class Safeguard
     public static class A2A
     {
         /**
-         *  Establish a Safeguard A2A context using a certificate from the keystore.  The appropriate keystore must
-         *   have been loaded in the java process.
+         *  Establish a Safeguard A2A context using a certificate from the keystore.  
          *
          *   @param networkAddress          Network address of Safeguard appliance.
-         *   @param certificateThumbprint   SHA-1 hash identifying a client certificate in personal (My) store.
+         *   @param keystorePath            Path to the keystore containing the client certificate.
+         *   @param keystorePassword        Keystore password.
+         *   @param certificateAlias        Alias identifying a client certificate in the keystore.
          *   @param apiVersion              Target API version to use.
          *   @param ignoreSsl               Ignore server certificate validation.
          *   @return                        Reusable Safeguard A2A context.
          */
-        public static ISafeguardA2AContext GetContext(String networkAddress, String certificateThumbprint,
+        public static ISafeguardA2AContext GetContext(String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias,
             Integer apiVersion, Boolean ignoreSsl)
         {
             int version = DEFAULTAPIVERSION;
@@ -184,7 +185,7 @@ public final class Safeguard
             if (ignoreSsl != null)
                 sslIgnore = ignoreSsl;
         
-            return new SafeguardA2AContext(networkAddress, certificateThumbprint, version, sslIgnore);
+            return new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, sslIgnore);
         }
 
         /**

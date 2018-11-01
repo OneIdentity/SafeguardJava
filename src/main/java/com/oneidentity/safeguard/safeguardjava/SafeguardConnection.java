@@ -2,6 +2,7 @@ package com.oneidentity.safeguard.safeguardjava;
 
 import com.oneidentity.safeguard.safeguardjava.authentication.IAuthenticationMechanism;
 import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
+import com.oneidentity.safeguard.safeguardjava.data.JsonBody;
 import com.oneidentity.safeguard.safeguardjava.data.Method;
 import com.oneidentity.safeguard.safeguardjava.data.Service;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
@@ -82,10 +83,10 @@ class SafeguardConnection implements ISafeguardConnection {
                 response = client.execGET(relativeUrl, parameters, headers);
                 break;
             case Post:
-                response = client.execPOST(relativeUrl, parameters, headers, body);
+                response = client.execPOST(relativeUrl, parameters, headers, new JsonBody(body));
                 break;
             case Put:
-                response = client.execPUT(relativeUrl, parameters, headers, body);
+                response = client.execPUT(relativeUrl, parameters, headers, new JsonBody(body));
                 break;
             case Delete:
                 response = client.execDELETE(relativeUrl, parameters, headers);
@@ -94,7 +95,7 @@ class SafeguardConnection implements ISafeguardConnection {
         
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", client.getBaseURL()));
-        };
+        }
         if (response.getStatus() != 200) {
             String reply = response.readEntity(String.class);
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "

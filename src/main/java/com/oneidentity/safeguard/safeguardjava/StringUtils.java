@@ -19,6 +19,13 @@ public class StringUtils {
         return param == null || param.trim().length() == 0;
     }
     
+    public static String toJsonString (String name, Object value, boolean prependSep) {
+        if (value != null) {
+            return (prependSep ? ", " : "") + "\"" + name + "\" : " + (value instanceof String ? "\"" + value.toString() + "\"" : value.toString());
+        }
+        return "";
+    }
+
     public static Map<String,String> parseResponse(Response response) {
         String resp = response.readEntity(String.class);
         

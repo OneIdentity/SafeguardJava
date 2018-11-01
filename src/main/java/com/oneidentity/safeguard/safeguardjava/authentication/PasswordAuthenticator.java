@@ -3,6 +3,7 @@ package com.oneidentity.safeguard.safeguardjava.authentication;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneidentity.safeguard.safeguardjava.StringUtils;
+import com.oneidentity.safeguard.safeguardjava.data.JsonBody;
 import com.oneidentity.safeguard.safeguardjava.data.OauthBody;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
@@ -55,7 +56,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
             parameters.put("redirect_uri", "urn:InstalledApplication");
             parameters.put("loginRequestStep", "1");
 
-            response = rstsClient.execPOST("UserLogin/LoginController", parameters, headers, "RelayState=");
+            response = rstsClient.execPOST("UserLogin/LoginController", parameters, headers, new JsonBody("RelayState="));
                 
             if (response == null || response.getStatus() != 200)
                 response = rstsClient.execGET("UserLogin/LoginController", parameters, headers);
