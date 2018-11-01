@@ -41,7 +41,7 @@ A simple code example for calling the Safeguard API:
 
 ```Java
 byte[] password = GetPasswordSomehow(); // default password is "Admin123"
-ISafeguardConnection connection = Safeguard.Connect("10.5.32.162", "local", "Admin", password, null, true);
+ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp", "local", "Admin", password, null, true);
 System.out.println(connection.InvokeMethod(Service.Core, Method.Get, "Me", null, null, null));
 connection.dispose();
 ```
@@ -50,16 +50,16 @@ Certificates must be in a PFX (PKCS12) file.
 
 ```Java
 byte[] certificatePassword = GetPasswordSomehow();
-ISafeguardConnection connection = Safeguard.Connect("10.5.32.162", "C:\\cert.pfx", certificatePassword, null, true);
+ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp", "C:\\cert.pfx", certificatePassword, null, true);
 System.out.println(connection.InvokeMethod(Service.Core, Method.Get, "Me", null, null, null));
 connection.dispose();
 ```
 
-A final method that is available is using an existing Safeguard API token.
+A final authentication method that is available is using an existing Safeguard API token.
 
 ```Java
 byte[] apiToken = GetTokenSomehow();
-ISafeguardConnection connection = Safeguard.Connect("10.5.32.162", apiToken, null, true);
+ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp", apiToken, null, true);
 System.out.println(connection.InvokeMethod(Service.Core, Method.Get, "Me", null, null, null));
 connection.dispose();
 ```
@@ -94,3 +94,70 @@ Each of these services provides a separate Swagger endpoint.
 
 You may use the `Authorize` button at the top of the screen to get an API token
 to call the Safeguard API directly using Swagger.
+
+To call the a2a service you should begin by using `Safeguard.A2A.GetContext()` rather than
+`Safeguard.Connect()`.
+
+### Examples
+
+Most functionality is in the core service as mentioned above.  The notification service
+provides read-only information for status, etc.
+
+#### Anonymous Call for Safeguard Status
+
+```Java
+ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp");
+System.out.println(connection.InvokeMethod(Service.Core, Method.Get, "Status"));
+```
+
+#### Create a New Linux Asset
+
+```Java
+// Assume connection is already made
+String json = connection.InvokeMethod(Service.Core, Method.Post, "Assets", 
+    JsonConvert.SerializeObject(new { 
+        Name = "linux.blue.vas",
+        NetworkAddress = "linux.blue.vas",
+        Description = "A new linux asset",
+        PlatformId = 188, // Ubuntu Other
+        AssetPartitionId = -1
+    }));
+System.out.println(json);
+```
+
+## Using SafeguardJava from a New NetBeans Project
+
+First, create a directory with the name you want to give your project and change directory into it.
+
+Run:
+```PowerShell
+PS> dotnet new console  - Replace with an archetype call
+```
+
+This will create a `console` project.  
+
+Run:
+```PowerShell
+PS> dotnet add package OneIdentity.SafeguardJava    - Replace with adding to the POM.XML
+```
+
+This will add the latest OneIdentity.SafeguardJava Maven package into your project.
+
+Run:
+```PowerShell
+PS> dotnet restore   - Replace with Maven
+```
+
+This will restore NuGet packages into your project so you can get code completion in the editor
+
+Finally, run:
+```PowerShell
+PS> code .
+```
+
+This will open the Visual Studio Code editor so you can begin adding code to your project.
+
+Add the using directive at the top your file to call SafeguardJava:
+```Java
+Import OneIdentity.SafeguardDotNet;   - Replace with import statements
+```

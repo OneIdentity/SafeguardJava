@@ -1,5 +1,6 @@
 package com.oneidentity.safeguard.safeguardjava.restclient;
 
+import com.oneidentity.safeguard.safeguardjava.data.JsonObject;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -130,33 +131,33 @@ public class RestClient {
         }
     }
 
-    public Response execPUT(String path, Map<String, String> queryParams, Map<String, String> headers, Object requestEntity) {
+    public Response execPUT(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
 
         WebTarget service = prepareService(client, path, queryParams);
         Builder requestBuilder = prepareRequest(service, headers);
 
         try {
-            Response r = requestBuilder.put(Entity.json(requestEntity.toString()), Response.class);
+            Response r = requestBuilder.put(Entity.json(requestEntity.toJson()), Response.class);
             return r;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, Object requestEntity) {
+    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
 
         WebTarget service = prepareService(client, path, queryParams);
         Builder requestBuilder = prepareRequest(service, headers);
 
         try {
-            Response r = requestBuilder.post(Entity.json(requestEntity.toString()), Response.class);
+            Response r = requestBuilder.post(Entity.json(requestEntity.toJson()), Response.class);
             return r;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, Object requestEntity, 
+    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity, 
             String certificatePath, char[] keyPass, String certificateAlias) {
 
         Client certClient = getClientWithCertificate(certificatePath, keyPass, certificateAlias);
@@ -166,7 +167,7 @@ public class RestClient {
             Builder requestBuilder = prepareRequest(service, headers);
 
             try {
-                Response r = requestBuilder.post(Entity.json(requestEntity.toString()), Response.class);
+                Response r = requestBuilder.post(Entity.json(requestEntity.toJson()), Response.class);
                 return r;
             } catch (Exception ex) {
                 return null;
