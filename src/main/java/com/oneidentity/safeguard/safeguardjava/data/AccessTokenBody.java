@@ -1,6 +1,6 @@
 package com.oneidentity.safeguard.safeguardjava.data;
 
-import com.oneidentity.safeguard.safeguardjava.StringUtils;
+import com.oneidentity.safeguard.safeguardjava.Utils;
 
 public class AccessTokenBody implements JsonObject {
     
@@ -13,7 +13,7 @@ public class AccessTokenBody implements JsonObject {
     @Override
     public String toJson() {
         return new StringBuffer("{")
-                .append(StringUtils.toJsonString("StsAccessToken", new String(this.stsAccessToken), false))
+                .append(Utils.toJsonString("StsAccessToken", new String(this.stsAccessToken), false))
                 .append("}").toString();
     }
 }

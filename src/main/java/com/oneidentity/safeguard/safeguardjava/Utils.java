@@ -4,15 +4,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneidentity.safeguard.safeguardjava.authentication.PasswordAuthenticator;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.core.Response;
 
-public class StringUtils {
+public class Utils {
 
-    private StringUtils() {
+    private Utils() {
     }
     
     public static boolean isNullOrEmpty(String param) {
@@ -40,5 +42,16 @@ public class StringUtils {
         return map;
     }
     
+    public static boolean isSuccessful(int status) {
+        switch (status) {
+            case 200:
+            case 201:
+            case 202:
+            case 204:
+                return true;
+            default:
+                return false;
+        }
+    }
     
 }

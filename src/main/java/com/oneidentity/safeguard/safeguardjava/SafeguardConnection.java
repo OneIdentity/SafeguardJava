@@ -1,5 +1,6 @@
 package com.oneidentity.safeguard.safeguardjava;
 
+import com.oneidentity.safeguard.safeguardjava.authentication.AnonymousAuthenticator;
 import com.oneidentity.safeguard.safeguardjava.authentication.IAuthenticationMechanism;
 import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
 import com.oneidentity.safeguard.safeguardjava.data.JsonBody;
@@ -96,7 +97,7 @@ class SafeguardConnection implements ISafeguardConnection {
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", client.getBaseURL()));
         }
-        if (response.getStatus() != 200) {
+        if (!Utils.isSuccessful(response.getStatus())) {
             String reply = response.readEntity(String.class);
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
                     + String.format("%d %s", response.getStatus(), reply));
@@ -133,8 +134,7 @@ class SafeguardConnection implements ISafeguardConnection {
             throws ObjectDisposedException {
         
         Map<String,String> headers = new HashMap<>();
-        if (service != Service.Notification) { // SecureString handling here basically negates the use of a secure string anyway, but when calling a Web API
-                                               // I'm not sure there is anything you can do about it.
+        if (!(authenticationMechanism instanceof AnonymousAuthenticator)) { 
             headers.put("Authorization", String.format("Bearer %s", new String(authenticationMechanism.getAccessToken())));
         }
         
