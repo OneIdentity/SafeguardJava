@@ -64,7 +64,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext
         
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
-        if (response.getStatus() != 200)
+        if (!Utils.isSuccessful(response.getStatus())) 
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: " +
                     String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
         

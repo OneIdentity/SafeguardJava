@@ -1,6 +1,6 @@
 package com.oneidentity.safeguard.safeguardjava.data;
 
-import com.oneidentity.safeguard.safeguardjava.StringUtils;
+import com.oneidentity.safeguard.safeguardjava.Utils;
 import java.time.Instant;
 import java.util.Date;
 
@@ -352,23 +352,23 @@ public class BrokeredAccessRequest implements JsonObject
     @Override
     public String toJson() {
         return new StringBuffer("{")
-                .append(StringUtils.toJsonString("AccountId", this.AccountId, false))
-                .append(StringUtils.toJsonString("SystemId", this.AssetId, true))
-                .append(StringUtils.toJsonString("AccessRequestType", this.AccessType == null ? null : this.AccessType.name(), true))
-                .append(StringUtils.toJsonString("IsEmergency", this.IsEmergency, true))
-                .append(StringUtils.toJsonString("ReasonCodeId", this.ReasonCodeId, true))
-                .append(StringUtils.toJsonString("ReasonComment", this.ReasonComment, true))
-                .append(StringUtils.toJsonString("RequestedDurationDays", this.RequestedDurationDays, true))
-                .append(StringUtils.toJsonString("RequestedDurationHours", this.RequestedDurationHours, true))
-                .append(StringUtils.toJsonString("RequestedDurationMinutes", this.RequestedDurationMinutes, true))
-                .append(StringUtils.toJsonString("RequestedFor", this.RequestedFor == null ? null : this.RequestedFor.toString(), true))
-                .append(StringUtils.toJsonString("TicketNumber", this.TicketNumber, true))
-                .append(StringUtils.toJsonString("AccountName", this.AccountName, true))
-                .append(StringUtils.toJsonString("SystemName", this.AssetName, true))
-                .append(StringUtils.toJsonString("ForUserId", this.ForUserId, true))
-                .append(StringUtils.toJsonString("ForUser", this.ForUserName, true))
-                .append(StringUtils.toJsonString("ForProvider", this.ForUserIdentityProvider, true))
-                .append(StringUtils.toJsonString("ReasonCode", this.ReasonCode, true))
+                .append(Utils.toJsonString("AccountId", this.AccountId, false))
+                .append(Utils.toJsonString("SystemId", this.AssetId, true))
+                .append(Utils.toJsonString("AccessRequestType", this.AccessType == null ? null : this.AccessType.name(), true))
+                .append(Utils.toJsonString("IsEmergency", this.IsEmergency, true))
+                .append(Utils.toJsonString("ReasonCodeId", this.ReasonCodeId, true))
+                .append(Utils.toJsonString("ReasonComment", this.ReasonComment, true))
+                .append(Utils.toJsonString("RequestedDurationDays", this.RequestedDurationDays, true))
+                .append(Utils.toJsonString("RequestedDurationHours", this.RequestedDurationHours, true))
+                .append(Utils.toJsonString("RequestedDurationMinutes", this.RequestedDurationMinutes, true))
+                .append(Utils.toJsonString("RequestedFor", this.RequestedFor == null ? null : this.RequestedFor.toString(), true))
+                .append(Utils.toJsonString("TicketNumber", this.TicketNumber, true))
+                .append(Utils.toJsonString("AccountName", this.AccountName, true))
+                .append(Utils.toJsonString("SystemName", this.AssetName, true))
+                .append(Utils.toJsonString("ForUserId", this.ForUserId, true))
+                .append(Utils.toJsonString("ForUser", this.ForUserName, true))
+                .append(Utils.toJsonString("ForProvider", this.ForUserIdentityProvider, true))
+                .append(Utils.toJsonString("ReasonCode", this.ReasonCode, true))
                 .append("}").toString();
     }
 }

@@ -1,6 +1,6 @@
 package com.oneidentity.safeguard.safeguardjava.authentication;
 
-import com.oneidentity.safeguard.safeguardjava.StringUtils;
+import com.oneidentity.safeguard.safeguardjava.Utils;
 import com.oneidentity.safeguard.safeguardjava.data.AccessTokenBody;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
@@ -81,7 +81,7 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
         
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", coreClient.getBaseURL()));
-        if (response.getStatus() != 200)
+        if (!Utils.isSuccessful(response.getStatus())) 
             return 0;
 
         String remainingStr = response.getHeaderString("X-TokenLifetimeRemaining");
@@ -110,11 +110,11 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
 
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", coreClient.getBaseURL()));
-        if (response.getStatus() != 200)
+        if (!Utils.isSuccessful(response.getStatus())) 
             throw new SafeguardForJavaException("Error exchanging RSTS token for Safeguard API access token, Error: " +
                                                String.format("%d %s", response.getStatus(), response.readEntity(String.class)));
 
-        Map<String,String> map = StringUtils.parseResponse(response);
+        Map<String,String> map = Utils.parseResponse(response);
         if (map.containsKey("UserToken"))
             accessToken =  map.get("UserToken").toCharArray();
     }
@@ -124,14 +124,16 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
     @Override
     public void dispose()
     {
-        Arrays.fill(accessToken, '0');
+        if (accessToken != null)
+            Arrays.fill(accessToken, '0');
         disposed = true;
     }
 
     @Override
     protected void finalize() throws Throwable {
         try {
-            Arrays.fill(accessToken, '0');
+            if (accessToken != null)
+                Arrays.fill(accessToken, '0');
         } finally {
             disposed = true;
             super.finalize();

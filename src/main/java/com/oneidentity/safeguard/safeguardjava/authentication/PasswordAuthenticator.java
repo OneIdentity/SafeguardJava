@@ -2,7 +2,7 @@ package com.oneidentity.safeguard.safeguardjava.authentication;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.oneidentity.safeguard.safeguardjava.StringUtils;
+import com.oneidentity.safeguard.safeguardjava.Utils;
 import com.oneidentity.safeguard.safeguardjava.data.JsonBody;
 import com.oneidentity.safeguard.safeguardjava.data.OauthBody;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
@@ -33,7 +33,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
         super(networkAddress, null, null, apiVersion, ignoreSsl);
         this.provider = provider;
         
-        if (StringUtils.isNullOrEmpty(this.provider) || this.provider.equalsIgnoreCase("local"))
+        if (Utils.isNullOrEmpty(this.provider) || this.provider.equalsIgnoreCase("local"))
             providerScope = "rsts:sts:primaryproviderid:local";
         
         this.username = username;
@@ -58,12 +58,12 @@ public class PasswordAuthenticator extends AuthenticatorBase
 
             response = rstsClient.execPOST("UserLogin/LoginController", parameters, headers, new JsonBody("RelayState="));
                 
-            if (response == null || response.getStatus() != 200)
+            if (response == null || (!Utils.isSuccessful(response.getStatus())))
                 response = rstsClient.execGET("UserLogin/LoginController", parameters, headers);
             
             if (response == null)
                 throw new SafeguardForJavaException("Unable to connect to RSTS to find identity provider scopes");
-            if (response.getStatus() != 200)
+            if (!Utils.isSuccessful(response.getStatus())) 
                 throw new SafeguardForJavaException("Error requesting identity provider scopes from RSTS, Error: " +
                         String.format("%d %s", response.getStatus(), response.readEntity(String.class)));
 
@@ -100,11 +100,11 @@ public class PasswordAuthenticator extends AuthenticatorBase
 
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s", rstsClient.getBaseURL()));
-        if (response.getStatus() != 200)
+        if (!Utils.isSuccessful(response.getStatus())) 
             throw new SafeguardForJavaException(String.format("Error using password grant_type with scope %s, Error: ", providerScope) +
                     String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
 
-        Map<String,String> map = StringUtils.parseResponse(response);
+        Map<String,String> map = Utils.parseResponse(response);
 
         if (!map.containsKey("access_token"))
             throw new SafeguardForJavaException(String.format("Error retrieving the access key for scope: %s", providerScope));
@@ -116,14 +116,16 @@ public class PasswordAuthenticator extends AuthenticatorBase
     public void dispose()
     {
         super.dispose();
-        Arrays.fill(password, '0');
+        if (password != null)
+            Arrays.fill(password, '0');
         disposed = true;
     }
     
     @Override
     protected void finalize() throws Throwable {
         try {
-            Arrays.fill(password, '0');
+            if (password != null)
+                Arrays.fill(password, '0');
         } finally {
             disposed = true;
             super.finalize();
@@ -145,7 +147,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
 		providers.add(getJsonValue(providerNode, "Id"));
             }            
         } catch (IOException ex) {
-            Logger.getLogger(StringUtils.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return providers;

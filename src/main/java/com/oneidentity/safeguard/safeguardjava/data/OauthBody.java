@@ -1,6 +1,6 @@
 package com.oneidentity.safeguard.safeguardjava.data;
 
-import com.oneidentity.safeguard.safeguardjava.StringUtils;
+import com.oneidentity.safeguard.safeguardjava.Utils;
 
 public class OauthBody implements JsonObject {
     
@@ -63,16 +63,16 @@ public class OauthBody implements JsonObject {
     public String toJson() {
         if (isPassword) {
             return new StringBuffer("{")
-                    .append(StringUtils.toJsonString("grant_type", this.grantType, false))
-                    .append(StringUtils.toJsonString("username", this.username, true))
-                    .append(StringUtils.toJsonString("password", new String(this.password), true))
-                    .append(StringUtils.toJsonString("scope", this.scope, true))
+                    .append(Utils.toJsonString("grant_type", this.grantType, false))
+                    .append(Utils.toJsonString("username", this.username, true))
+                    .append(Utils.toJsonString("password", new String(this.password), true))
+                    .append(Utils.toJsonString("scope", this.scope, true))
                     .append("}").toString();
         }
         else {
             return new StringBuffer("{")
-                    .append(StringUtils.toJsonString("grant_type", this.grantType, false))
-                    .append(StringUtils.toJsonString("scope", this.scope, true))
+                    .append(Utils.toJsonString("grant_type", this.grantType, false))
+                    .append(Utils.toJsonString("scope", this.scope, true))
                     .append("}").toString();
         }
     }   
