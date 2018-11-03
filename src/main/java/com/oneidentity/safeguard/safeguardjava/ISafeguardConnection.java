@@ -3,6 +3,7 @@ package com.oneidentity.safeguard.safeguardjava;
 import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
 import com.oneidentity.safeguard.safeguardjava.data.Method;
 import com.oneidentity.safeguard.safeguardjava.data.Service;
+import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.util.Map;
@@ -70,14 +71,15 @@ public interface ISafeguardConnection {
             Map<String, String> additionalHeaders)
             throws ObjectDisposedException, SafeguardForJavaException;
 
-//    /**
-//     *  Gets a Safeguard event listener. You will need to call the RegisterEventHandler()
-//     *  method to establish callbacks. Then, you just have to call Start().  Call Stop()
-//     *  when you are finished.
-//     *  
-//     *  @return   The event listener.
-//     */  
-//    ISafeguardEventListener GetEventListener();
+    /**
+     *  Gets a Safeguard event listener. You will need to call the RegisterEventHandler()
+     *  method to establish callbacks. Then, you just have to call Start().  Call Stop()
+     *  when you are finished.
+     *  
+     *  @return The event listener.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     */  
+    ISafeguardEventListener getEventListener() throws ObjectDisposedException;
     
     /**
      *  Disposes of the connection.
