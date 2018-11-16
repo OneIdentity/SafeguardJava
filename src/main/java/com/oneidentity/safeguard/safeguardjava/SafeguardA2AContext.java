@@ -3,7 +3,6 @@ package com.oneidentity.safeguard.safeguardjava;
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.event.PersistentSafeguardEventListenerBase;
-import com.oneidentity.safeguard.safeguardjava.event.SafeguardEventHandler;
 import com.oneidentity.safeguard.safeguardjava.event.SafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
@@ -16,6 +15,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.core.Response;
+import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 
 public class SafeguardA2AContext implements ISafeguardA2AContext {
 
@@ -80,7 +80,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
     }
 
     @Override
-    public ISafeguardEventListener getEventListener(char[] apiKey, SafeguardEventHandler handler)
+    public ISafeguardEventListener getEventListener(char[] apiKey, ISafeguardEventHandler handler)
             throws ObjectDisposedException, ArgumentException {
         
         if (disposed) {

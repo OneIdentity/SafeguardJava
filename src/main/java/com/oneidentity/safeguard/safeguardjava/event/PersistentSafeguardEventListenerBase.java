@@ -13,14 +13,14 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
     private SafeguardEventListener eventListener;
     private final EventHandlerRegistry eventHandlerRegistry = new EventHandlerRegistry();
 
-//    private Task _reconnectTask;
-//    private CancellationTokenSource _reconnectCancel;
-    
+    private Thread reconnectThread = null;
+    boolean isCancellationRequested = false;
+
     protected PersistentSafeguardEventListenerBase() {
     }
 
     @Override
-    public void registerEventHandler(String eventName, SafeguardEventHandler handler)
+    public void registerEventHandler(String eventName, ISafeguardEventHandler handler)
             throws ObjectDisposedException {
         if (disposed) {
             throw new ObjectDisposedException("PersistentSafeguardEventListener");
@@ -30,40 +30,59 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
 
     protected abstract SafeguardEventListener reconnectEventListener() throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
 
+    class PersistentReconnectAndStartHandler implements IDisconnectHandler {
+
+        @Override
+        public void func() {
+            persistentReconnectAndStart();
+        }
+    }
+
     private void persistentReconnectAndStart() {
-//        if (this.reconnectTask != null)
-//            return;
-//        this.reconnectCancel = new CancellationTokenSource();
-//        _reconnectTask = Task.Run(() =>
-//        {
-//            while (!_reconnectCancel.IsCancellationRequested)
-//            {
-//                try
-//                {
-//                    _eventListener?.Dispose();
-//                    Log.Information("Attempting to connect and start internal event listener.");
-//                    _eventListener = ReconnectEventListener();
-//                    _eventListener.SetEventHandlerRegistry(_eventHandlerRegistry);
-//                    _eventListener.Start();
-//                    _eventListener.SetDisconnectHandler(PersistentReconnectAndStart);
-//                    break;
-//                }
-//                catch (Exception ex)
-//                {
-//                    Log.Warning("Internal event listener connection error (see debug for more information), sleeping for 5 seconds...");
-//                    Log.Debug(ex, "Internal event listener connection error.");
-//                    Thread.Sleep(5000);
-//                }
-//            }
-//        }, _reconnectCancel.Token);
-//        _reconnectTask.ContinueWith((task) =>
-//        {
-//            _reconnectCancel.Dispose();
-//            _reconnectCancel = null;
-//            _reconnectTask = null;
-//            if (!task.IsFaulted)
-//                Log.Information("Internal event listener successfully connected and started.");
-//        });
+        if (this.reconnectThread != null) {
+            return;
+        }
+
+        isCancellationRequested = false;
+        this.reconnectThread = new Thread() {
+            @Override
+            public void run() {
+                while (!isCancellationRequested) {
+                    try {
+                        if (eventListener != null) {
+                            eventListener.dispose();
+                        }
+                        Logger.getLogger(PersistentSafeguardEventListenerBase.class.getName()).log(Level.INFO,
+                                "Attempting to connect and start internal event listener.");
+                        eventListener = reconnectEventListener();
+                        eventListener.setEventHandlerRegistry(eventHandlerRegistry);
+                        eventListener.start();
+                        eventListener.setDisconnectHandler(new PersistentReconnectAndStartHandler());
+                        break;
+                    } catch (ObjectDisposedException | SafeguardForJavaException | ArgumentException ex) {
+                        Logger.getLogger(PersistentSafeguardEventListenerBase.class.getName()).log(Level.WARNING,
+                                "Internal event listener connection error (see debug for more information), sleeping for 5 seconds...");
+                        Logger.getLogger(PersistentSafeguardEventListenerBase.class.getName()).log(Level.INFO,
+                                "Internal event listener connection error.");
+                        try {
+                            Thread.sleep(5000);
+                        } catch (InterruptedException ex1) {
+                        }
+                    }
+                }
+            }
+        };
+        
+        
+        try {
+            this.reconnectThread.start();
+            this.reconnectThread.join();
+        } catch (InterruptedException ex1) {
+        }
+        
+        if (isCancellationRequested)
+            this.reconnectThread = null;
+        
     }
 
     @Override
@@ -81,8 +100,7 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
             throw new ObjectDisposedException("PersistentSafeguardEventListener");
         }
         Logger.getLogger(PersistentSafeguardEventListenerBase.class.getName()).log(Level.INFO, "Internal event listener requested to stop.");
-//        if (reconnectCancel != null)
-//            reconnectCancel.cancel();
+        this.isCancellationRequested = true;
         if (eventListener != null) {
             eventListener.stop();
         }

@@ -3,6 +3,7 @@ package com.oneidentity.safeguard.safeguardjava.event;
 import com.microsoft.signalr.HttpHubConnectionBuilder;
 import com.microsoft.signalr.HubConnection;
 import com.microsoft.signalr.HubConnectionBuilder;
+import com.microsoft.signalr.HubConnectionState;
 import com.microsoft.signalr.Subscription;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardEventListenerDisconnectedException;
@@ -12,7 +13,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class DefaultDisconnectHandler implements DisconnectHandler {
+class DefaultDisconnectHandler implements IDisconnectHandler {
 
     @Override
     public void func() throws SafeguardEventListenerDisconnectedException {
@@ -26,13 +27,13 @@ public class SafeguardEventListener implements ISafeguardEventListener
 
     private final String eventUrl;
     private final boolean ignoreSsl;
-    private final char[] accessToken;
-    private final char[] apiKey;
-    private final X509Certificate clientCertificate;
+    private char[] accessToken;
+    private char[] apiKey;
+    private X509Certificate clientCertificate;
 
     private EventHandlerRegistry eventHandlerRegistry;
-//    private DisconnectHandler _disconnectHandler = () => throw new SafeguardEventListenerDisconnectedException();
-    private DisconnectHandler disconnectHandler;
+//    private IDisconnectHandler _disconnectHandler = () => throw new SafeguardEventListenerDisconnectedException();
+    private IDisconnectHandler disconnectHandler;
 
     private boolean isStarted;
     private HubConnection signalrConnection = null;
@@ -54,17 +55,17 @@ public class SafeguardEventListener implements ISafeguardEventListener
     public SafeguardEventListener(String eventUrl, char[] accessToken, boolean ignoreSsl) 
     {
         this(eventUrl, ignoreSsl);
-        accessToken = accessToken.clone();
+        this.accessToken = accessToken.clone();
     }
 
     public SafeguardEventListener(String eventUrl, X509Certificate clientCertificate, char[] apiKey, boolean ignoreSsl)
     {
         this(eventUrl, ignoreSsl);
 //        clientCertificate = CertificateUtilities.Copy(clientCertificate);
-        apiKey = apiKey.clone();
+        this.apiKey = apiKey.clone();
     }
 
-    public void setDisconnectHandler(DisconnectHandler handler)
+    public void setDisconnectHandler(IDisconnectHandler handler)
     {
         this.disconnectHandler = handler;
     }
@@ -105,7 +106,7 @@ public class SafeguardEventListener implements ISafeguardEventListener
     }
 
     @Override
-    public void registerEventHandler(String eventName, SafeguardEventHandler handler) 
+    public void registerEventHandler(String eventName, ISafeguardEventHandler handler) 
             throws ObjectDisposedException
     {
         if (disposed)
@@ -122,13 +123,15 @@ public class SafeguardEventListener implements ISafeguardEventListener
         
         HttpHubConnectionBuilder signalrConnectionBuilder = HubConnectionBuilder.create(eventUrl);
         if (accessToken != null) {
-            signalrConnectionBuilder.withHeader("Authorization", String.format("Bearer %s", new String(accessToken)));
+            signalrConnectionBuilder = signalrConnectionBuilder.withHeader("Authorization", String.format("Bearer %s", new String(accessToken)));
         }
         else
         {
-            signalrConnectionBuilder.withHeader("Authorization", String.format("A2A %s", new String(apiKey)));
+            signalrConnectionBuilder = signalrConnectionBuilder.withHeader("Authorization", String.format("A2A %s", new String(apiKey)));
 //            this.signalrConnection.addClientCertificate(clientCertificate);
         }
+//        signalrConnectionBuilder = signalrConnectionBuilder.shouldSkipNegotiate(true);
+        signalrConnectionBuilder = signalrConnectionBuilder.shouldSkipNegotiate(true);
         signalrConnection = signalrConnectionBuilder.build();
 
         try
@@ -143,9 +146,19 @@ public class SafeguardEventListener implements ISafeguardEventListener
                     Logger.getLogger(SafeguardEventListener.class.getName()).log(Level.SEVERE, null, ex);
                 }
             });
-            signalrConnection.start().blockingAwait();
+            signalrConnection.start();
 //            signalrConnection.start(this.ignoreSsl ? new IgnoreSslValidationHttpClient() : new DefaultHttpClient()).Wait();
             this.isStarted = true;
+            
+        for (int x = 0; x < 5; x++) {
+            HubConnectionState state = signalrConnection.getConnectionState();
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex1) {
+            }
+        }
+
+            
         }
         catch (Exception ex)
         {

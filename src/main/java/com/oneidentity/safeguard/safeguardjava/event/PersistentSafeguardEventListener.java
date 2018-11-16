@@ -24,7 +24,7 @@ public class PersistentSafeguardEventListener extends PersistentSafeguardEventLi
         if (connection.getAccessTokenLifetimeRemaining() == 0) {
             connection.refreshAccessToken();
         }
-        return (SafeguardEventListener) connection.getEventListener();
+        return connection.getEventListener();
     }
 
     @Override

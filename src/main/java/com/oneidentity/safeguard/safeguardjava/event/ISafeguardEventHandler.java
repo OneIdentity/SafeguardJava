@@ -6,8 +6,8 @@ package com.oneidentity.safeguard.safeguardjava.event;
 /// </summary>
 /// <param name="eventName">Name of the event.</param>
 /// <param name="eventBody">JSON string containing event data.</param>
-//public delegate void SafeguardEventHandler(string eventName, string eventBody);
-public interface SafeguardEventHandler {
+//public delegate void ISafeguardEventHandler(string eventName, string eventBody);
+public interface ISafeguardEventHandler {
     void func(String eventName, String eventBody);
 }
 

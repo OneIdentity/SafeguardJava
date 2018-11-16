@@ -2,10 +2,10 @@ package com.oneidentity.safeguard.safeguardjava;
 
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
-import com.oneidentity.safeguard.safeguardjava.event.SafeguardEventHandler;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 
 /**
  *  This is a reusable interface for calling Safeguard A2A without having to continually
@@ -36,7 +36,7 @@ public interface ISafeguardA2AContext
      *  @throws ObjectDisposedException The object has already been disposed.
      *  @throws ArgumentException Invalid argument.
      */
-    ISafeguardEventListener getEventListener(char[] apiKey, SafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
+    ISafeguardEventListener getEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
 
     /**
      *  Creates an access request on behalf of another user using Safeguard A2A.

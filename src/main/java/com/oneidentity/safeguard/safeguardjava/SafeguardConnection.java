@@ -110,7 +110,7 @@ class SafeguardConnection implements ISafeguardConnection {
     }
 
     @Override
-    public ISafeguardEventListener getEventListener() throws ObjectDisposedException {
+    public SafeguardEventListener getEventListener() throws ObjectDisposedException {
         SafeguardEventListener eventListener = new SafeguardEventListener(
                 String.format("https://%s/service/event", authenticationMechanism.getNetworkAddress()),
                 authenticationMechanism.getAccessToken(), authenticationMechanism.isIgnoreSsl());

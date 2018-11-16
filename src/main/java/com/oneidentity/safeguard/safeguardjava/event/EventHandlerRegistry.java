@@ -7,9 +7,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class EventHandlerRegistry
+public class EventHandlerRegistry
 {
-    private static final Map<String, List<SafeguardEventHandler>> delegateRegistry = new HashMap<>();
+    private static final Map<String, List<ISafeguardEventHandler>> delegateRegistry = new HashMap<>();
     private final Logger logger = Logger.getLogger(getClass().getName());
     
 //    private readonly DelegateRegistry _delegateRegistry =
@@ -26,8 +26,8 @@ class EventHandlerRegistry
 
         if (delegateRegistry.containsKey(eventName))
         {
-            List<SafeguardEventHandler> handlers = delegateRegistry.get(eventName);
-            for (SafeguardEventHandler handler :  handlers)
+            List<ISafeguardEventHandler> handlers = delegateRegistry.get(eventName);
+            for (ISafeguardEventHandler handler :  handlers)
             {
                 Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.INFO, 
                     String.format("Calling handler for event %s", eventName));
@@ -90,10 +90,10 @@ class EventHandlerRegistry
         }
     }
 
-    public void registerEventHandler(String eventName, SafeguardEventHandler handler)
+    public void registerEventHandler(String eventName, ISafeguardEventHandler handler)
     {
         if (!delegateRegistry.containsKey(eventName)) {
-            delegateRegistry.put(eventName, new ArrayList<SafeguardEventHandler>());
+            delegateRegistry.put(eventName, new ArrayList<ISafeguardEventHandler>());
         }
         
         delegateRegistry.get(eventName).add(handler);

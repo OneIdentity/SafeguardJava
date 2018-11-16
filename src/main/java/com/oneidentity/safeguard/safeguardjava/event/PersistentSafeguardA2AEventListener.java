@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class DefaultSafeguardEventHandler implements SafeguardEventHandler {
+class DefaultSafeguardEventHandler implements ISafeguardEventHandler {
     @Override
     public void func(String eventName, String eventBody) {
     }
@@ -20,7 +20,7 @@ public class PersistentSafeguardA2AEventListener extends PersistentSafeguardEven
     private final ISafeguardA2AContext a2AContext;
     private final char[] apiKey;
 
-    public PersistentSafeguardA2AEventListener(ISafeguardA2AContext a2AContext, char[] apiKey, SafeguardEventHandler handler) 
+    public PersistentSafeguardA2AEventListener(ISafeguardA2AContext a2AContext, char[] apiKey, ISafeguardEventHandler handler) 
             throws ObjectDisposedException
     {
         this.a2AContext = a2AContext;

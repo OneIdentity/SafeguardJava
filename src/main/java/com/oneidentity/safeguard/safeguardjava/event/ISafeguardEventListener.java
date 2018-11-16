@@ -1,7 +1,5 @@
 package com.oneidentity.safeguard.safeguardjava.event;
 
-/// <summary>
-
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardEventListenerDisconnectedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
@@ -19,7 +17,7 @@ public interface ISafeguardEventListener
     /// </summary>
     /// <param name="eventName">Name of the event.</param>
     /// <param name="handler">Callback method.</param>
-    void registerEventHandler(String eventName, SafeguardEventHandler handler) throws ObjectDisposedException;
+    void registerEventHandler(String eventName, ISafeguardEventHandler handler) throws ObjectDisposedException;
 
     /// <summary>
     /// Start listening for Safeguard events in a background thread.
