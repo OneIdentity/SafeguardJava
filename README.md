@@ -125,4 +125,17 @@ String jsonBody = new StringBuffer ("{")
 String json = connection.invokeMethod(Service.Core, Method.Post, "Assets", jsonBody, null, null);
 System.out.println(json);
 ```
+#### Create a New User and Set the Password
+```Java
+// Assume connection is already made
+String jsonBody = new StringBuffer ("{")
+        .append("\"PrimaryAuthenticationProviderId\" : -1")
+        .append("\"UserName\ : \"MyNewUser123\"")
+        .append("}").toString();
+        
+String userJson = connection.InvokeMethod(Service.Core, Method.Post, "Users", jsonBody, null, null);
+
+UserObj userObj = new Gson().fromJson(userJson, UserObj.class);
+connection.InvokeMethod(Service.Core, Method.Put, String.format("Users/%s/Password", userObj.Id), "{\"MyNewUser123\"}");
+```
 

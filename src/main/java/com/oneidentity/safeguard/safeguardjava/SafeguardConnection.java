@@ -6,6 +6,8 @@ import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
 import com.oneidentity.safeguard.safeguardjava.data.JsonBody;
 import com.oneidentity.safeguard.safeguardjava.data.Method;
 import com.oneidentity.safeguard.safeguardjava.data.Service;
+import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
+import com.oneidentity.safeguard.safeguardjava.event.SafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import com.oneidentity.safeguard.safeguardjava.restclient.RestClient;
@@ -107,12 +109,13 @@ class SafeguardConnection implements ISafeguardConnection {
         return fullResponse;
     }
 
-//    public ISafeguardEventListener GetEventListener() {
-//        SafeguardEventListener eventListener = new SafeguardEventListener(
-//                String.format("https://%s/service/event", authenticationMechanism.NetworkAddress),
-//                authenticationMechanism.GetAccessToken(), authenticationMechanism.IgnoreSsl);
-//        return eventListener;
-//    }
+    @Override
+    public SafeguardEventListener getEventListener() throws ObjectDisposedException {
+        SafeguardEventListener eventListener = new SafeguardEventListener(
+                String.format("https://%s/service/event", authenticationMechanism.getNetworkAddress()),
+                authenticationMechanism.getAccessToken(), authenticationMechanism.isIgnoreSsl());
+        return eventListener;
+    }
 
     private RestClient getClientForService(Service service) throws SafeguardForJavaException {
         switch (service) {

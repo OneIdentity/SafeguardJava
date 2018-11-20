@@ -1,9 +1,11 @@
 package com.oneidentity.safeguard.safeguardjava;
 
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
+import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 
 /**
  *  This is a reusable interface for calling Safeguard A2A without having to continually
@@ -30,9 +32,11 @@ public interface ISafeguardA2AContext
      * 
      *  @param apiKey   API key corresponding to the configured account.
      *  @param handler  A delegate to call any time the AssetAccountPasswordUpdate event occurs.
-     *  @returns        The event listener.
+     *  @return         The event listener.
+     *  @throws ObjectDisposedException The object has already been disposed.
+     *  @throws ArgumentException Invalid argument.
      */
-//        ISafeguardEventListener GetEventListener(SecureString apiKey, SafeguardEventHandler handler);
+    ISafeguardEventListener getEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
 
     /**
      *  Creates an access request on behalf of another user using Safeguard A2A.
