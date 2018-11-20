@@ -30,6 +30,10 @@ public class DateSerializer implements JsonSerializer<Date>, JsonDeserializer<Da
 
     /**
      * Deserializes a JsonElement containing an ISO-8601 formatted date
+     * @param element JsonElement
+     * @param type Type
+     * @param ctx JsonDeserializationContext
+     * @return Date
      */
     @Override
     public Date deserialize(JsonElement element, Type type, JsonDeserializationContext ctx) throws JsonParseException {
@@ -44,6 +48,10 @@ public class DateSerializer implements JsonSerializer<Date>, JsonDeserializer<Da
 
     /**
      * Serializes a Date to a JsonElement containing a ISO-8601 formatted date
+     * @param date Date
+     * @param type Type
+     * @param ctx JsonSerializationContext
+     * @return JsonElement
      */
     @Override
     public JsonElement serialize(Date date, Type type, JsonSerializationContext ctx) {
@@ -53,6 +61,9 @@ public class DateSerializer implements JsonSerializer<Date>, JsonDeserializer<Da
 
     /**
      * Deserializes an ISO-8601 formatted date
+     * @param strVal STring
+     * @return Date Date
+     * @throws java.text.ParseException Parse Exception
      */
     public static Date deserialize(String strVal) throws ParseException {
         
@@ -108,6 +119,8 @@ public class DateSerializer implements JsonSerializer<Date>, JsonDeserializer<Da
 
     /**
      * Serializes a Date object to an ISO-8601 formatted date string
+     * @param date Date
+     * @return String String
      */
     public static String serialize(Date date) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'", Locale.getDefault());

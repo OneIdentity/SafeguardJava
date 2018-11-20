@@ -16,11 +16,13 @@ public interface ClientTransport {
 
     /**
      * Transport name
+     * @return String
      */
     public String getName();
 
     /**
      * True if the transport supports keepalive messages
+     * @return boolean
      */
     public boolean supportKeepAlive();
 

@@ -6,7 +6,6 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardEventListener
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import microsoft.aspnet.signalr.client.ErrorCallback;
@@ -15,7 +14,6 @@ import microsoft.aspnet.signalr.client.NullLogger;
 import microsoft.aspnet.signalr.client.Platform;
 import microsoft.aspnet.signalr.client.hubs.HubConnection;
 import microsoft.aspnet.signalr.client.hubs.HubProxy;
-import microsoft.aspnet.signalr.client.hubs.Subscription;
 import microsoft.aspnet.signalr.client.transport.ClientTransport;
 import microsoft.aspnet.signalr.client.transport.ServerSentEventsTransport;
 
@@ -38,7 +36,6 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     private X509Certificate clientCertificate;
 
     private EventHandlerRegistry eventHandlerRegistry;
-//    private IDisconnectHandler _disconnectHandler = () => throw new SafeguardEventListenerDisconnectedException();
     private IDisconnectHandler disconnectHandler;
 
     private boolean isStarted;
@@ -77,10 +74,6 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         this.eventHandlerRegistry = registry;
     }
 
-//    private void handleEvent(String eventObject)
-//    {
-//        eventHandlerRegistry.handleEvent(eventObject);
-//    }
     private void handleEvent(JsonElement eventObject) {
 //Do nothing for now
         int x = 1;
@@ -126,36 +119,19 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         }
         cleanupConnection();
 
-//        HttpHubConnectionBuilder signalrConnectionBuilder = HubConnectionBuilder.create(eventUrl, ignoreSsl);
         signalrConnection = new HubConnection(eventUrl);
         if (accessToken != null) {
-//            signalrConnectionBuilder = signalrConnectionBuilder.withHeader("Authorization", String.format("Bearer %s", new String(accessToken)));
             signalrConnection.getHeaders().put("Authorization", String.format("Bearer %s", new String(accessToken)));
         } else {
-//            signalrConnectionBuilder = signalrConnectionBuilder.withHeader("Authorization", String.format("A2A %s", new String(apiKey)));
             signalrConnection.getHeaders().put("Authorization", String.format("A2A %s", new String(apiKey)));
 //            this.signalrConnection.addClientCertificate(clientCertificate);
         }
-//        signalrConnection = signalrConnectionBuilder.build();
         signalrHubProxy = signalrConnection.createHubProxy(NOTIFICATION_HUB);
 
         try {
-//            signalrConnection.on(NOTIFICATION_HUB, (message) -> {
-//                handleEvent(message);
-//            }, String.class);
-//            signalrConnection.onClosed((consumer) -> {
-//                try {
-//                    handleDisconnect(consumer);
-//                } catch (SafeguardEventListenerDisconnectedException ex) {
-//                    Logger.getLogger(SafeguardEventListener.class.getName()).log(Level.SEVERE, null, ex);
-//                }
-//            });
-//            signalrConnection.start().delay(1, TimeUnit.SECONDS).blockingAwait();
-
-            ;
-            ClientTransport clientTransport = new ServerSentEventsTransport(new NullLogger(), Platform.createHttpConnection(new NullLogger()));
-
-            signalrConnection.start(clientTransport).get();
+//            ClientTransport clientTransport = new ServerSentEventsTransport(new NullLogger(), Platform.createHttpConnection(new NullLogger()));
+//            signalrConnection.start(clientTransport).get();
+            signalrConnection.start().get();
             
             signalrConnection.received(new MessageReceivedHandler() {
                 @Override

@@ -65,11 +65,12 @@ public abstract class HttpClientTransport implements ClientTransport {
 
         connection.prepareRequest(get);
 
-        final SignalRFuture<NegotiationResponse> negotiationFuture = new SignalRFuture<NegotiationResponse>();
+        final SignalRFuture<NegotiationResponse> negotiationFuture = new SignalRFuture<>();
 
         log("Execute the request", LogLevel.Verbose);
         HttpConnectionFuture connectionFuture = mHttpConnection.execute(get, new ResponseCallback() {
 
+            @Override
             public void onResponse(Response response) {
                 try {
                     log("Response received", LogLevel.Verbose);
@@ -128,7 +129,7 @@ public abstract class HttpClientTransport implements ClientTransport {
         } catch (Throwable e) {
             log(e);
 
-            SignalRFuture<Void> future = new SignalRFuture<Void>();
+            SignalRFuture<Void> future = new SignalRFuture<>();
             future.triggerError(e);
 
             return future;
@@ -168,7 +169,7 @@ public abstract class HttpClientTransport implements ClientTransport {
                     log("Finishing abort", LogLevel.Verbose);
                     mStartedAbort = false;
 
-                    SignalRFuture<Void> future = new SignalRFuture<Void>();
+                    SignalRFuture<Void> future = new SignalRFuture<>();
                     future.triggerError(e);
 
                     return future;
@@ -199,7 +200,7 @@ public abstract class HttpClientTransport implements ClientTransport {
                     headersString.append(headerValue);
                     headersString.append("; ");
                 }
-                ;
+
                 headersString.append("]; ");
             }
 

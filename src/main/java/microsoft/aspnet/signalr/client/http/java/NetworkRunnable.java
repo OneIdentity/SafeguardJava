@@ -102,7 +102,7 @@ class NetworkRunnable implements Runnable {
                 mLogger.log("Execute the HTTP Request", LogLevel.Verbose);
                 mRequest.log(mLogger);
                 if (this.mRequest.getUrl().startsWith("https")) {
-// Need to get the ignoreSsl value in here.                    
+//TODO: Need to get the ignoreSsl value in here.                    
                     mConnection = createHttpsURLConnection(mRequest, true);
                 } else {
                     mConnection = createHttpURLConnection(mRequest);
@@ -187,11 +187,11 @@ class NetworkRunnable implements Runnable {
     }
 
     /**
-     * Creates an HttpURLConnection
+     * Creates an HttpsURLConnection
      * 
      * @param request
      *            The request info
-     * @return An HttpURLConnection to execute the request
+     * @return An HttpsURLConnection to execute the request
      * @throws java.io.IOException
      */
     static HttpsURLConnection createHttpsURLConnection(Request request, boolean ignoreSsl) throws IOException {
@@ -233,6 +233,7 @@ class NetworkRunnable implements Runnable {
             try {
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
                 keyManagerFactory.init(keyStorePath, keyStorePassword);
+//TODO: Fix the customKeyManager                
 //                customKeyManager = new KeyManager[]{new ExtendedX509KeyManager((X509KeyManager) keyManagerFactory.getKeyManagers()[0], alias)};
             } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException ex) {
                 ex.printStackTrace();

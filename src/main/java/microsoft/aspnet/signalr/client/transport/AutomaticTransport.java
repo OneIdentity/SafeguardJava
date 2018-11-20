@@ -58,7 +58,7 @@ public class AutomaticTransport extends HttpClientTransport {
     }
 
     private void initialize(Logger logger) {
-        mTransports = new ArrayList<ClientTransport>();
+        mTransports = new ArrayList<>();
         mTransports.add(new WebsocketTransport(logger));
         mTransports.add(new ServerSentEventsTransport(logger));
         mTransports.add(new LongPollingTransport(logger));
@@ -138,7 +138,7 @@ public class AutomaticTransport extends HttpClientTransport {
 
     @Override
     public SignalRFuture<Void> start(final ConnectionBase connection, final ConnectionType connectionType, final DataResultCallback callback) {
-        SignalRFuture<Void> startFuture = new SignalRFuture<Void>();
+        SignalRFuture<Void> startFuture = new SignalRFuture<>();
 
         resolveTransport(connection, connectionType, callback, 0, startFuture);
 

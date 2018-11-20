@@ -26,11 +26,11 @@ public class CookieCredentials implements Credentials {
      * Creates a new instance
      */
     public CookieCredentials() {
-        mCookieValues = new HashMap<String, String>();
+        mCookieValues = new HashMap<>();
     }
 
     public CookieCredentials(String cookie) {
-        mCookieValues = new HashMap<String, String>();
+        mCookieValues = new HashMap<>();
 
         if (cookie != null) {
             cookie = cookie.trim();

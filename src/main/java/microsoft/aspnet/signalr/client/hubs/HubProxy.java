@@ -50,6 +50,8 @@ public class HubProxy {
      *            HubConnection to use
      * @param hubName
      *            Hub name
+     * @param logger
+     *            Logger
      */
     protected HubProxy(HubConnection connection, String hubName, Logger logger) {
         mConnection = connection;
@@ -74,6 +76,7 @@ public class HubProxy {
      * 
      * @param key
      *            Key to get
+     * @return JsonElement
      */
     public JsonElement getState(String key) {
         return mState.get(key);
@@ -82,11 +85,12 @@ public class HubProxy {
     /**
      * Gets the value for a key
      * 
+     * @param <E> Class
      * @param key
      *            Key to get
      * @param clazz
      *            Class used to to deserialize the value
-     * @return
+     * @return Class Class
      */
     public <E> E getValue(String key, Class<E> clazz) {
         return mConnection.getGson().fromJson(getState(key), clazz);
@@ -191,6 +195,8 @@ public class HubProxy {
     /**
      * Invokes a hub method that returns a value
      * 
+     * @param <E> Class
+     * @param resultClass Result class
      * @param method
      *            Method name
      * @param args
@@ -214,7 +220,7 @@ public class HubProxy {
             jsonArguments[i] = mConnection.getGson().toJsonTree(args[i]);
         }
 
-        final SignalRFuture<E> resultFuture = new SignalRFuture<E>();
+        final SignalRFuture<E> resultFuture = new SignalRFuture<>();
 
         final String callbackId = mConnection.registerCallback(new Action<HubResult>() {
 
@@ -293,6 +299,9 @@ public class HubProxy {
     /**
      * Overload of 'invoke' hub method that takes a type instead of class for GSON deserialisation
      * 
+     * @param <E> Class
+     * @param resultClass Result class
+     * @param resultType Result type
      * @param method
      *            Method name
      * @param args

@@ -29,6 +29,7 @@ public class NegotiationResponse {
      * 
      * @param jsonContent
      *            Json data
+     * @param parser Parser
      */
     public NegotiationResponse(String jsonContent, JsonParser parser) {
         if (jsonContent == null || "".equals(jsonContent)) {

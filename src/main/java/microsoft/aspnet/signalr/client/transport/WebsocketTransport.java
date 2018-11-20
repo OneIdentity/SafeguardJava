@@ -31,13 +31,9 @@ import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 
 import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.exceptions.InvalidDataException;
-import org.java_websocket.framing.Framedata;
 import org.java_websocket.handshake.ServerHandshake;
-import org.java_websocket.util.Charsetfunctions;
 
 import microsoft.aspnet.signalr.client.ConnectionBase;
-import microsoft.aspnet.signalr.client.LogLevel;
 import microsoft.aspnet.signalr.client.Logger;
 import microsoft.aspnet.signalr.client.SignalRFuture;
 import microsoft.aspnet.signalr.client.UpdateableCancellableFuture;
@@ -117,15 +113,13 @@ public class WebsocketTransport extends HttpClientTransport {
 //                    + "&transport=" + URLEncoder.encode(transport, "UTF-8");
             url = formatUrl(connection.getUrl()) + connectionString + '?'
                     + "&transport=" + URLEncoder.encode(transport, "UTF-8")
-//                    + "&connectionToken=" + URLEncoder.encode(URLEncoder.encode(connectionToken, "UTF-8"), "UTF-8")
-//                    + "&connectionData=" + URLEncoder.encode(URLEncoder.encode(connectionData, "UTF-8"), "UTF-8");
                     + "&connectionToken=" + URLEncoder.encode(connectionToken, "UTF-8")
                     + "&connectionData=" + URLEncoder.encode(connectionData, "UTF-8");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
 
-        mConnectionFuture = new UpdateableCancellableFuture<Void>(null);
+        mConnectionFuture = new UpdateableCancellableFuture<>(null);
 
         URI uri;
         try {
@@ -205,7 +199,7 @@ public class WebsocketTransport extends HttpClientTransport {
     @Override
     public SignalRFuture<Void> send(ConnectionBase connection, String data, DataResultCallback callback) {
         mWebSocketClient.send(data);
-        return new UpdateableCancellableFuture<Void>(null);
+        return new UpdateableCancellableFuture<>(null);
     }
 
     private boolean isJSONValid(String test){

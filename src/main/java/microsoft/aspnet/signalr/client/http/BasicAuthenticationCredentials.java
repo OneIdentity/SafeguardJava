@@ -54,6 +54,7 @@ public class BasicAuthenticationCredentials implements Credentials {
 
     /**
      * Returns the username for the credentials
+     * @return String
      */
     public String getUsername() {
         return mUsername;
@@ -71,6 +72,7 @@ public class BasicAuthenticationCredentials implements Credentials {
 
     /**
      * Returns the password for the credentials
+     * @return String
      */
     public String getPassword() {
         return mPassword;

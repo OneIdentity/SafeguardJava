@@ -25,7 +25,7 @@ public class Request {
 
     private String mContent;
 
-    private HashMap<String, String> mHeaders = new HashMap<String, String>();
+    private HashMap<String, String> mHeaders = new HashMap<>();
 
     private String mUrl;
 
@@ -41,6 +41,7 @@ public class Request {
 
     /**
      * Sets the request content
+     * @param content Content
      */
     public void setContent(String content) {
         mContent = content;
@@ -48,6 +49,7 @@ public class Request {
 
     /**
      * Returns the request content
+     * @return String Content
      */
     public String getContent() {
         return mContent;
@@ -63,8 +65,8 @@ public class Request {
      *            The value for the form data
      */
     public void setFormContent(String name, String value) {
-        List<Entry<String, String>> formValues = new ArrayList<Entry<String, String>>();
-        formValues.add(new SimpleEntry<String, String>(name, value));
+        List<Entry<String, String>> formValues = new ArrayList<>();
+        formValues.add(new SimpleEntry<>(name, value));
 
         setFormContent(formValues);
     }
@@ -92,9 +94,10 @@ public class Request {
 
     /**
      * Returns the request headers
+     * @return Map Headers
      */
     public Map<String, String> getHeaders() {
-        HashMap<String, String> copy = new HashMap<String, String>();
+        HashMap<String, String> copy = new HashMap<>();
         copy.putAll(mHeaders);
 
         return copy;
@@ -102,9 +105,10 @@ public class Request {
 
     /**
      * Sets the request headers
+     * @param headers Headers
      */
     public void setHeaders(Map<String, String> headers) {
-        mHeaders = new HashMap<String, String>();
+        mHeaders = new HashMap<>();
 
         if (headers != null) {
             mHeaders.putAll(headers);
@@ -135,6 +139,7 @@ public class Request {
 
     /**
      * Sets the request HTTP verb
+     * @param httpVerb Http Verb
      */
     public void setVerb(String httpVerb) {
         mVerb = httpVerb;
@@ -142,6 +147,7 @@ public class Request {
 
     /**
      * Returns the request HTTP verb
+     * @return String Verb
      */
     public String getVerb() {
         return mVerb;
@@ -149,6 +155,7 @@ public class Request {
 
     /**
      * Sets the request URL
+     * @param url URL
      */
     public void setUrl(String url) {
         mUrl = url;
@@ -156,6 +163,7 @@ public class Request {
 
     /**
      * Returns the request URL
+     * @return String URL
      */
     public String getUrl() {
         return mUrl;

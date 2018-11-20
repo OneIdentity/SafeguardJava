@@ -88,7 +88,7 @@ public class LongPollingTransport extends HttpClientTransport {
             connection.prepareRequest(get);
 
             log("Execute the request", LogLevel.Verbose);
-            mConnectionFuture = new UpdateableCancellableFuture<Void>(null);
+            mConnectionFuture = new UpdateableCancellableFuture<>(null);
 
             final HttpConnectionFuture future = mHttpConnection.execute(get, new ResponseCallback() {
 

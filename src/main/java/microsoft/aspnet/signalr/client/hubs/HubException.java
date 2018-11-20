@@ -30,6 +30,7 @@ public class HubException extends Exception {
 
     /**
      * Returns the error data
+     * @return Object
      */
     public Object getErrorData() {
         return mErrorData;

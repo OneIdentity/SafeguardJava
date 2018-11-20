@@ -11,11 +11,14 @@ import microsoft.aspnet.signalr.client.http.HttpConnection;
 public interface PlatformComponent {
     /**
      * Returns a platform-specific HttpConnection
+     * @param logger Logger
+     * @return HttpConnection Http Connection
      */
     public HttpConnection createHttpConnection(Logger logger);
 
     /**
      * Returns a platform-specific Operating System name
+     * @return String OS Name
      */
 
     public String getOSName();

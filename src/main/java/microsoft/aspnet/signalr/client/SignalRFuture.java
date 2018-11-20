@@ -18,16 +18,17 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Represents long running SignalR operations
+ * @param V param
  */
 public class SignalRFuture<V> implements Future<V> {
     boolean mIsCancelled = false;
     boolean mIsDone = false;
     private V mResult = null;
-    private List<Runnable> mOnCancelled = new ArrayList<Runnable>();
-    private List<Action<V>> mOnDone = new ArrayList<Action<V>>();
+    private List<Runnable> mOnCancelled = new ArrayList<>();
+    private List<Action<V>> mOnDone = new ArrayList<>();
     private Object mDoneLock = new Object();
-    private List<ErrorCallback> mErrorCallback = new ArrayList<ErrorCallback>();
-    private Queue<Throwable> mErrorQueue = new ConcurrentLinkedQueue<Throwable>();
+    private List<ErrorCallback> mErrorCallback = new ArrayList<>();
+    private Queue<Throwable> mErrorQueue = new ConcurrentLinkedQueue<>();
     private Object mErrorLock = new Object();
     private Throwable mLastError = null;
 
@@ -131,6 +132,7 @@ public class SignalRFuture<V> implements Future<V> {
      * 
      * @param action
      *            The handler
+     * @return SignalRFuture SignalRFuture
      */
     public SignalRFuture<V> done(Action<V> action) {
         synchronized (mDoneLock) {
@@ -155,6 +157,7 @@ public class SignalRFuture<V> implements Future<V> {
      * 
      * @param errorCallback
      *            The handler
+     * @return SignalRFuture SignalRFuture
      */
     public SignalRFuture<V> onError(ErrorCallback errorCallback) {
         synchronized (mErrorLock) {

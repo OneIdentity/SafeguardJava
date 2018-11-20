@@ -33,16 +33,17 @@ public class StreamResponse implements Response {
      *            stream to read
      * @param status
      *            HTTP status code
+     * @param headers Headers
      */
     public StreamResponse(InputStream stream, int status, Map<String, List<String>> headers) {
         mOriginalStream = stream;
         mReader = new BufferedReader(new InputStreamReader(mOriginalStream, Constants.UTF8));
-        mHeaders = new HashMap<String, List<String>>(headers);
+        mHeaders = new HashMap<>(headers);
         mStatus = status;
     }
 
     public byte[] readAllBytes() throws IOException {
-        List<Byte> bytes = new ArrayList<Byte>();
+        List<Byte> bytes = new ArrayList<>();
 
         int bufferSize = 1024;
         byte[] buffer = new byte[bufferSize];
@@ -89,7 +90,7 @@ public class StreamResponse implements Response {
 
     @Override
     public Map<String, List<String>> getHeaders() {
-        return new HashMap<String, List<String>>(mHeaders);
+        return new HashMap<>(mHeaders);
     }
 
     @Override

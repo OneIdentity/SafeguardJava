@@ -22,7 +22,6 @@ import microsoft.aspnet.signalr.client.transport.ConnectionType;
 import microsoft.aspnet.signalr.client.transport.DataResultCallback;
 import microsoft.aspnet.signalr.client.transport.NegotiationResponse;
 import microsoft.aspnet.signalr.client.transport.TransportHelper;
-import microsoft.aspnet.signalr.client.Logger;
 
 /**
  * Represents a basic SingalR connection
@@ -47,13 +46,13 @@ public class Connection implements ConnectionBase {
 
     private String mQueryString;
 
-    private Map<String, String> mHeaders = new HashMap<String, String>();
+    private Map<String, String> mHeaders = new HashMap<>();
 
     private UpdateableCancellableFuture<Void> mConnectionFuture;
 
     private boolean mAborting = false;
 
-    private SignalRFuture<Void> mAbortFuture = new SignalRFuture<Void>();
+    private SignalRFuture<Void> mAbortFuture = new SignalRFuture<>();
 
     private Runnable mOnReconnecting;
 
@@ -290,7 +289,7 @@ public class Connection implements ConnectionBase {
 
         if (mState == ConnectionState.Disconnected || mState == ConnectionState.Connecting) {
             onError(new InvalidStateException(mState), false);
-            return new SignalRFuture<Void>();
+            return new SignalRFuture<>();
         }
 
         final Connection that = this;
@@ -340,7 +339,7 @@ public class Connection implements ConnectionBase {
             log("Start the connection, using " + transport.getName() + " transport", LogLevel.Information);
 
             mTransport = transport;
-            mConnectionFuture = new UpdateableCancellableFuture<Void>(null);
+            mConnectionFuture = new UpdateableCancellableFuture<>(null);
             handleFutureError(mConnectionFuture, true);
 
             log("Start negotiation", LogLevel.Verbose);

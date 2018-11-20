@@ -17,7 +17,7 @@ import microsoft.aspnet.signalr.client.SignalRFuture;
  */
 public class HttpConnectionFuture extends SignalRFuture<Void> {
 
-    private Queue<Throwable> mTimeoutQueue = new ConcurrentLinkedQueue<Throwable>();
+    private Queue<Throwable> mTimeoutQueue = new ConcurrentLinkedQueue<>();
     private ErrorCallback mTimeoutCallback;
     private Object mTimeoutLock = new Object();
 
@@ -65,6 +65,7 @@ public class HttpConnectionFuture extends SignalRFuture<Void> {
          * 
          * @param response
          *            The returned response
+         * @throws java.lang.Exception Exception
          */
         public void onResponse(Response response) throws Exception;
     }

@@ -12,9 +12,6 @@ public class EventHandlerRegistry
     private static final Map<String, List<ISafeguardEventHandler>> delegateRegistry = new HashMap<>();
     private final Logger logger = Logger.getLogger(getClass().getName());
     
-//    private readonly DelegateRegistry _delegateRegistry =
-//        new DelegateRegistry(StringComparer.InvariantCultureIgnoreCase);
-
     private void handleEvent(String eventName, String eventBody)
     {
         if (!delegateRegistry.containsKey(eventName))
