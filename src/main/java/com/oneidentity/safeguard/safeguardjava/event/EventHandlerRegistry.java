@@ -1,5 +1,8 @@
 package com.oneidentity.safeguard.safeguardjava.event;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -12,7 +15,7 @@ public class EventHandlerRegistry
     private static final Map<String, List<ISafeguardEventHandler>> delegateRegistry = new HashMap<>();
     private final Logger logger = Logger.getLogger(getClass().getName());
     
-    private void handleEvent(String eventName, String eventBody)
+    private void handleEvent(String eventName, JsonElement eventBody)
     {
         if (!delegateRegistry.containsKey(eventName))
         {
@@ -30,53 +33,45 @@ public class EventHandlerRegistry
                     String.format("Calling handler for event %s", eventName));
                 Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.WARNING, 
                     String.format("Event %s has body %s", eventName, eventBody));
-//                Task.Run(() =>
-//                {
-//                    try
-//                    {
-//                        handler(eventName, eventBody);
-//                    }
-//                    catch (Exception ex)
-//                    {
-//                        Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.WARNING, 
-//                            String.format("An error occured while calling %s", handler.Method.Name));
-//                    }
-//                });
+                final EventHandlerRunnable handlerRunnable = new EventHandlerRunnable(handler, eventName, eventBody.toString());
+                final EventHandlerThread eventHandlerThread = new EventHandlerThread(handlerRunnable) {
+                    
+                };
+                eventHandlerThread.start();
             }
         }
     }
 
-//    private List<String, String>(string, JToken)[] ParseEvents(string eventObject)
-    private Map<String, String> parseEvents(String eventObject) {
-//        try
-//        {
-//            var events = new List<(string, JToken)>();
-//            var jObject = JObject.Parse(eventObject);
-//            var jEvents = jObject["A"];
-//            foreach (var jEvent in jEvents)
-//            {
-//                var name = jEvent["Name"];
-//                var body = jEvent["Data"];
+    private Map<String, JsonElement> parseEvents(JsonElement eventObject) {
+        try
+        {
+            HashMap<String,JsonElement> events = new HashMap<>();
+            JsonArray jEvents = ((JsonObject)eventObject).getAsJsonArray("A");
+            for(JsonElement jEvent : jEvents) {
+                String name = ((JsonObject)jEvent).get("Name").getAsString();
+                JsonElement body = ((JsonObject)jEvent).get("Data");
 //                // Work around for bug in A2A events in Safeguard 2.2 and 2.3
 //                if (name != null && int.TryParse(name.ToString(), out _))
 //                    name = body["EventName"];
-//                events.Add((name?.ToString(), body));
-//            }
-//            return events.ToArray();
-//        }
-//        catch (Exception)
-//        {
-//            Log.Warning("Unable to parse event object {EventObject}", eventObject);
+                events.put(name, body);
+                
+            }
+            return events;
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.WARNING, 
+                String.format("Unable to parse event object %s", eventObject.toString()));
             return null;
-//        }
+        }
     }
 
-    public void handleEvent(String eventObject)
+    public void handleEvent(JsonElement eventObject)
     {
-        Map<String,String> events = parseEvents(eventObject);
+        Map<String,JsonElement> events = parseEvents(eventObject);
         if (events == null)
             return;
-        for (Map.Entry<String,String> eventInfo : events.entrySet()) {
+        for (Map.Entry<String,JsonElement> eventInfo : events.entrySet()) {
             if (eventInfo.getKey() == null)
             {
                 Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.WARNING, 

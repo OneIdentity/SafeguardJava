@@ -22,15 +22,19 @@ public class JavaHttpConnection implements HttpConnection {
     private static final String USER_AGENT_HEADER = "User-Agent";
 
     private Logger mLogger;
+    private boolean mIgnoreSsl = true;
 
     /**
      * Initializes the JavaHttpConnection
      * 
      * @param logger
      *            logger to log activity
+     * @param ignoreSsl
+     *            Ignore SSL certificate verification
      */
-    public JavaHttpConnection(Logger logger) {
+    public JavaHttpConnection(Logger logger, boolean ignoreSsl) {
         mLogger = logger;
+        mIgnoreSsl = ignoreSsl;
     }
 
     @Override
@@ -42,7 +46,7 @@ public class JavaHttpConnection implements HttpConnection {
 
         HttpConnectionFuture future = new HttpConnectionFuture();
 
-        final NetworkRunnable target = new NetworkRunnable(mLogger, request, future, callback);
+        final NetworkRunnable target = new NetworkRunnable(mLogger, request, future, callback, mIgnoreSsl);
         final NetworkThread networkThread = new NetworkThread(target) {
             @Override
             void releaseAndStop() {

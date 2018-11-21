@@ -75,9 +75,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     }
 
     private void handleEvent(JsonElement eventObject) {
-//Do nothing for now
-        int x = 1;
-//        eventHandlerRegistry.handleEvent(eventObject);
+        eventHandlerRegistry.handleEvent(eventObject);
     }
 
     private void handleDisconnect() throws SafeguardEventListenerDisconnectedException {
@@ -129,9 +127,10 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         signalrHubProxy = signalrConnection.createHubProxy(NOTIFICATION_HUB);
 
         try {
-//            ClientTransport clientTransport = new ServerSentEventsTransport(new NullLogger(), Platform.createHttpConnection(new NullLogger()));
+//            ClientTransport clientTransport = 
+//                    new ServerSentEventsTransport(new NullLogger(), Platform.createDefaultHttpsConnection(new NullLogger(), ignoreSsl));
 //            signalrConnection.start(clientTransport).get();
-            signalrConnection.start().get();
+            signalrConnection.start(ignoreSsl).get();
             
             signalrConnection.received(new MessageReceivedHandler() {
                 @Override

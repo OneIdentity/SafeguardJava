@@ -49,7 +49,7 @@ public class WebsocketTransport extends HttpClientTransport {
     private static final Gson gson = new Gson();
     WebSocketClient mWebSocketClient;
     private UpdateableCancellableFuture<Void> mConnectionFuture;
-    private boolean ignoreSsl = true;
+    private boolean ignoreSsl = false;
     final TrustManager[] trustAllCerts = new TrustManager[]{
         new X509TrustManager() {
             @Override
@@ -74,12 +74,14 @@ public class WebsocketTransport extends HttpClientTransport {
     private static final String WSS = "wss";
 
 
-    public WebsocketTransport(Logger logger) {
+    public WebsocketTransport(Logger logger, boolean ignoreSsl) {
         super(logger);
+        this.ignoreSsl = ignoreSsl;
     }
 
-    public WebsocketTransport(Logger logger, HttpConnection httpConnection) {
+    public WebsocketTransport(Logger logger, HttpConnection httpConnection, boolean ignoreSsl) {
         super(logger, httpConnection);
+        this.ignoreSsl = ignoreSsl;
     }
 
     @Override

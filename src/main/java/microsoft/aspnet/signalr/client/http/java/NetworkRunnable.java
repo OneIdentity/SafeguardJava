@@ -49,6 +49,7 @@ class NetworkRunnable implements Runnable {
     Request mRequest;
     HttpConnectionFuture mFuture;
     ResponseCallback mCallback;
+    boolean mIgnoreSsl = false;
 
     Object mCloseLock = new Object();
     
@@ -82,11 +83,12 @@ class NetworkRunnable implements Runnable {
      * @param callback
      *            Callback to invoke after the request execution
      */
-    public NetworkRunnable(Logger logger, Request request, HttpConnectionFuture future, ResponseCallback callback) {
+    public NetworkRunnable(Logger logger, Request request, HttpConnectionFuture future, ResponseCallback callback, boolean ignoreSsl) {
         mLogger = logger;
         mRequest = request;
         mFuture = future;
         mCallback = callback;
+        mIgnoreSsl = ignoreSsl;
     }
 
     @Override
@@ -102,8 +104,7 @@ class NetworkRunnable implements Runnable {
                 mLogger.log("Execute the HTTP Request", LogLevel.Verbose);
                 mRequest.log(mLogger);
                 if (this.mRequest.getUrl().startsWith("https")) {
-//TODO: Need to get the ignoreSsl value in here.                    
-                    mConnection = createHttpsURLConnection(mRequest, true);
+                    mConnection = createHttpsURLConnection(mRequest, mIgnoreSsl);
                 } else {
                     mConnection = createHttpURLConnection(mRequest);
                 }

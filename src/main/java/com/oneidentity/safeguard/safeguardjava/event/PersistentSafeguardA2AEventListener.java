@@ -8,8 +8,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class DefaultSafeguardEventHandler implements ISafeguardEventHandler {
+
     @Override
-    public void func(String eventName, String eventBody) {
+    public void onEventReceived(String eventName, String eventBody) {
     }
 }
 

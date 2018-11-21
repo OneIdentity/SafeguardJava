@@ -255,10 +255,11 @@ public class Connection implements ConnectionBase {
     /**
      * Starts the connection using the best available transport
      * 
+     * @param ignoreSsl Ignore SSL certificate verification
      * @return A Future for the operation
      */
-    public SignalRFuture<Void> start() {
-        return start(new AutomaticTransport(mLogger));
+    public SignalRFuture<Void> start(boolean ignoreSsl) {
+        return start(new AutomaticTransport(mLogger, ignoreSsl));
     }
 
     /**

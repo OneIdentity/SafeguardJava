@@ -25,12 +25,13 @@ public class AutomaticTransport extends HttpClientTransport {
 
     private List<ClientTransport> mTransports;
     private ClientTransport mRealTransport;
+    private boolean mIgnoreSsl = false;
 
     /**
      * Initializes the transport with a NullLogger
      */
     public AutomaticTransport() {
-        this(new NullLogger());
+        this(new NullLogger(), true);
     }
 
     /**
@@ -38,9 +39,12 @@ public class AutomaticTransport extends HttpClientTransport {
      * 
      * @param logger
      *            logger to log actions
+     * @param ignoreSsl 
+     *            Ignore SSL certificate verification
      */
-    public AutomaticTransport(Logger logger) {
+    public AutomaticTransport(Logger logger, boolean ignoreSsl) {
         super(logger);
+        mIgnoreSsl = ignoreSsl;
         initialize(logger);
     }
 
@@ -51,15 +55,18 @@ public class AutomaticTransport extends HttpClientTransport {
      *            the logger
      * @param httpConnection
      *            the httpConnection
+     * @param ignoreSsl
+     *            Ignore SSL certificate verification
      */
-    public AutomaticTransport(Logger logger, HttpConnection httpConnection) {
+    public AutomaticTransport(Logger logger, HttpConnection httpConnection, boolean ignoreSsl) {
         super(logger, httpConnection);
+        mIgnoreSsl = ignoreSsl;
         initialize(logger);
     }
 
     private void initialize(Logger logger) {
         mTransports = new ArrayList<>();
-        mTransports.add(new WebsocketTransport(logger));
+        mTransports.add(new WebsocketTransport(logger, mIgnoreSsl));
         mTransports.add(new ServerSentEventsTransport(logger));
         mTransports.add(new LongPollingTransport(logger));
     }

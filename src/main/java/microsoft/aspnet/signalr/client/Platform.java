@@ -37,11 +37,15 @@ public class Platform {
             return createDefaultHttpConnection(logger);
         }
     }
-
+    
     public static HttpConnection createDefaultHttpConnection(Logger logger) {
-        return new JavaHttpConnection(logger);
+        return new JavaHttpConnection(logger, true);
     }
 
+    public static HttpConnection createDefaultHttpsConnection(Logger logger, boolean ignoreSsl) {
+        return new JavaHttpConnection(logger, ignoreSsl);
+    }
+    
     /**
      * Generates the User-Agent
      * @return String
