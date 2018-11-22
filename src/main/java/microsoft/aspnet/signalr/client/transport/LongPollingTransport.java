@@ -33,8 +33,8 @@ public class LongPollingTransport extends HttpClientTransport {
      * @param logger
      *            logger to log actions
      */
-    public LongPollingTransport(Logger logger) {
-        super(logger);
+    public LongPollingTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, boolean ignoreSsl) {
+        super(logger, clientCertificatePath, clientCertificatePassword, ignoreSsl);
     }
 
     /**

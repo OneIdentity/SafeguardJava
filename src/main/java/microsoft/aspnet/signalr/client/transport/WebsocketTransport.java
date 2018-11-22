@@ -12,6 +12,11 @@ import java.net.URISyntaxException;
 import java.net.URLEncoder;
 
 import com.google.gson.Gson;
+import com.oneidentity.safeguard.safeguardjava.restclient.RestClient;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.Socket;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -21,6 +26,9 @@ import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -49,7 +57,6 @@ public class WebsocketTransport extends HttpClientTransport {
     private static final Gson gson = new Gson();
     WebSocketClient mWebSocketClient;
     private UpdateableCancellableFuture<Void> mConnectionFuture;
-    private boolean ignoreSsl = false;
     final TrustManager[] trustAllCerts = new TrustManager[]{
         new X509TrustManager() {
             @Override
@@ -74,14 +81,12 @@ public class WebsocketTransport extends HttpClientTransport {
     private static final String WSS = "wss";
 
 
-    public WebsocketTransport(Logger logger, boolean ignoreSsl) {
-        super(logger);
-        this.ignoreSsl = ignoreSsl;
+    public WebsocketTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, boolean ignoreSsl) {
+        super(logger, clientCertificatePath, clientCertificatePassword, ignoreSsl);
     }
 
-    public WebsocketTransport(Logger logger, HttpConnection httpConnection, boolean ignoreSsl) {
+    public WebsocketTransport(Logger logger, HttpConnection httpConnection) {
         super(logger, httpConnection);
-        this.ignoreSsl = ignoreSsl;
     }
 
     @Override
@@ -184,7 +189,7 @@ public class WebsocketTransport extends HttpClientTransport {
 //                }
 //            }
         };
-        SSLContext sslContext = getSSLContext(null, null, null);
+        SSLContext sslContext = getSSLContext(null);
         mWebSocketClient.setSocketFactory(sslContext.getSocketFactory());
         mWebSocketClient.connect();
 
@@ -223,22 +228,42 @@ public class WebsocketTransport extends HttpClientTransport {
         return url;
     }
     
-    private SSLContext getSSLContext(KeyStore keyStorePath, char[] keyStorePassword, String alias) {
+    private SSLContext getSSLContext(String alias) {
 
         TrustManager[] customTrustManager = null;
         KeyManager[] customKeyManager = null;
 
-        if (ignoreSsl) {
+        if (mIgnoreSsl) {
             customTrustManager = trustAllCerts;
         }
 
-        if (keyStorePath != null && keyStorePassword != null && alias != null) {
+        if (mClientCertificatePath != null && mClientCertificatePassword != null) {
+            InputStream in;
+            KeyStore clientKs = null;
+            List<String> aliases = null;
             try {
-                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-                keyManagerFactory.init(keyStorePath, keyStorePassword);
-                customKeyManager = new KeyManager[]{new ExtendedX509KeyManager((X509KeyManager) keyManagerFactory.getKeyManagers()[0], alias)};
-            } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException ex) {
-                ex.printStackTrace();
+                in = new FileInputStream(mClientCertificatePath);
+                clientKs = KeyStore.getInstance("JKS");
+                clientKs.load(in, mClientCertificatePassword);
+                aliases = Collections.list(clientKs.aliases());
+                in.close();
+                if (alias == null && aliases != null && aliases.size() > 0) {
+                    alias = aliases.get(0);
+                }
+            } catch (FileNotFoundException ex) {
+                java.util.logging.Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException ex) {
+                java.util.logging.Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
+            if (alias != null) {
+                try {
+                    KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+                    keyManagerFactory.init(clientKs, mClientCertificatePassword);
+                    customKeyManager = new KeyManager[]{new ExtendedX509KeyManager((X509KeyManager) keyManagerFactory.getKeyManagers()[0], alias)};
+                } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
 

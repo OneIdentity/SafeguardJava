@@ -33,6 +33,9 @@ public abstract class HttpClientTransport implements ClientTransport {
     protected SignalRFuture<Void> mAbortFuture = null;
 
     private Logger mLogger;
+    String mClientCertificatePath;
+    char[] mClientCertificatePassword;
+    boolean mIgnoreSsl = false;
 
     /**
      * Initializes the HttpClientTransport with a logger
@@ -40,8 +43,11 @@ public abstract class HttpClientTransport implements ClientTransport {
      * @param logger
      *            logger to log actions
      */
-    public HttpClientTransport(Logger logger) {
-        this(logger, Platform.createHttpConnection(logger));
+    public HttpClientTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, boolean ignoreSsl) {
+        this(logger, Platform.createHttpsConnection(logger, clientCertificatePath, clientCertificatePassword, ignoreSsl));
+        mClientCertificatePath = clientCertificatePath;
+        mClientCertificatePassword = clientCertificatePassword;
+        mIgnoreSsl = ignoreSsl;
     }
 
     public HttpClientTransport(Logger logger, HttpConnection httpConnection) {

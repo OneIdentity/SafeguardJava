@@ -10,7 +10,7 @@ public class AccessTokenAuthenticator extends AuthenticatorBase
         int apiVersion, boolean ignoreSsl)
     {
         super(networkAddress, null, null, apiVersion, ignoreSsl);
-        this.accessToken = accessToken.clone();
+        this.accessToken = accessToken == null ? null : accessToken.clone();
     }
 
     @Override

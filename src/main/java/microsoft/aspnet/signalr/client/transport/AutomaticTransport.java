@@ -25,13 +25,12 @@ public class AutomaticTransport extends HttpClientTransport {
 
     private List<ClientTransport> mTransports;
     private ClientTransport mRealTransport;
-    private boolean mIgnoreSsl = false;
 
     /**
      * Initializes the transport with a NullLogger
      */
     public AutomaticTransport() {
-        this(new NullLogger(), true);
+        this(new NullLogger(), null, null, false);
     }
 
     /**
@@ -39,12 +38,15 @@ public class AutomaticTransport extends HttpClientTransport {
      * 
      * @param logger
      *            logger to log actions
+     * @param clientCertificatePath
+     *            Client certificate
+     * @param clientCertificatePassword
+     *            Client certificate password
      * @param ignoreSsl 
      *            Ignore SSL certificate verification
      */
-    public AutomaticTransport(Logger logger, boolean ignoreSsl) {
-        super(logger);
-        mIgnoreSsl = ignoreSsl;
+    public AutomaticTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, boolean ignoreSsl) {
+        super(logger, clientCertificatePath, clientCertificatePassword, ignoreSsl);
         initialize(logger);
     }
 
@@ -55,20 +57,17 @@ public class AutomaticTransport extends HttpClientTransport {
      *            the logger
      * @param httpConnection
      *            the httpConnection
-     * @param ignoreSsl
-     *            Ignore SSL certificate verification
      */
-    public AutomaticTransport(Logger logger, HttpConnection httpConnection, boolean ignoreSsl) {
+    public AutomaticTransport(Logger logger, HttpConnection httpConnection) {
         super(logger, httpConnection);
-        mIgnoreSsl = ignoreSsl;
         initialize(logger);
     }
 
     private void initialize(Logger logger) {
         mTransports = new ArrayList<>();
-        mTransports.add(new WebsocketTransport(logger, mIgnoreSsl));
-        mTransports.add(new ServerSentEventsTransport(logger));
-        mTransports.add(new LongPollingTransport(logger));
+        mTransports.add(new WebsocketTransport(logger, mClientCertificatePath, mClientCertificatePassword, mIgnoreSsl));
+        mTransports.add(new ServerSentEventsTransport(logger, mClientCertificatePath, mClientCertificatePassword, mIgnoreSsl));
+        mTransports.add(new LongPollingTransport(logger, mClientCertificatePath, mClientCertificatePassword, mIgnoreSsl));
     }
 
     @Override

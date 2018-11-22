@@ -85,7 +85,12 @@ public class Connection implements ConnectionBase {
     private Object mStateLock = new Object();
 
     private Object mStartLock = new Object();
+    
+    private String mClientCertificatePath;
+    
+    private char[] mClientCertificatePassword;
 
+    
     /**
      * Initializes the connection with an URL
      * 
@@ -252,6 +257,20 @@ public class Connection implements ConnectionBase {
         mOnStateChanged = handler;
     }
 
+//    public String getClientCertificatePath() {
+//        return mClientCertificatePath;
+//    }
+
+    @Override
+    public void setClientCertificate(String clientCertificatePath, char[] clientCertificatePassword) {
+        mClientCertificatePath = clientCertificatePath;
+        mClientCertificatePassword = clientCertificatePassword;
+    }
+
+//    public char[] getClientCertificatePassword() {
+//        return mClientCertificatePassword;
+//    }
+
     /**
      * Starts the connection using the best available transport
      * 
@@ -259,7 +278,7 @@ public class Connection implements ConnectionBase {
      * @return A Future for the operation
      */
     public SignalRFuture<Void> start(boolean ignoreSsl) {
-        return start(new AutomaticTransport(mLogger, ignoreSsl));
+        return start(new AutomaticTransport(mLogger, mClientCertificatePath, mClientCertificatePassword, ignoreSsl));
     }
 
     /**

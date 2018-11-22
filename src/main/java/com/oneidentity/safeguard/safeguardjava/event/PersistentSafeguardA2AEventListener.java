@@ -25,7 +25,7 @@ public class PersistentSafeguardA2AEventListener extends PersistentSafeguardEven
             throws ObjectDisposedException
     {
         this.a2AContext = a2AContext;
-        this.apiKey = apiKey.clone();
+        this.apiKey = apiKey == null ? null : apiKey.clone();
         registerEventHandler("AssetAccountPasswordUpdated", handler);
         Logger.getLogger(PersistentSafeguardA2AEventListener.class.getName()).log(Level.INFO, "Persistent A2A event listener successfully created.");
 }

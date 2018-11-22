@@ -22,7 +22,9 @@ public class JavaHttpConnection implements HttpConnection {
     private static final String USER_AGENT_HEADER = "User-Agent";
 
     private Logger mLogger;
-    private boolean mIgnoreSsl = true;
+    private String mClientCertificatePath = null;
+    private char[] mClientCertificatePassword = null;
+    private boolean mIgnoreSsl = false;
 
     /**
      * Initializes the JavaHttpConnection
@@ -32,9 +34,11 @@ public class JavaHttpConnection implements HttpConnection {
      * @param ignoreSsl
      *            Ignore SSL certificate verification
      */
-    public JavaHttpConnection(Logger logger, boolean ignoreSsl) {
+    public JavaHttpConnection(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, boolean ignoreSsl) {
         mLogger = logger;
         mIgnoreSsl = ignoreSsl;
+        mClientCertificatePath = clientCertificatePath;
+        mClientCertificatePassword = clientCertificatePassword == null ? null : clientCertificatePassword.clone();
     }
 
     @Override
@@ -46,7 +50,8 @@ public class JavaHttpConnection implements HttpConnection {
 
         HttpConnectionFuture future = new HttpConnectionFuture();
 
-        final NetworkRunnable target = new NetworkRunnable(mLogger, request, future, callback, mIgnoreSsl);
+        final NetworkRunnable target = new NetworkRunnable(mLogger, request, future, callback, mClientCertificatePath, 
+                mClientCertificatePassword, mIgnoreSsl);
         final NetworkThread networkThread = new NetworkThread(target) {
             @Override
             void releaseAndStop() {

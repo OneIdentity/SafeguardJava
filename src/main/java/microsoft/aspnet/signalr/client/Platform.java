@@ -39,11 +39,23 @@ public class Platform {
     }
     
     public static HttpConnection createDefaultHttpConnection(Logger logger) {
-        return new JavaHttpConnection(logger, true);
+        return new JavaHttpConnection(logger, null, null, false);
     }
 
-    public static HttpConnection createDefaultHttpsConnection(Logger logger, boolean ignoreSsl) {
-        return new JavaHttpConnection(logger, ignoreSsl);
+    public static HttpConnection createHttpsConnection(Logger logger, String clientCertificatePath, 
+            char[] clientCertificatePassword, boolean ignoreSsl) {
+        if (mPlatformComponent != null) {
+            return mPlatformComponent.createHttpsConnection(logger, clientCertificatePath, 
+                    clientCertificatePassword, ignoreSsl);
+        } else {
+            return createDefaultHttpsConnection(logger, clientCertificatePath, 
+                    clientCertificatePassword, ignoreSsl);
+        }
+    }
+    
+    public static HttpConnection createDefaultHttpsConnection(Logger logger, String clientCertificatePath, 
+            char[] clientCertificatePassword, boolean ignoreSsl) {
+        return new JavaHttpConnection(logger, clientCertificatePath, clientCertificatePassword, ignoreSsl);
     }
     
     /**

@@ -33,7 +33,8 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     private final boolean ignoreSsl;
     private char[] accessToken;
     private char[] apiKey;
-    private X509Certificate clientCertificate;
+    private String clientCertificatePath;
+    private char[] clientCertificatePassword;
 
     private EventHandlerRegistry eventHandlerRegistry;
     private IDisconnectHandler disconnectHandler;
@@ -51,19 +52,21 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         this.eventHandlerRegistry = new EventHandlerRegistry();
         this.accessToken = null;
         this.apiKey = null;
-        this.clientCertificate = null;
+        this.clientCertificatePath = null;
+        this.clientCertificatePassword = null;
         this.disconnectHandler = new DefaultDisconnectHandler();
     }
 
     public SafeguardEventListener(String eventUrl, char[] accessToken, boolean ignoreSsl) {
         this(eventUrl, ignoreSsl);
-        this.accessToken = accessToken.clone();
+        this.accessToken = accessToken == null ? null : accessToken.clone();
     }
 
-    public SafeguardEventListener(String eventUrl, X509Certificate clientCertificate, char[] apiKey, boolean ignoreSsl) {
+    public SafeguardEventListener(String eventUrl, String clientCertificatePath, char[] certificatePassword, char[] apiKey, boolean ignoreSsl) {
         this(eventUrl, ignoreSsl);
-//        clientCertificate = CertificateUtilities.Copy(clientCertificate);
-        this.apiKey = apiKey.clone();
+        this.clientCertificatePath = clientCertificatePath;
+        this.clientCertificatePassword = certificatePassword == null ? null : certificatePassword.clone();
+        this.apiKey = apiKey == null ? null : apiKey.clone();
     }
 
     public void setDisconnectHandler(IDisconnectHandler handler) {
@@ -122,7 +125,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
             signalrConnection.getHeaders().put("Authorization", String.format("Bearer %s", new String(accessToken)));
         } else {
             signalrConnection.getHeaders().put("Authorization", String.format("A2A %s", new String(apiKey)));
-//            this.signalrConnection.addClientCertificate(clientCertificate);
+            signalrConnection.setClientCertificate(clientCertificatePath, clientCertificatePassword);
         }
         signalrHubProxy = signalrConnection.createHubProxy(NOTIFICATION_HUB);
 
