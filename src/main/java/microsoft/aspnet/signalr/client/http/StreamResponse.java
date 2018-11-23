@@ -42,6 +42,7 @@ public class StreamResponse implements Response {
         mStatus = status;
     }
 
+    @Override
     public byte[] readAllBytes() throws IOException {
         List<Byte> bytes = new ArrayList<>();
 

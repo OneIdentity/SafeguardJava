@@ -24,7 +24,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
     private final String networkAddress;
     private final boolean ignoreSsl;
 
-    private final X509Certificate clientCertificate;
+//    private final String clientCertificatePath;
     private final String certificateAlias;
     private final String certificatePath;
     private final char[] certificatePassword;
@@ -38,13 +38,9 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         this.certificateAlias = certificateAlias;
         this.certificatePath = certificatePath;
-        if (certificatePassword != null) {
-            this.certificatePassword = certificatePassword.clone();
-        } else {
-            this.certificatePassword = null;
-        }
+        this.certificatePassword = certificatePassword == null ? null : certificatePassword.clone();
 
-        this.clientCertificate = null;
+//        this.clientCertificatePath = null;
         this.ignoreSsl = ignoreSsl;
     }
 
@@ -91,7 +87,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
 
         SafeguardEventListener eventListener = new SafeguardEventListener(String.format("https://%s/service/a2a", networkAddress),
-                clientCertificate, apiKey, ignoreSsl);
+                certificatePath, certificatePassword, certificateAlias, apiKey, ignoreSsl);
         eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
@@ -123,7 +119,8 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         Map<String, String> parameters = new HashMap<>();
 
-        Response response = a2AClient.execPOST("AccessRequests", parameters, headers, accessRequest, certificatePath, certificatePassword, certificateAlias);
+        Response response = a2AClient.execPOST("AccessRequests", parameters, headers, accessRequest, certificatePath, 
+                certificatePassword, certificateAlias);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));

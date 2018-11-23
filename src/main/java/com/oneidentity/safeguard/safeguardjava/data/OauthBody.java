@@ -13,7 +13,7 @@ public class OauthBody implements JsonObject {
     public OauthBody(String grantType, String username, char[] password, String scope ) {
         this.grantType = grantType;
         this.username = username;
-        this.password = password.clone();
+        this.password = password == null ? null : password.clone();
         this.scope = scope;
         this.isPassword = true;
     }

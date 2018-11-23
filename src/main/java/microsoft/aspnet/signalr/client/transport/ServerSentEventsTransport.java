@@ -26,15 +26,24 @@ public class ServerSentEventsTransport extends HttpClientTransport {
     private static final String END_OF_SSE_MESSAGE = "\n\n";
 
     private SignalRFuture<Void> mConnectionFuture;
-
+    
     /**
      * Initializes the transport with a logger
      * 
      * @param logger
      *            Logger to log actions
+     * @param clientCertificatePath
+     *            client certificate path
+     * @param clientCertificatePassword
+     *            client certificate password
+     * @param clientCertificateAlias
+     *            client certificate alias
+     * @param ignoreSsl
+     *            ignore SSL certificate verification
      */
-    public ServerSentEventsTransport(Logger logger) {
-        super(logger);
+    public ServerSentEventsTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, 
+            String clientCertificateAlias, boolean ignoreSsl) {
+        super(logger, clientCertificatePath, clientCertificatePassword, clientCertificateAlias, ignoreSsl);
     }
 
     /**
@@ -102,8 +111,6 @@ public class ServerSentEventsTransport extends HttpClientTransport {
 
                                 log("Trigger onData: " + content, LogLevel.Verbose);
                                 callback.onData(content);
-                                if (!content.contains("{}"))
-                                    System.out.println(content);
                             }
 
                             buffer = new StringBuilder();

@@ -5,8 +5,4 @@ public class SafeguardEventListenerDisconnectedException extends SafeguardForJav
     public SafeguardEventListenerDisconnectedException() {
         super("SafeguardEventListener has permanently disconnected SignalR connection");
     }
-
-//    protected SafeguardEventListenerDisconnectedException(SerializationInfo info, StreamingContext context) {
-//        super(info, context);
-//    }
 }

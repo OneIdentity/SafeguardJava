@@ -25,16 +25,25 @@ import microsoft.aspnet.signalr.client.http.Response;
  */
 public class LongPollingTransport extends HttpClientTransport {
     private UpdateableCancellableFuture<Void> mConnectionFuture;
-    private Object mPollSync = new Object();
+    private final Object mPollSync = new Object();
 
     /**
      * Initializes the transport
      * 
      * @param logger
      *            logger to log actions
+     * @param clientCertificatePath
+     *            client certificate path
+     * @param clientCertificatePassword
+     *            client certificate password
+     * @param clientCertificateAlias
+     *            client certificate alias
+     * @param ignoreSsl
+     *            ignore SSL certificate verification
      */
-    public LongPollingTransport(Logger logger) {
-        super(logger);
+    public LongPollingTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, 
+            String clientCertificateAlias, boolean ignoreSsl) {
+        super(logger, clientCertificatePath, clientCertificatePassword, clientCertificateAlias, ignoreSsl);
     }
 
     /**

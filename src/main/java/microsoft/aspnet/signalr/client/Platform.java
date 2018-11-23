@@ -37,11 +37,27 @@ public class Platform {
             return createDefaultHttpConnection(logger);
         }
     }
-
+    
     public static HttpConnection createDefaultHttpConnection(Logger logger) {
-        return new JavaHttpConnection(logger);
+        return new JavaHttpConnection(logger, null, null, null, false);
     }
 
+    public static HttpConnection createHttpConnection(Logger logger, String clientCertificatePath, 
+            char[] clientCertificatePassword, String clientCertificateAlias, boolean ignoreSsl) {
+        if (mPlatformComponent != null) {
+            return mPlatformComponent.createHttpConnection(logger, clientCertificatePath, 
+                    clientCertificatePassword, clientCertificateAlias, ignoreSsl);
+        } else {
+            return createDefaultHttpConnection(logger, clientCertificatePath, 
+                    clientCertificatePassword, clientCertificateAlias, ignoreSsl);
+        }
+    }
+    
+    public static HttpConnection createDefaultHttpConnection(Logger logger, String clientCertificatePath, 
+            char[] clientCertificatePassword, String clientCertificateAlias, boolean ignoreSsl) {
+        return new JavaHttpConnection(logger, clientCertificatePath, clientCertificatePassword, clientCertificateAlias, ignoreSsl);
+    }
+    
     /**
      * Generates the User-Agent
      * @return String

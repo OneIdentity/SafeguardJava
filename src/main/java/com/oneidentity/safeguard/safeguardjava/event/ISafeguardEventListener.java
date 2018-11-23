@@ -4,29 +4,38 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedExceptio
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardEventListenerDisconnectedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 
-/// This is an event listener interface that will allow you to be notified each time something
-/// changes on Safeguard. The events that you are notified for depend on the role and event
-/// registrations of the authenticated user. Safeguard event listeners use SignalR to make
-/// long-lived connections to Safeguard.
-/// </summary>
+/** 
+ * This is an event listener interface that will allow you to be notified each time something
+ * changes on Safeguard. The events that you are notified for depend on the role and event
+ * registrations of the authenticated user. Safeguard event listeners use SignalR to make
+ * long-lived connections to Safeguard.
+ */
 public interface ISafeguardEventListener
 {
-    /// <summary>
-    /// Register an event handler to be called each time the specified event occurs. Multiple
-    /// handlers may be registered for each event.
-    /// </summary>
-    /// <param name="eventName">Name of the event.</param>
-    /// <param name="handler">Callback method.</param>
+    /**
+     * Register an event handler to be called each time the specified event occurs. Multiple
+     * handlers may be registered for each event.
+     * 
+     * @param eventName Name of the event.
+     * @param handler Callback method.
+     * @throws ObjectDisposedException Object has already been disposed
+     */ 
     void registerEventHandler(String eventName, ISafeguardEventHandler handler) throws ObjectDisposedException;
 
-    /// <summary>
-    /// Start listening for Safeguard events in a background thread.
-    /// </summary>
+    /**
+     * Start listening for Safeguard events in a background thread.
+     * @throws ObjectDisposedException Object has already been disposed
+     * @throws SafeguardForJavaException General Safeguard for Java exception
+     * @throws SafeguardEventListenerDisconnectedException Event listener has been disconnected
+     */
     void start() throws ObjectDisposedException, SafeguardForJavaException, SafeguardEventListenerDisconnectedException;
 
-    /// <summary>
-    /// Stop listening for Safeguard events in a background thread.
-    /// </summary>
+    /**
+     * Stop listening for Safeguard events in a background thread.
+     * 
+     * @throws ObjectDisposedException Object has already been disposed
+     * @throws SafeguardForJavaException General Safeguard for Java exception
+     */
     void stop() throws ObjectDisposedException, SafeguardForJavaException;
 
     /**

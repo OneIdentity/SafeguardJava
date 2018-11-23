@@ -22,7 +22,7 @@ public class CertificateAuthenticator extends AuthenticatorBase
         super(networkAddress, null, null, apiVersion, ignoreSsl);
         this.certificateAlias = certificateAlias;
         this.certificatePath = keystorePath;
-        this.certificatePassword = keystorePassword.clone();
+        this.certificatePassword = keystorePassword == null ? null : keystorePassword.clone();
     }
 
     public CertificateAuthenticator(String networkAddress, String certificatePath, char[] certificatePassword,
@@ -30,7 +30,7 @@ public class CertificateAuthenticator extends AuthenticatorBase
     {
         super(networkAddress, certificatePath, certificatePassword, apiVersion, ignoreSsl);
         this.certificatePath = certificatePath;
-        this.certificatePassword = certificatePassword.clone();
+        this.certificatePassword = certificatePassword == null ? null : certificatePassword.clone();
         this.certificateAlias = null;
     }
 

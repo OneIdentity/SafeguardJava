@@ -247,7 +247,7 @@ public class HubConnection extends Connection {
     }
 
     /**
-     * Generates a standarized URL
+     * Generates a standardized URL
      * 
      * @param url
      *            The base URL

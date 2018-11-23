@@ -6,6 +6,9 @@ See License.txt in the project root for license information.
 
 package microsoft.aspnet.signalr.client.http.java;
 
+import com.oneidentity.safeguard.safeguardjava.restclient.RestClient;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -20,7 +23,10 @@ import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
@@ -49,6 +55,10 @@ class NetworkRunnable implements Runnable {
     Request mRequest;
     HttpConnectionFuture mFuture;
     ResponseCallback mCallback;
+    String mClientCertificatePath = null;
+    char[] mClientCertificatePassword = null;
+    String mClientCertificateAlias = null;
+    boolean mIgnoreSsl = false;
 
     Object mCloseLock = new Object();
     
@@ -82,13 +92,22 @@ class NetworkRunnable implements Runnable {
      * @param callback
      *            Callback to invoke after the request execution
      */
-    public NetworkRunnable(Logger logger, Request request, HttpConnectionFuture future, ResponseCallback callback) {
+    private NetworkRunnable(Logger logger, Request request, HttpConnectionFuture future, ResponseCallback callback, boolean ignoreSsl) {
         mLogger = logger;
         mRequest = request;
         mFuture = future;
         mCallback = callback;
+        mIgnoreSsl = ignoreSsl;
     }
 
+    public NetworkRunnable(Logger logger, Request request, HttpConnectionFuture future, ResponseCallback callback, 
+            String clientCertificatePath, char[] clientCertificatePassword, String clientCertificateAlias, boolean ignoreSsl) {
+        this(logger, request, future, callback, ignoreSsl);
+        mClientCertificatePath = clientCertificatePath;
+        mClientCertificatePassword = clientCertificatePassword == null ? null : clientCertificatePassword.clone();
+        mClientCertificateAlias = clientCertificateAlias;
+    }
+    
     @Override
     public void run() {
         try {
@@ -102,8 +121,8 @@ class NetworkRunnable implements Runnable {
                 mLogger.log("Execute the HTTP Request", LogLevel.Verbose);
                 mRequest.log(mLogger);
                 if (this.mRequest.getUrl().startsWith("https")) {
-//TODO: Need to get the ignoreSsl value in here.                    
-                    mConnection = createHttpsURLConnection(mRequest, true);
+                    mConnection = createHttpsURLConnection(mRequest, mClientCertificatePath, mClientCertificatePassword, 
+                            mClientCertificateAlias, mIgnoreSsl);
                 } else {
                     mConnection = createHttpURLConnection(mRequest);
                 }
@@ -194,13 +213,16 @@ class NetworkRunnable implements Runnable {
      * @return An HttpsURLConnection to execute the request
      * @throws java.io.IOException
      */
-    static HttpsURLConnection createHttpsURLConnection(Request request, boolean ignoreSsl) throws IOException {
+    static HttpsURLConnection createHttpsURLConnection(Request request, String certificatePath, char[] certificatePassword, 
+            String certificateAlias, boolean ignoreSsl) 
+            throws IOException {
+        
         URL url = new URL(request.getUrl());
         
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setConnectTimeout(15 * 1000);
         connection.setRequestMethod(request.getVerb());
-        SSLContext sslContext = getSSLContext(null, null, null, ignoreSsl);
+        SSLContext sslContext = getSSLContext(certificatePath, certificatePassword, certificateAlias, ignoreSsl);
         connection.setSSLSocketFactory(sslContext.getSocketFactory());
 
         Map<String, String> headers = request.getHeaders();
@@ -220,7 +242,7 @@ class NetworkRunnable implements Runnable {
         return connection;
     }
     
-    static SSLContext getSSLContext(KeyStore keyStorePath, char[] keyStorePassword, String alias, boolean ignoreSsl) {
+    static SSLContext getSSLContext(String keyStorePath, char[] keyStorePassword, String alias, boolean ignoreSsl) {
 
         TrustManager[] customTrustManager = null;
         KeyManager[] customKeyManager = null;
@@ -229,14 +251,32 @@ class NetworkRunnable implements Runnable {
             customTrustManager = trustAllCerts;
         }
 
-        if (keyStorePath != null && keyStorePassword != null && alias != null) {
+        if (keyStorePath != null && keyStorePassword != null) {
+            InputStream in;
+            KeyStore clientKs = null;
+            List<String> aliases = null;
             try {
-                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
-                keyManagerFactory.init(keyStorePath, keyStorePassword);
-//TODO: Fix the customKeyManager                
-//                customKeyManager = new KeyManager[]{new ExtendedX509KeyManager((X509KeyManager) keyManagerFactory.getKeyManagers()[0], alias)};
-            } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException ex) {
-                ex.printStackTrace();
+                in = new FileInputStream(keyStorePath);
+                clientKs = KeyStore.getInstance("JKS");
+                clientKs.load(in, keyStorePassword);
+                aliases = Collections.list(clientKs.aliases());
+                in.close();
+                if (alias == null && aliases != null && aliases.size() > 0)
+                    alias = aliases.get(0);
+            } catch (FileNotFoundException ex) {
+                java.util.logging.Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException ex) {
+                java.util.logging.Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        
+            if (alias != null) {
+                try {
+                    KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
+                    keyManagerFactory.init(clientKs, keyStorePassword);
+                    customKeyManager = new KeyManager[]{new ExtendedX509KeyManager((X509KeyManager) keyManagerFactory.getKeyManagers()[0], alias)};
+                } catch (NoSuchAlgorithmException | KeyStoreException | UnrecoverableKeyException ex) {
+                    ex.printStackTrace();
+                }
             }
         }
 
@@ -249,7 +289,7 @@ class NetworkRunnable implements Runnable {
         return ctx;
     }
 
-    class ExtendedX509KeyManager extends X509ExtendedKeyManager {
+    static class ExtendedX509KeyManager extends X509ExtendedKeyManager {
 
         X509KeyManager defaultKeyManager;
         String alias;
