@@ -9,11 +9,12 @@ package microsoft.aspnet.signalr.client;
 /**
  * An updateable SignalRFuture that, when cancelled, triggers cancellation on an
  * internal instance
+ * @param <V> class
  */
 public class UpdateableCancellableFuture<V> extends SignalRFuture<V> {
     SignalRFuture<?> mFuture = null;
 
-    Object mSync = new Object();
+    final Object mSync = new Object();
 
     public UpdateableCancellableFuture(SignalRFuture<?> token) {
         mFuture = token;

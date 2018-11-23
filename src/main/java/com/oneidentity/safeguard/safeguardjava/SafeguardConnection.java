@@ -6,7 +6,6 @@ import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
 import com.oneidentity.safeguard.safeguardjava.data.JsonBody;
 import com.oneidentity.safeguard.safeguardjava.data.Method;
 import com.oneidentity.safeguard.safeguardjava.data.Service;
-import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.event.SafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;

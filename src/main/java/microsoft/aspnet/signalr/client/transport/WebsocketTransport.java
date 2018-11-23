@@ -81,8 +81,9 @@ public class WebsocketTransport extends HttpClientTransport {
     private static final String WSS = "wss";
 
 
-    public WebsocketTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, boolean ignoreSsl) {
-        super(logger, clientCertificatePath, clientCertificatePassword, ignoreSsl);
+    public WebsocketTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, 
+            String clientCertificateAlias, boolean ignoreSsl) {
+        super(logger, clientCertificatePath, clientCertificatePassword, clientCertificateAlias, ignoreSsl);
     }
 
     public WebsocketTransport(Logger logger, HttpConnection httpConnection) {
@@ -157,37 +158,6 @@ public class WebsocketTransport extends HttpClientTransport {
             public void onError(Exception e) {
                 mWebSocketClient.close();
             }
-
-//            @Override
-//            public void onFragment(Framedata frame) {
-//                try {
-//                    String decodedString = Charsetfunctions.stringUtf8(frame.getPayloadData());
-//
-//                    if(decodedString.equals("]}")){
-//                        return;
-//                    }
-//
-//                    if(decodedString.endsWith(":[") || null == mPrefix){
-//                        mPrefix = decodedString;
-//                        return;
-//                    }
-//
-//                    String simpleConcatenate = mPrefix + decodedString;
-//
-//                    if(isJSONValid(simpleConcatenate)){
-//                        onMessage(simpleConcatenate);
-//                    }else{
-//                        String extendedConcatenate = simpleConcatenate + "]}";
-//                        if (isJSONValid(extendedConcatenate)) {
-//                            onMessage(extendedConcatenate);
-//                        } else {
-//                            log("invalid json received:" + decodedString, LogLevel.Critical);
-//                        }
-//                    }
-//                } catch (InvalidDataException e) {
-//                    e.printStackTrace();
-//                }
-//            }
         };
         SSLContext sslContext = getSSLContext(null);
         mWebSocketClient.setSocketFactory(sslContext.getSocketFactory());

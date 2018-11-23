@@ -50,11 +50,15 @@ public class EventHandlerRegistry
             for(JsonElement jEvent : jEvents) {
                 String name = ((JsonObject)jEvent).get("Name").getAsString();
                 JsonElement body = ((JsonObject)jEvent).get("Data");
-//                // Work around for bug in A2A events in Safeguard 2.2 and 2.3
-//                if (name != null && int.TryParse(name.ToString(), out _))
-//                    name = body["EventName"];
+                // Work around for bug in A2A events in Safeguard 2.2 and 2.3
+                if (name != null) {
+                    try {
+                        Integer.parseInt(name);
+                        name = ((JsonObject)body).get("EventName").getAsString();
+                    } catch (Exception e) {                      
+                    }
+                }
                 events.put(name, body);
-                
             }
             return events;
         }
@@ -85,7 +89,7 @@ public class EventHandlerRegistry
     public void registerEventHandler(String eventName, ISafeguardEventHandler handler)
     {
         if (!delegateRegistry.containsKey(eventName)) {
-            delegateRegistry.put(eventName, new ArrayList<ISafeguardEventHandler>());
+            delegateRegistry.put(eventName, new ArrayList<>());
         }
         
         delegateRegistry.get(eventName).add(handler);

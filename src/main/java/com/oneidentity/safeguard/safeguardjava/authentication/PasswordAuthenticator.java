@@ -134,7 +134,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
     
     private List<String> parseLoginResponse(Response response) {
         
-        List<String> providers = new ArrayList<String>();
+        List<String> providers = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         
         try {

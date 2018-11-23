@@ -33,8 +33,9 @@ public abstract class HttpClientTransport implements ClientTransport {
     protected SignalRFuture<Void> mAbortFuture = null;
 
     private Logger mLogger;
-    String mClientCertificatePath;
-    char[] mClientCertificatePassword;
+    String mClientCertificatePath = null;
+    char[] mClientCertificatePassword = null;
+    String mClientCertificateAlias = null;
     boolean mIgnoreSsl = false;
 
     /**
@@ -42,11 +43,21 @@ public abstract class HttpClientTransport implements ClientTransport {
      * 
      * @param logger
      *            logger to log actions
+     * @param clientCertificatePath
+     *            client certificate path
+     * @param clientCertificatePassword
+     *            client certificate password
+     * @param clientCertificateAlias
+     *            client certificate alias
+     * @param ignoreSsl
+     *            ignore SSL certificate verification
      */
-    public HttpClientTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, boolean ignoreSsl) {
-        this(logger, Platform.createHttpsConnection(logger, clientCertificatePath, clientCertificatePassword, ignoreSsl));
+    public HttpClientTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, 
+            String clientCertificateAlias, boolean ignoreSsl) {
+        this(logger, Platform.createHttpConnection(logger, clientCertificatePath, clientCertificatePassword, clientCertificateAlias, ignoreSsl));
         mClientCertificatePath = clientCertificatePath;
         mClientCertificatePassword = clientCertificatePassword;
+        mClientCertificateAlias = clientCertificateAlias;
         mIgnoreSsl = ignoreSsl;
     }
 

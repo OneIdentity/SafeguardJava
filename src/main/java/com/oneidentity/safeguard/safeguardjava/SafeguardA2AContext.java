@@ -87,7 +87,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
 
         SafeguardEventListener eventListener = new SafeguardEventListener(String.format("https://%s/service/a2a", networkAddress),
-                certificatePath, certificatePassword, apiKey, ignoreSsl);
+                certificatePath, certificatePassword, certificateAlias, apiKey, ignoreSsl);
         eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
@@ -119,7 +119,8 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         Map<String, String> parameters = new HashMap<>();
 
-        Response response = a2AClient.execPOST("AccessRequests", parameters, headers, accessRequest, certificatePath, certificatePassword, certificateAlias);
+        Response response = a2AClient.execPOST("AccessRequests", parameters, headers, accessRequest, certificatePath, 
+                certificatePassword, certificateAlias);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));

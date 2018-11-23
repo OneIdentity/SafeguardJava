@@ -17,12 +17,16 @@ public interface PlatformComponent {
     public HttpConnection createHttpConnection(Logger logger);
 
     /**
-     * Returns a platform-specific SSL HttpConnection 
+     * Returns a platform-specific HttpConnection 
      * @param logger Logger
+     * @param clientCertificatePath Client certificate
+     * @param clientCertificatePassword Client certificate password
+     * @param clientCertificateAlias Client certificate alias
+     * @param ignoreSsl Ignore SSL certificate verification
      * @return HttpConnection Http Connection
      */
-    public HttpConnection createHttpsConnection(Logger logger, String clientCertificatePath, 
-            char[] clientCertificatePassword, boolean ignoreSsl);
+    public HttpConnection createHttpConnection(Logger logger, String clientCertificatePath, 
+            char[] clientCertificatePassword, String clientCertificateAlias, boolean ignoreSsl);
     
     /**
      * Returns a platform-specific Operating System name

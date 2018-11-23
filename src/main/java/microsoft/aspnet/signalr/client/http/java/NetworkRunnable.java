@@ -57,6 +57,7 @@ class NetworkRunnable implements Runnable {
     ResponseCallback mCallback;
     String mClientCertificatePath = null;
     char[] mClientCertificatePassword = null;
+    String mClientCertificateAlias = null;
     boolean mIgnoreSsl = false;
 
     Object mCloseLock = new Object();
@@ -100,10 +101,11 @@ class NetworkRunnable implements Runnable {
     }
 
     public NetworkRunnable(Logger logger, Request request, HttpConnectionFuture future, ResponseCallback callback, 
-            String clientCertificatePath, char[] clientCertificatePassword, boolean ignoreSsl) {
+            String clientCertificatePath, char[] clientCertificatePassword, String clientCertificateAlias, boolean ignoreSsl) {
         this(logger, request, future, callback, ignoreSsl);
         mClientCertificatePath = clientCertificatePath;
         mClientCertificatePassword = clientCertificatePassword == null ? null : clientCertificatePassword.clone();
+        mClientCertificateAlias = clientCertificateAlias;
     }
     
     @Override
@@ -119,7 +121,8 @@ class NetworkRunnable implements Runnable {
                 mLogger.log("Execute the HTTP Request", LogLevel.Verbose);
                 mRequest.log(mLogger);
                 if (this.mRequest.getUrl().startsWith("https")) {
-                    mConnection = createHttpsURLConnection(mRequest, mClientCertificatePath, mClientCertificatePassword, mIgnoreSsl);
+                    mConnection = createHttpsURLConnection(mRequest, mClientCertificatePath, mClientCertificatePassword, 
+                            mClientCertificateAlias, mIgnoreSsl);
                 } else {
                     mConnection = createHttpURLConnection(mRequest);
                 }
@@ -210,7 +213,8 @@ class NetworkRunnable implements Runnable {
      * @return An HttpsURLConnection to execute the request
      * @throws java.io.IOException
      */
-    static HttpsURLConnection createHttpsURLConnection(Request request, String certificatePath, char[] certificatePassword, boolean ignoreSsl) 
+    static HttpsURLConnection createHttpsURLConnection(Request request, String certificatePath, char[] certificatePassword, 
+            String certificateAlias, boolean ignoreSsl) 
             throws IOException {
         
         URL url = new URL(request.getUrl());
@@ -218,7 +222,7 @@ class NetworkRunnable implements Runnable {
         HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setConnectTimeout(15 * 1000);
         connection.setRequestMethod(request.getVerb());
-        SSLContext sslContext = getSSLContext(certificatePath, certificatePassword, null, ignoreSsl);
+        SSLContext sslContext = getSSLContext(certificatePath, certificatePassword, certificateAlias, ignoreSsl);
         connection.setSSLSocketFactory(sslContext.getSocketFactory());
 
         Map<String, String> headers = request.getHeaders();

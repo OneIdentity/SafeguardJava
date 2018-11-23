@@ -18,7 +18,7 @@ import java.util.concurrent.TimeoutException;
 
 /**
  * Represents long running SignalR operations
- * @param V param
+ * @param <V> class
  */
 public class SignalRFuture<V> implements Future<V> {
     boolean mIsCancelled = false;
@@ -26,10 +26,10 @@ public class SignalRFuture<V> implements Future<V> {
     private V mResult = null;
     private List<Runnable> mOnCancelled = new ArrayList<>();
     private List<Action<V>> mOnDone = new ArrayList<>();
-    private Object mDoneLock = new Object();
+    private final Object mDoneLock = new Object();
     private List<ErrorCallback> mErrorCallback = new ArrayList<>();
     private Queue<Throwable> mErrorQueue = new ConcurrentLinkedQueue<>();
-    private Object mErrorLock = new Object();
+    private final Object mErrorLock = new Object();
     private Throwable mLastError = null;
 
     private Semaphore mResultSemaphore = new Semaphore(0);
@@ -87,6 +87,7 @@ public class SignalRFuture<V> implements Future<V> {
      * 
      * @return True if the operation is cancelled
      */
+    @Override
     public boolean isCancelled() {
         return mIsCancelled;
     }

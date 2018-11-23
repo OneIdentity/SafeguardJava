@@ -39,23 +39,23 @@ public class Platform {
     }
     
     public static HttpConnection createDefaultHttpConnection(Logger logger) {
-        return new JavaHttpConnection(logger, null, null, false);
+        return new JavaHttpConnection(logger, null, null, null, false);
     }
 
-    public static HttpConnection createHttpsConnection(Logger logger, String clientCertificatePath, 
-            char[] clientCertificatePassword, boolean ignoreSsl) {
+    public static HttpConnection createHttpConnection(Logger logger, String clientCertificatePath, 
+            char[] clientCertificatePassword, String clientCertificateAlias, boolean ignoreSsl) {
         if (mPlatformComponent != null) {
-            return mPlatformComponent.createHttpsConnection(logger, clientCertificatePath, 
-                    clientCertificatePassword, ignoreSsl);
+            return mPlatformComponent.createHttpConnection(logger, clientCertificatePath, 
+                    clientCertificatePassword, clientCertificateAlias, ignoreSsl);
         } else {
-            return createDefaultHttpsConnection(logger, clientCertificatePath, 
-                    clientCertificatePassword, ignoreSsl);
+            return createDefaultHttpConnection(logger, clientCertificatePath, 
+                    clientCertificatePassword, clientCertificateAlias, ignoreSsl);
         }
     }
     
-    public static HttpConnection createDefaultHttpsConnection(Logger logger, String clientCertificatePath, 
-            char[] clientCertificatePassword, boolean ignoreSsl) {
-        return new JavaHttpConnection(logger, clientCertificatePath, clientCertificatePassword, ignoreSsl);
+    public static HttpConnection createDefaultHttpConnection(Logger logger, String clientCertificatePath, 
+            char[] clientCertificatePassword, String clientCertificateAlias, boolean ignoreSsl) {
+        return new JavaHttpConnection(logger, clientCertificatePath, clientCertificatePassword, clientCertificateAlias, ignoreSsl);
     }
     
     /**

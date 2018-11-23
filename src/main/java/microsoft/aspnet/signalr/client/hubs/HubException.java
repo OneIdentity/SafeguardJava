@@ -12,7 +12,7 @@ package microsoft.aspnet.signalr.client.hubs;
 public class HubException extends Exception {
 
     private static final long serialVersionUID = 5958638666959902780L;
-    private Object mErrorData;
+    private final Object mErrorData;
 
     /**
      * Creates a new Hub exception

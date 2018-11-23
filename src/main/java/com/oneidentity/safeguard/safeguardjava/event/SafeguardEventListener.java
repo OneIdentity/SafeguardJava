@@ -4,18 +4,13 @@ import com.google.gson.JsonElement;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardEventListenerDisconnectedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
-import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import microsoft.aspnet.signalr.client.ErrorCallback;
 import microsoft.aspnet.signalr.client.MessageReceivedHandler;
-import microsoft.aspnet.signalr.client.NullLogger;
-import microsoft.aspnet.signalr.client.Platform;
 import microsoft.aspnet.signalr.client.hubs.HubConnection;
 import microsoft.aspnet.signalr.client.hubs.HubProxy;
-import microsoft.aspnet.signalr.client.transport.ClientTransport;
-import microsoft.aspnet.signalr.client.transport.ServerSentEventsTransport;
 
 class DefaultDisconnectHandler implements IDisconnectHandler {
 
@@ -35,13 +30,13 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     private char[] apiKey;
     private String clientCertificatePath;
     private char[] clientCertificatePassword;
+    private String clientCertificateAlias;
 
     private EventHandlerRegistry eventHandlerRegistry;
     private IDisconnectHandler disconnectHandler;
 
     private boolean isStarted;
     private HubConnection signalrConnection = null;
-//    private Subscription handlerSubscription = null;
     public HubProxy signalrHubProxy = null;
 
     private static final String NOTIFICATION_HUB = "notificationHub";
@@ -54,6 +49,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         this.apiKey = null;
         this.clientCertificatePath = null;
         this.clientCertificatePassword = null;
+        this.clientCertificateAlias = null;
         this.disconnectHandler = new DefaultDisconnectHandler();
     }
 
@@ -62,10 +58,12 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         this.accessToken = accessToken == null ? null : accessToken.clone();
     }
 
-    public SafeguardEventListener(String eventUrl, String clientCertificatePath, char[] certificatePassword, char[] apiKey, boolean ignoreSsl) {
+    public SafeguardEventListener(String eventUrl, String clientCertificatePath, char[] certificatePassword, 
+            String certificateAlias, char[] apiKey, boolean ignoreSsl) {
         this(eventUrl, ignoreSsl);
         this.clientCertificatePath = clientCertificatePath;
         this.clientCertificatePassword = certificatePassword == null ? null : certificatePassword.clone();
+        this.clientCertificateAlias = certificateAlias;
         this.apiKey = apiKey == null ? null : apiKey.clone();
     }
 
@@ -91,16 +89,10 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     
     private void cleanupConnection() {
         try {
-//            if (handlerSubscription != null) {
-//                handlerSubscription.unsubscribe();
-//            }
-//            if (signalrConnection != null) {
-//                signalrConnection.remove(eventUrl);
-//            }
         } finally {
             signalrConnection = null;
-//            handlerSubscription = null;
             signalrHubProxy = null;
+            isStarted = false;
         }
     }
 
@@ -125,7 +117,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
             signalrConnection.getHeaders().put("Authorization", String.format("Bearer %s", new String(accessToken)));
         } else {
             signalrConnection.getHeaders().put("Authorization", String.format("A2A %s", new String(apiKey)));
-            signalrConnection.setClientCertificate(clientCertificatePath, clientCertificatePassword);
+            signalrConnection.setClientCertificate(clientCertificatePath, clientCertificatePassword, clientCertificateAlias);
         }
         signalrHubProxy = signalrConnection.createHubProxy(NOTIFICATION_HUB);
 
@@ -165,6 +157,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         }
     }
 
+    @Override
     public void stop() throws ObjectDisposedException, SafeguardForJavaException {
         if (disposed) {
             throw new ObjectDisposedException("SafeguardEventListener");
@@ -183,14 +176,14 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     @Override
     public void dispose() {
         cleanupConnection();
-        if (this.accessToken != null) {
-            Arrays.fill(this.accessToken, '0');
-        }
-//        if (this.clientCertificate != null)
-//            this.clientCertificate = null;
-        if (this.apiKey != null) {
-            Arrays.fill(this.apiKey, '0');
-        }
+        clientCertificatePath = null;
+        clientCertificateAlias = null;
+        if (apiKey != null)
+            Arrays.fill(apiKey, '0');
+        if (accessToken != null)
+            Arrays.fill(accessToken, '0');
+        if (clientCertificatePassword != null)
+            Arrays.fill(clientCertificatePassword, '0');
         disposed = true;
     }
 
@@ -198,16 +191,18 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     protected void finalize() throws Throwable {
         try {
             cleanupConnection();
-            if (this.accessToken != null) {
-                Arrays.fill(this.accessToken, '0');
-            }
-//            if (this.clientCertificate != null)
-//                this.clientCertificate = null;
-            if (this.apiKey != null) {
-                Arrays.fill(this.apiKey, '0');
-            }
+            clientCertificatePath = null;
+            clientCertificateAlias = null;
+            if (apiKey != null)
+                Arrays.fill(apiKey, '0');
+            if (accessToken != null)
+                Arrays.fill(accessToken, '0');
+            if (clientCertificatePassword != null)
+                Arrays.fill(clientCertificatePassword, '0');
+            disposed = true;
         } finally {
             disposed = true;
+            super.finalize();
         }
     }
 }

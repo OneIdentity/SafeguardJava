@@ -215,6 +215,13 @@ public interface ConnectionBase {
      */
     public Logger getLogger();
     
-    void setClientCertificate(String clientCertificatePath, char[] clientCertificatePassword);
+    /**
+     * Set the client certificate information
+     * 
+     * @param clientCertificatePath client certificate path
+     * @param clientCertificatePassword client certificate password
+     * @param clientCertificateAlias client certificate alias
+     */
+    void setClientCertificate(String clientCertificatePath, char[] clientCertificatePassword, String clientCertificateAlias);
     
 }

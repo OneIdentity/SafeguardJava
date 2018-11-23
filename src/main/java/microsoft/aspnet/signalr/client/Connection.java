@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import java.util.Arrays;
 
 import microsoft.aspnet.signalr.client.http.Request;
 import microsoft.aspnet.signalr.client.transport.AutomaticTransport;
@@ -82,13 +83,15 @@ public class Connection implements ConnectionBase {
 
     protected Gson mGson;
 
-    private Object mStateLock = new Object();
+    private final Object mStateLock = new Object();
 
-    private Object mStartLock = new Object();
+    private final Object mStartLock = new Object();
     
-    private String mClientCertificatePath;
+    private String mClientCertificatePath = null;
     
-    private char[] mClientCertificatePassword;
+    private char[] mClientCertificatePassword = null;
+    
+    private String mClientCertificateAlias = null;
 
     
     /**
@@ -257,19 +260,12 @@ public class Connection implements ConnectionBase {
         mOnStateChanged = handler;
     }
 
-//    public String getClientCertificatePath() {
-//        return mClientCertificatePath;
-//    }
-
     @Override
-    public void setClientCertificate(String clientCertificatePath, char[] clientCertificatePassword) {
+    public void setClientCertificate(String clientCertificatePath, char[] clientCertificatePassword, String clientCertificateAlias) {
         mClientCertificatePath = clientCertificatePath;
         mClientCertificatePassword = clientCertificatePassword;
+        mClientCertificateAlias = clientCertificateAlias;
     }
-
-//    public char[] getClientCertificatePassword() {
-//        return mClientCertificatePassword;
-//    }
 
     /**
      * Starts the connection using the best available transport
@@ -278,7 +274,7 @@ public class Connection implements ConnectionBase {
      * @return A Future for the operation
      */
     public SignalRFuture<Void> start(boolean ignoreSsl) {
-        return start(new AutomaticTransport(mLogger, mClientCertificatePath, mClientCertificatePassword, ignoreSsl));
+        return start(new AutomaticTransport(mLogger, mClientCertificatePath, mClientCertificatePassword, mClientCertificateAlias, ignoreSsl));
     }
 
     /**
@@ -555,7 +551,7 @@ public class Connection implements ConnectionBase {
             if (mConnectionFuture != null) {
                 log("Stopping the connection", LogLevel.Verbose);
                 mConnectionFuture.cancel();
-                mConnectionFuture = new UpdateableCancellableFuture<Void>(null);
+                mConnectionFuture = new UpdateableCancellableFuture<>(null);
             }
 
             if (mAbortFuture != null) {
@@ -570,6 +566,10 @@ public class Connection implements ConnectionBase {
             mHeaders.clear();
             mMessageId = null;
             mTransport = null;
+            mClientCertificateAlias = null;
+            if (mClientCertificatePassword != null)
+                Arrays.fill(mClientCertificatePassword, '0');
+            mClientCertificatePath = null;
 
             onClosed();
         }

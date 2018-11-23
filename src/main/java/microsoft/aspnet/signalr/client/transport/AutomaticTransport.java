@@ -30,7 +30,7 @@ public class AutomaticTransport extends HttpClientTransport {
      * Initializes the transport with a NullLogger
      */
     public AutomaticTransport() {
-        this(new NullLogger(), null, null, false);
+        this(new NullLogger(), null, null, null, false);
     }
 
     /**
@@ -42,11 +42,14 @@ public class AutomaticTransport extends HttpClientTransport {
      *            Client certificate
      * @param clientCertificatePassword
      *            Client certificate password
+     * @param clientCertificateAlias
+     *            Client certificate alias
      * @param ignoreSsl 
      *            Ignore SSL certificate verification
      */
-    public AutomaticTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, boolean ignoreSsl) {
-        super(logger, clientCertificatePath, clientCertificatePassword, ignoreSsl);
+    public AutomaticTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, 
+            String clientCertificateAlias, boolean ignoreSsl) {
+        super(logger, clientCertificatePath, clientCertificatePassword, clientCertificateAlias, ignoreSsl);
         initialize(logger);
     }
 
@@ -65,9 +68,9 @@ public class AutomaticTransport extends HttpClientTransport {
 
     private void initialize(Logger logger) {
         mTransports = new ArrayList<>();
-        mTransports.add(new WebsocketTransport(logger, mClientCertificatePath, mClientCertificatePassword, mIgnoreSsl));
-        mTransports.add(new ServerSentEventsTransport(logger, mClientCertificatePath, mClientCertificatePassword, mIgnoreSsl));
-        mTransports.add(new LongPollingTransport(logger, mClientCertificatePath, mClientCertificatePassword, mIgnoreSsl));
+        mTransports.add(new WebsocketTransport(logger, mClientCertificatePath, mClientCertificatePassword, mClientCertificateAlias, mIgnoreSsl));
+        mTransports.add(new ServerSentEventsTransport(logger, mClientCertificatePath, mClientCertificatePassword, mClientCertificateAlias, mIgnoreSsl));
+        mTransports.add(new LongPollingTransport(logger, mClientCertificatePath, mClientCertificatePassword, mClientCertificateAlias, mIgnoreSsl));
     }
 
     @Override

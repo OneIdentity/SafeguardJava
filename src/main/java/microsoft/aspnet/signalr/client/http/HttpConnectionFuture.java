@@ -19,7 +19,7 @@ public class HttpConnectionFuture extends SignalRFuture<Void> {
 
     private Queue<Throwable> mTimeoutQueue = new ConcurrentLinkedQueue<>();
     private ErrorCallback mTimeoutCallback;
-    private Object mTimeoutLock = new Object();
+    private final Object mTimeoutLock = new Object();
 
     /**
      * Handles the timeout for an Http operation

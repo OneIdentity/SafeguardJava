@@ -32,9 +32,18 @@ public class ServerSentEventsTransport extends HttpClientTransport {
      * 
      * @param logger
      *            Logger to log actions
+     * @param clientCertificatePath
+     *            client certificate path
+     * @param clientCertificatePassword
+     *            client certificate password
+     * @param clientCertificateAlias
+     *            client certificate alias
+     * @param ignoreSsl
+     *            ignore SSL certificate verification
      */
-    public ServerSentEventsTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, boolean ignoreSsl) {
-        super(logger, clientCertificatePath, clientCertificatePassword, ignoreSsl);
+    public ServerSentEventsTransport(Logger logger, String clientCertificatePath, char[] clientCertificatePassword, 
+            String clientCertificateAlias, boolean ignoreSsl) {
+        super(logger, clientCertificatePath, clientCertificatePassword, clientCertificateAlias, ignoreSsl);
     }
 
     /**
