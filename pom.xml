@@ -4,7 +4,7 @@
     
     <groupId>com.oneidentity.safeguard</groupId>
     <artifactId>safeguardjava</artifactId>
-    <version>2.4.0-beta1-SNAPSHOT</version>
+    <version>2.4.0-beta1</version>
     <packaging>jar</packaging>
     
     <name>safeguardjava</name>
@@ -13,7 +13,7 @@
       
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <skip.gpg.signing>true</skip.gpg.signing>
+        <skip.gpg.signing>false</skip.gpg.signing>
     </properties>
     
     <licenses>
