@@ -1,5 +1,7 @@
-[![GitHub](https://img.shields.io/github/license/OneIdentity/SafeguardDotNet.svg)](https://github.com/OneIdentity/SafeguardDotNet/blob/master/LICENSE)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.oneidentity.safeguard/safeguardjava/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.oneidentity.safeguard/safeguard)
+[![GitHub](https://img.shields.io/github/license/OneIdentity/SafeguardJava.svg)](https://github.com/OneIdentity/SafeguardJava/blob/master/LICENSE)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.oneidentity.safeguard/safeguardjava/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.oneidentity.safeguard/safeguardjava)
+[![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/r/https/oss.sonatype.org/com.oneidentity.safeguard/safeguardjava.svg)](https://oss.sonatype.org/content/repositories/releases/com/oneidentity/safeguard/safeguardjava/)
+[![Sonatype Nexus (Snapshots)](https://img.shields.io/nexus/s/https/oss.sonatype.org/com.oneidentity.safeguard/safeguardjava.svg)](https://oss.sonatype.org/content/repositories/snapshots/com/oneidentity/safeguard/safeguardjava/)
 
 # SafeguardJava
 
@@ -138,4 +140,34 @@ String userJson = connection.InvokeMethod(Service.Core, Method.Post, "Users", js
 UserObj userObj = new Gson().fromJson(userJson, UserObj.class);
 connection.InvokeMethod(Service.Core, Method.Put, String.format("Users/%s/Password", userObj.Id), "{\"MyNewUser123\"}");
 ```
+### Building SafeguardJava
+
+Building SafeguardJava requires Java JDK 8 or greater and Maven 3.0.5 or greater.  The following dependency should be added to your POM file:
+
+        <dependency>
+            <groupId>com.oneidentity.safeguard</groupId>
+            <artifactId>safeguardjava</artifactId>
+            <version>2.4.0-beta1</version>
+        </dependency>    
+
+The beta version of SafeguardJava is has a dependency on a SNAPSHOT version of org.java-websocket.Java-Websocket.1.4.0-SNAPSHOT.  Since the 1.4.0 version of Java-Websocket is yet available through Maven-Central, you must add a respository to your settings.xml.  You can add this repository by including the following profile to your settings.xml:
+
+        <profile>
+            <id>allow-snapshots</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>snapshots-repo</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+        </profile>
 
