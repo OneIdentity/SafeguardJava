@@ -1,6 +1,7 @@
 package com.oneidentity.safeguard.safeguardjava.event;
 
 import com.google.gson.JsonElement;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardEventListenerDisconnectedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
@@ -53,18 +54,22 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         this.disconnectHandler = new DefaultDisconnectHandler();
     }
 
-    public SafeguardEventListener(String eventUrl, char[] accessToken, boolean ignoreSsl) {
+    public SafeguardEventListener(String eventUrl, char[] accessToken, boolean ignoreSsl) throws ArgumentException {
         this(eventUrl, ignoreSsl);
-        this.accessToken = accessToken == null ? null : accessToken.clone();
+        if (accessToken == null)
+            throw new ArgumentException("The accessToken parameter can not be null");
+        this.accessToken = accessToken.clone();
     }
 
     public SafeguardEventListener(String eventUrl, String clientCertificatePath, char[] certificatePassword, 
-            String certificateAlias, char[] apiKey, boolean ignoreSsl) {
+            String certificateAlias, char[] apiKey, boolean ignoreSsl) throws ArgumentException {
         this(eventUrl, ignoreSsl);
         this.clientCertificatePath = clientCertificatePath;
         this.clientCertificatePassword = certificatePassword == null ? null : certificatePassword.clone();
         this.clientCertificateAlias = certificateAlias;
-        this.apiKey = apiKey == null ? null : apiKey.clone();
+        if (apiKey == null)
+            throw new ArgumentException("The apiKey parameter can not be null");
+        this.apiKey = apiKey.clone();
     }
 
     public void setDisconnectHandler(IDisconnectHandler handler) {
