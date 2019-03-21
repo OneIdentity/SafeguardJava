@@ -3,6 +3,7 @@ package com.oneidentity.safeguard.safeguardjava.event;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,10 +23,12 @@ public class PersistentSafeguardA2AEventListener extends PersistentSafeguardEven
     private final char[] apiKey;
 
     public PersistentSafeguardA2AEventListener(ISafeguardA2AContext a2AContext, char[] apiKey, ISafeguardEventHandler handler) 
-            throws ObjectDisposedException
+            throws ObjectDisposedException, ArgumentException
     {
         this.a2AContext = a2AContext;
-        this.apiKey = apiKey == null ? null : apiKey.clone();
+        if (apiKey == null)
+            throw new ArgumentException("The apiKey parameter can not be null");
+        this.apiKey = apiKey.clone();
         registerEventHandler("AssetAccountPasswordUpdated", handler);
         Logger.getLogger(PersistentSafeguardA2AEventListener.class.getName()).log(Level.INFO, "Persistent A2A event listener successfully created.");
 }

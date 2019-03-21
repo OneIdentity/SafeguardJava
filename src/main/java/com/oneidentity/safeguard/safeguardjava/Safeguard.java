@@ -11,6 +11,7 @@ import com.oneidentity.safeguard.safeguardjava.event.PersistentSafeguardEventLis
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 
 /**
  * This static class provides static methods for connecting to Safeguard API.
@@ -38,7 +39,7 @@ public final class Safeguard {
      * @return Reusable Safeguard API connection.
      */
     public static ISafeguardConnection connect(String networkAddress, char[] accessToken,
-            Integer apiVersion, Boolean ignoreSsl) {
+            Integer apiVersion, Boolean ignoreSsl) throws ArgumentException {
         int version = DEFAULTAPIVERSION;
         if (apiVersion != null) {
             version = apiVersion;
@@ -68,7 +69,7 @@ public final class Safeguard {
      * @throws SafeguardForJavaException General Safeguard for Java exception.
      */
     public static ISafeguardConnection connect(String networkAddress, String provider, String username,
-            char[] password, Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, SafeguardForJavaException {
+            char[] password, Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
         int version = DEFAULTAPIVERSION;
         if (apiVersion != null) {
             version = apiVersion;
@@ -193,7 +194,7 @@ public final class Safeguard {
          */
         public static ISafeguardEventListener getPersistentEventListener(String networkAddress, String provider,
                 String username, char[] password, Integer apiVersion, Boolean ignoreSsl)
-                throws ObjectDisposedException, SafeguardForJavaException {
+                throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
             int version = DEFAULTAPIVERSION;
             if (apiVersion != null) {
                 version = apiVersion;
@@ -370,7 +371,7 @@ public final class Safeguard {
             public static ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey, ISafeguardEventHandler handler,
                     String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias,
                     Integer apiVersion, Boolean ignoreSsl)
-                    throws ObjectDisposedException {
+                    throws ObjectDisposedException, ArgumentException {
                 int version = DEFAULTAPIVERSION;
                 if (apiVersion != null) {
                     version = apiVersion;
@@ -409,7 +410,7 @@ public final class Safeguard {
             public static ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey,
                     ISafeguardEventHandler handler, String networkAddress, String certificatePath,
                     char[] certificatePassword, Integer apiVersion, Boolean ignoreSsl)
-                    throws ObjectDisposedException {
+                    throws ObjectDisposedException, ArgumentException {
                 int version = DEFAULTAPIVERSION;
                 if (apiVersion != null) {
                     version = apiVersion;

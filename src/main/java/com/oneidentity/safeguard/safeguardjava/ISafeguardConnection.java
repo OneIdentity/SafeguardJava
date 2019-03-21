@@ -4,6 +4,7 @@ import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
 import com.oneidentity.safeguard.safeguardjava.data.Method;
 import com.oneidentity.safeguard.safeguardjava.data.Service;
 import com.oneidentity.safeguard.safeguardjava.event.SafeguardEventListener;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.util.Map;
@@ -78,8 +79,9 @@ public interface ISafeguardConnection {
      *  
      *  @return The event listener.
      *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws ArgumentException Invalid argument.
      */  
-    SafeguardEventListener getEventListener() throws ObjectDisposedException;
+    SafeguardEventListener getEventListener() throws ObjectDisposedException, ArgumentException;
     
     /**
      *  Disposes of the connection.

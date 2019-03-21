@@ -1,6 +1,7 @@
 package com.oneidentity.safeguard.safeguardjava.event;
 
 import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.util.logging.Level;
@@ -19,7 +20,7 @@ public class PersistentSafeguardEventListener extends PersistentSafeguardEventLi
 
     @Override
     public SafeguardEventListener reconnectEventListener()
-            throws ObjectDisposedException, SafeguardForJavaException {
+            throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
         
         if (disposed) {
             throw new ObjectDisposedException("SafeguardEventListener");

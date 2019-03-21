@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneidentity.safeguard.safeguardjava.Utils;
 import com.oneidentity.safeguard.safeguardjava.data.JsonBody;
 import com.oneidentity.safeguard.safeguardjava.data.OauthBody;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.io.IOException;
@@ -28,7 +29,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
     private final char[] password;
 
     public PasswordAuthenticator(String networkAddress, String provider, String username,
-        char[] password, int apiVersion, boolean ignoreSsl)
+        char[] password, int apiVersion, boolean ignoreSsl) throws ArgumentException
     {
         super(networkAddress, null, null, apiVersion, ignoreSsl);
         this.provider = provider;
@@ -37,6 +38,8 @@ public class PasswordAuthenticator extends AuthenticatorBase
             providerScope = "rsts:sts:primaryproviderid:local";
         
         this.username = username;
+        if (password == null)
+            throw new ArgumentException("The password parameter can not be null");
         this.password = password;
     }
 
@@ -112,6 +115,19 @@ public class PasswordAuthenticator extends AuthenticatorBase
         return map.get("access_token").toCharArray();
     }
 
+    @Override
+    protected Object clone()
+    {
+        try {
+            PasswordAuthenticator auth = new PasswordAuthenticator(getNetworkAddress(), provider, username, password, getApiVersion(), isIgnoreSsl());
+            auth.accessToken = this.accessToken == null ? null : this.accessToken.clone();
+            return auth;
+        } catch (ArgumentException ex) {
+            Logger.getLogger(PasswordAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
+    }
+    
     @Override
     public void dispose()
     {
