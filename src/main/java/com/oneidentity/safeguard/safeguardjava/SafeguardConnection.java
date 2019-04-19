@@ -110,6 +110,22 @@ class SafeguardConnection implements ISafeguardConnection {
     }
 
     @Override
+    public String InvokeMethodCsv(Service service, Method method, String relativeUrl, 
+            String body, Map<String, String> parameters, Map<String, String> additionalHeaders)
+            throws ObjectDisposedException, SafeguardForJavaException {
+        
+        if (disposed) {
+            throw new ObjectDisposedException("SafeguardConnection");
+        }
+        if (additionalHeaders == null) {
+            additionalHeaders = new HashMap<String, String>();
+        }
+        additionalHeaders.put("Accept", "text/csv");
+        
+        return invokeMethodFull(service, method, relativeUrl, body, parameters, additionalHeaders).getBody();
+    }
+       
+    @Override
     public SafeguardEventListener getEventListener() throws ObjectDisposedException, ArgumentException {
         SafeguardEventListener eventListener = new SafeguardEventListener(
                 String.format("https://%s/service/event", authenticationMechanism.getNetworkAddress()),
@@ -141,9 +157,11 @@ class SafeguardConnection implements ISafeguardConnection {
             headers.put("Authorization", String.format("Bearer %s", new String(authenticationMechanism.getAccessToken())));
         }
         
-        if (additionalHeaders != null) 
+        if (additionalHeaders != null) { 
             headers.putAll(additionalHeaders);
-        
+            if (!additionalHeaders.containsKey("Accept"))
+                headers.put("Accept", "application/json"); // Assume JSON unless specified
+        }
         return headers;
     }
 
