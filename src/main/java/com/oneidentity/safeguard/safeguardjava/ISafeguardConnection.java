@@ -72,6 +72,26 @@ public interface ISafeguardConnection {
             Map<String, String> additionalHeaders)
             throws ObjectDisposedException, SafeguardForJavaException;
 
+    /*
+     *  Call a Safeguard API method and get any response as a CSV string. Some Safeguard API
+     *  methods will return an empty body. If there is a failure a SafeguardDotNetException
+     *  will be thrown.
+     * 
+     *  @param service              Safeguard service to call.
+     *  @param method               Safeguard method type to use.
+     *  @param relativeUrl          Relative URL of the service to use.
+     *  @param body                 Request body to pass to the method.
+     *  @param parameters           Additional parameters to add to the URL.
+     *  @param additionalHeaders    Additional headers to add to the request.
+     *  @returns                    Response body as a CSV string.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     */
+    String InvokeMethodCsv(Service service, Method method, String relativeUrl,
+        String body, Map<String, String> parameters,
+        Map<String, String> additionalHeaders)
+        throws ObjectDisposedException, SafeguardForJavaException;
+        
     /**
      *  Gets a Safeguard event listener. You will need to call the RegisterEventHandler()
      *  method to establish callbacks. Then, you just have to call Start().  Call Stop()
