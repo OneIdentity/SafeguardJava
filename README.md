@@ -42,7 +42,7 @@ A2A password changes.
 A simple code example for calling the Safeguard API:
 
 ```Java
-byte[] password = GetPasswordSomehow(); // default password is "Admin123"
+char[] password = GetPasswordSomehow(); // default password is "Admin123"
 ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp", "local", "Admin", password, null, true);
 System.out.println(connection.InvokeMethod(Service.Core, Method.Get, "Me", null, null, null));
 connection.dispose();
@@ -51,7 +51,7 @@ connection.dispose();
 Certificates must be in a PFX (PKCS12) file.
 
 ```Java
-byte[] certificatePassword = GetPasswordSomehow();
+char[] certificatePassword = GetPasswordSomehow();
 ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp", "C:\\cert.pfx", certificatePassword, null, true);
 System.out.println(connection.InvokeMethod(Service.Core, Method.Get, "Me", null, null, null));
 connection.dispose();
@@ -60,7 +60,7 @@ connection.dispose();
 A final authentication method that is available is using an existing Safeguard API token.
 
 ```Java
-byte[] apiToken = GetTokenSomehow();
+char[] apiToken = GetTokenSomehow();
 ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp", apiToken, null, true);
 System.out.println(connection.InvokeMethod(Service.Core, Method.Get, "Me", null, null, null));
 connection.dispose();
