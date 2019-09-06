@@ -11,6 +11,16 @@ public class AnonymousAuthenticator extends AuthenticatorBase {
     }
 
     @Override
+    public String getId() {
+        return "Anonymous";
+    }
+    
+    @Override
+    public boolean isAnonymous() {
+        return true;
+    }
+    
+    @Override
     protected char[] getRstsTokenInternal() throws SafeguardForJavaException {
         throw new SafeguardForJavaException("Anonymous connection cannot be used to get an API access token, Error: Unsupported operation");
     }

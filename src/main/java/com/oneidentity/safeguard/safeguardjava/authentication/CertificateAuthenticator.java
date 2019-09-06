@@ -36,6 +36,11 @@ public class CertificateAuthenticator extends AuthenticatorBase
     }
     
     @Override
+    public String getId() {
+        return "Certificate";
+    }
+    
+    @Override
     protected char[] getRstsTokenInternal() throws ObjectDisposedException, SafeguardForJavaException
     {
         if (disposed)

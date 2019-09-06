@@ -6,9 +6,11 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaExcept
 
 public interface IAuthenticationMechanism
 {
+    String getId();
     String getNetworkAddress();
     int getApiVersion();
     boolean isIgnoreSsl();
+    boolean isAnonymous();
     boolean hasAccessToken();
     void clearAccessToken();
     char[] getAccessToken() throws ObjectDisposedException;

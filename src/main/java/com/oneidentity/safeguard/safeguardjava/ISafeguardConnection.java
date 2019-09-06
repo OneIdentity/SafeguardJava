@@ -48,6 +48,7 @@ public interface ISafeguardConnection {
      *  @return                     Response body as a string.
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     *  @throws ArgumentException Invalid argument.
      */  
     String invokeMethod(Service service, Method method, String relativeUrl,
             String body, Map<String, String> parameters,
@@ -67,6 +68,7 @@ public interface ISafeguardConnection {
      *  @return                     Response with status code, headers, and body as string.
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     *  @throws ArgumentException Invalid argument.
      */  
     FullResponse invokeMethodFull(Service service, Method method, String relativeUrl,
             String body, Map<String, String> parameters,
@@ -87,6 +89,7 @@ public interface ISafeguardConnection {
      *  @returns                    Response body as a CSV string.
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     *  @throws ArgumentException Invalid argument.
      */
     String invokeMethodCsv(Service service, Method method, String relativeUrl,
         String body, Map<String, String> parameters,
@@ -109,20 +112,24 @@ public interface ISafeguardConnection {
     SafeguardEventListener getEventListener() throws ObjectDisposedException, ArgumentException;
     
     /**
-     * Gets a persistent Safeguard event listener. You will need to call the
-     * RegisterEventHandler() method to establish callbacks. Then, you just have to
-     * call Start().  Call Stop() when you are finished. The event listener returned
-     * by this method WILL automatically recover from a SignalR timeout which occurs
-     * when there is a 30+ second outage.
+     *  Gets a persistent Safeguard event listener. You will need to call the
+     *  RegisterEventHandler() method to establish callbacks. Then, you just have to
+     *  call Start().  Call Stop() when you are finished. The event listener returned
+     *  by this method WILL automatically recover from a SignalR timeout which occurs
+     *  when there is a 30+ second outage.
      *
-     * @return The persistent event listener.
+     *  @return The persistent event listener.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
     ISafeguardEventListener getPersistentEventListener() throws ObjectDisposedException, SafeguardForJavaException;
 
     /**
-     * Call Safeguard API to invalidate current access token and clear its value from
-     * the connection.  In order to continue using the connection you will need to call
-     * RefreshAccessToken().
+     *  Call Safeguard API to invalidate current access token and clear its value from
+     *  the connection.  In order to continue using the connection you will need to call
+     *  RefreshAccessToken().
+     * 
+     *  @throws ObjectDisposedException Object has already been disposed.
      */
     void logOut() throws ObjectDisposedException;
     
