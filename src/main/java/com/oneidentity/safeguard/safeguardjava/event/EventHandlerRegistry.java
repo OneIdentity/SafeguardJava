@@ -19,7 +19,7 @@ public class EventHandlerRegistry
     {
         if (!delegateRegistry.containsKey(eventName))
         {
-            Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.INFO, 
+            Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.FINEST, 
                     String.format("No handlers registered for event %s", eventName));
             return;
         }

@@ -1,6 +1,7 @@
 package com.oneidentity.safeguard.safeguardjava.event;
 
 import com.google.gson.JsonElement;
+import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardEventListenerDisconnectedException;
@@ -29,9 +30,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     private final boolean ignoreSsl;
     private char[] accessToken;
     private char[] apiKey;
-    private String clientCertificatePath;
-    private char[] clientCertificatePassword;
-    private String clientCertificateAlias;
+    private CertificateContext clientCertificate;
 
     private EventHandlerRegistry eventHandlerRegistry;
     private IDisconnectHandler disconnectHandler;
@@ -48,9 +47,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         this.eventHandlerRegistry = new EventHandlerRegistry();
         this.accessToken = null;
         this.apiKey = null;
-        this.clientCertificatePath = null;
-        this.clientCertificatePassword = null;
-        this.clientCertificateAlias = null;
+        this.clientCertificate = null;
         this.disconnectHandler = new DefaultDisconnectHandler();
     }
 
@@ -64,11 +61,18 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     public SafeguardEventListener(String eventUrl, String clientCertificatePath, char[] certificatePassword, 
             String certificateAlias, char[] apiKey, boolean ignoreSsl) throws ArgumentException {
         this(eventUrl, ignoreSsl);
-        this.clientCertificatePath = clientCertificatePath;
-        this.clientCertificatePassword = certificatePassword == null ? null : certificatePassword.clone();
-        this.clientCertificateAlias = certificateAlias;
         if (apiKey == null)
             throw new ArgumentException("The apiKey parameter can not be null");
+        this.apiKey = apiKey.clone();
+        this.clientCertificate = new CertificateContext(certificateAlias, clientCertificatePath, certificatePassword);
+    }
+    
+    public SafeguardEventListener(String eventUrl, CertificateContext clientCertificate, 
+            char[] apiKey, boolean ignoreSsl) throws ArgumentException {
+        this(eventUrl, ignoreSsl);
+        if (apiKey == null)
+            throw new ArgumentException("The apiKey parameter can not be null");
+        this.clientCertificate = clientCertificate.cloneObject();
         this.apiKey = apiKey.clone();
     }
 
@@ -122,14 +126,11 @@ public class SafeguardEventListener implements ISafeguardEventListener {
             signalrConnection.getHeaders().put("Authorization", String.format("Bearer %s", new String(accessToken)));
         } else {
             signalrConnection.getHeaders().put("Authorization", String.format("A2A %s", new String(apiKey)));
-            signalrConnection.setClientCertificate(clientCertificatePath, clientCertificatePassword, clientCertificateAlias);
+            signalrConnection.setClientCertificate(clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword(), clientCertificate.getCertificateAlias());
         }
         signalrHubProxy = signalrConnection.createHubProxy(NOTIFICATION_HUB);
 
         try {
-//            ClientTransport clientTransport = 
-//                    new ServerSentEventsTransport(new NullLogger(), Platform.createDefaultHttpsConnection(new NullLogger(), ignoreSsl));
-//            signalrConnection.start(clientTransport).get();
             signalrConnection.start(ignoreSsl).get();
             
             signalrConnection.received(new MessageReceivedHandler() {
@@ -181,14 +182,12 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     @Override
     public void dispose() {
         cleanupConnection();
-        clientCertificatePath = null;
-        clientCertificateAlias = null;
+        if (clientCertificate != null)
+            clientCertificate.dispose();
         if (apiKey != null)
             Arrays.fill(apiKey, '0');
         if (accessToken != null)
             Arrays.fill(accessToken, '0');
-        if (clientCertificatePassword != null)
-            Arrays.fill(clientCertificatePassword, '0');
         disposed = true;
     }
 
@@ -196,14 +195,12 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     protected void finalize() throws Throwable {
         try {
             cleanupConnection();
-            clientCertificatePath = null;
-            clientCertificateAlias = null;
+            if (clientCertificate != null)
+                clientCertificate.dispose();
             if (apiKey != null)
                 Arrays.fill(apiKey, '0');
             if (accessToken != null)
                 Arrays.fill(accessToken, '0');
-            if (clientCertificatePassword != null)
-                Arrays.fill(clientCertificatePassword, '0');
             disposed = true;
         } finally {
             disposed = true;

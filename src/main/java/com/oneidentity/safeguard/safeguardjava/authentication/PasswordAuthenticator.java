@@ -40,7 +40,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
         this.username = username;
         if (password == null)
             throw new ArgumentException("The password parameter can not be null");
-        this.password = password;
+        this.password = password.clone();
     }
 
     private void resolveProviderToScope() throws SafeguardForJavaException
@@ -116,7 +116,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
     }
 
     @Override
-    protected Object clone()
+    public Object cloneObject() throws SafeguardForJavaException
     {
         try {
             PasswordAuthenticator auth = new PasswordAuthenticator(getNetworkAddress(), provider, username, password, getApiVersion(), isIgnoreSsl());
