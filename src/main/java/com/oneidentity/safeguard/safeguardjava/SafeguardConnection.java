@@ -93,8 +93,9 @@ class SafeguardConnection implements ISafeguardConnection {
             throw new ArgumentException("Parameter relativeUrl may not be null or empty");
         
         RestClient client = getClientForService(service);
-        if (!authenticationMechanism.hasAccessToken())
+        if (!authenticationMechanism.isAnonymous() && !authenticationMechanism.hasAccessToken()) {
             throw new SafeguardForJavaException("Access token is missing due to log out, you must refresh the access token to invoke a method");
+        }
         
         Map<String,String> headers = prepareHeaders(additionalHeaders, service);
         Response response = null;

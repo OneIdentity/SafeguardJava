@@ -39,6 +39,8 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
         this.coreClient = new RestClient(safeguardCoreUrl, ignoreSsl);
     }
 
+    public abstract String getId();
+    
     @Override
     public String getNetworkAddress() {
         return networkAddress;
@@ -54,6 +56,10 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
         return ignoreSsl;
     }
 
+    public boolean isAnonymous() {
+        return false;
+    }
+    
     @Override
     public boolean hasAccessToken() {
         return accessToken != null;
@@ -117,7 +123,7 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", coreClient.getBaseURL()));
         if (!Utils.isSuccessful(response.getStatus())) 
-            throw new SafeguardForJavaException("Error exchanging RSTS token for Safeguard API access token, Error: " +
+            throw new SafeguardForJavaException("Error exchanging RSTS token from " + this.getId() + "authenticator for Safeguard API access token, Error: " +
                                                String.format("%d %s", response.getStatus(), response.readEntity(String.class)));
 
         Map<String,String> map = Utils.parseResponse(response);

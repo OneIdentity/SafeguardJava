@@ -18,6 +18,11 @@ public class AccessTokenAuthenticator extends AuthenticatorBase
     }
 
     @Override
+    public String getId() {
+        return "AccessToken";
+    }
+    
+    @Override
     protected  char[] getRstsTokenInternal() throws SafeguardForJavaException
     {
         throw new SafeguardForJavaException("Original authentication was with access token unable to refresh, Error: Unsupported operation");

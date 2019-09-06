@@ -43,6 +43,11 @@ public class PasswordAuthenticator extends AuthenticatorBase
         this.password = password.clone();
     }
 
+    @Override
+    public String getId() {
+        return "Password";
+    }
+
     private void resolveProviderToScope() throws SafeguardForJavaException
     {
         try
