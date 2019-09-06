@@ -59,6 +59,12 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
         return accessToken != null;
     }
 
+    public void clearAccessToken() {
+        if (accessToken != null)
+            Arrays.fill(accessToken, '0');
+        accessToken = null;
+    }
+            
     @Override
     public char[] getAccessToken() throws ObjectDisposedException {
         if (disposed)
@@ -121,17 +127,19 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
 
     protected abstract char[] getRstsTokenInternal() throws ObjectDisposedException, SafeguardForJavaException;
     
+    public abstract Object cloneObject() throws SafeguardForJavaException;
+    
     @Override
     public void dispose()
     {
-        if (accessToken != null)
-            Arrays.fill(accessToken, '0');
+        clearAccessToken();
         disposed = true;
     }
 
     @Override
     protected void finalize() throws Throwable {
         try {
+            
             if (accessToken != null)
                 Arrays.fill(accessToken, '0');
         } finally {

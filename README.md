@@ -43,8 +43,8 @@ A simple code example for calling the Safeguard API:
 
 ```Java
 char[] password = GetPasswordSomehow(); // default password is "Admin123"
-ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp", "local", "Admin", password, null, true);
-System.out.println(connection.InvokeMethod(Service.Core, Method.Get, "Me", null, null, null));
+ISafeguardConnection connection = Safeguard.connect("safeguard.sample.corp", "local", "Admin", password, null, true);
+System.out.println(connection.invokeMethod(Service.Core, Method.Get, "Me", null, null, null));
 connection.dispose();
 ```
 
@@ -52,8 +52,8 @@ Certificates must be in a PFX (PKCS12) file.
 
 ```Java
 char[] certificatePassword = GetPasswordSomehow();
-ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp", "C:\\cert.pfx", certificatePassword, null, true);
-System.out.println(connection.InvokeMethod(Service.Core, Method.Get, "Me", null, null, null));
+ISafeguardConnection connection = Safeguard.connect("safeguard.sample.corp", "C:\\cert.pfx", certificatePassword, null, true);
+System.out.println(connection.invokeMethod(Service.Core, Method.Get, "Me", null, null, null));
 connection.dispose();
 ```
 
@@ -61,8 +61,8 @@ A final authentication method that is available is using an existing Safeguard A
 
 ```Java
 char[] apiToken = GetTokenSomehow();
-ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp", apiToken, null, true);
-System.out.println(connection.InvokeMethod(Service.Core, Method.Get, "Me", null, null, null));
+ISafeguardConnection connection = Safeguard.connect("safeguard.sample.corp", apiToken, null, true);
+System.out.println(connection.invokeMethod(Service.Core, Method.Get, "Me", null, null, null));
 connection.dispose();
 ```
 
@@ -108,8 +108,8 @@ provides read-only information for status, etc.
 #### Anonymous Call for Safeguard Status
 
 ```Java
-ISafeguardConnection connection = Safeguard.Connect("safeguard.sample.corp", null, false);
-System.out.println(connection.InvokeMethod(Service.Notification, Method.Get, "Status", null, null, null));
+ISafeguardConnection connection = Safeguard.connect("safeguard.sample.corp", null, false);
+System.out.println(connection.invokeMethod(Service.Notification, Method.Get, "Status", null, null, null));
 ```
 
 #### Create a New Linux Asset
@@ -135,10 +135,10 @@ String jsonBody = new StringBuffer ("{")
         .append("\"UserName\ : \"MyNewUser123\"")
         .append("}").toString();
         
-String userJson = connection.InvokeMethod(Service.Core, Method.Post, "Users", jsonBody, null, null);
+String userJson = connection.invokeMethod(Service.Core, Method.Post, "Users", jsonBody, null, null);
 
 UserObj userObj = new Gson().fromJson(userJson, UserObj.class);
-connection.InvokeMethod(Service.Core, Method.Put, String.format("Users/%s/Password", userObj.Id), "{\"MyNewUser123\"}");
+connection.invokeMethod(Service.Core, Method.Put, String.format("Users/%s/Password", userObj.Id), "{\"MyNewUser123\"}");
 ```
 ### Building SafeguardJava
 
@@ -150,24 +150,4 @@ Building SafeguardJava requires Java JDK 8 or greater and Maven 3.0.5 or greater
             <version>2.4.0-beta1</version>
         </dependency>    
 
-The beta version of SafeguardJava is has a dependency on a SNAPSHOT version of org.java-websocket.Java-Websocket.1.4.0-SNAPSHOT.  Since the 1.4.0 version of Java-Websocket is yet available through Maven-Central, you must add a respository to your settings.xml.  You can add this repository by including the following profile to your settings.xml:
-
-        <profile>
-            <id>allow-snapshots</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <repositories>
-                <repository>
-                    <id>snapshots-repo</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-        </profile>
 

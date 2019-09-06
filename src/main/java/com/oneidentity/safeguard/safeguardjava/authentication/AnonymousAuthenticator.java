@@ -16,6 +16,16 @@ public class AnonymousAuthenticator extends AuthenticatorBase {
     }
 
     @Override
+    public boolean hasAccessToken() {
+        return true;
+    }
+    
+    @Override
+    public Object cloneObject() throws SafeguardForJavaException {
+        throw new SafeguardForJavaException("Anonymous authenticators are not cloneable");
+    }
+    
+    @Override
     public void dispose() {
         super.dispose();
         disposed = true;

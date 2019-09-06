@@ -18,7 +18,7 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
  */
 public final class Safeguard {
 
-    private static final int DEFAULTAPIVERSION = 2;
+    private static final int DEFAULTAPIVERSION = 3;
 
     private Safeguard() {
 

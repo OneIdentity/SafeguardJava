@@ -52,7 +52,7 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
                         if (eventListener != null) {
                             eventListener.dispose();
                         }
-                        Logger.getLogger(PersistentSafeguardEventListenerBase.class.getName()).log(Level.INFO,
+                        Logger.getLogger(PersistentSafeguardEventListenerBase.class.getName()).log(Level.FINEST,
                                 "Attempting to connect and start internal event listener.");
                         eventListener = reconnectEventListener();
                         eventListener.setEventHandlerRegistry(eventHandlerRegistry);
@@ -62,7 +62,7 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
                     } catch (ObjectDisposedException | SafeguardForJavaException | ArgumentException ex) {
                         Logger.getLogger(PersistentSafeguardEventListenerBase.class.getName()).log(Level.WARNING,
                                 "Internal event listener connection error (see debug for more information), sleeping for 5 seconds...");
-                        Logger.getLogger(PersistentSafeguardEventListenerBase.class.getName()).log(Level.INFO,
+                        Logger.getLogger(PersistentSafeguardEventListenerBase.class.getName()).log(Level.FINEST,
                                 "Internal event listener connection error.");
                         try {
                             Thread.sleep(5000);

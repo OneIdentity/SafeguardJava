@@ -1,11 +1,13 @@
 package com.oneidentity.safeguard.safeguardjava;
 
+import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccount;
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
+import java.util.List;
 
 /**
  *  This is a reusable interface for calling Safeguard A2A without having to continually
@@ -14,6 +16,14 @@ import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 public interface ISafeguardA2AContext
 {
     /**
+     * Retrieves the list of retrievable accounts for this A2A context.  Listing the retrievable accounts is a
+     * new feature for Safeguard v2.8+, and it needs to be enabled in the A2A configuration.
+     
+     * @return          A list of retrievable accounts.
+     */ 
+    List<A2ARetrievableAccount> getRetrievableAccounts()  throws ObjectDisposedException, SafeguardForJavaException;
+        
+    /**
      *  Retrieves a password using Safeguard A2A.
     
      *  @param apiKey   API key corresponding to the configured account.
@@ -21,23 +31,37 @@ public interface ISafeguardA2AContext
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
-    char[] retrievePassword(char[] apiKey) throws ObjectDisposedException, SafeguardForJavaException;
+    char[] retrievePassword(char[] apiKey) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
 
     /**
      *  Gets an A2A event listener. The handler passed in will be registered for the AssetAccountPasswordUpdated
      *   event, which is the only one supported in A2A. You just have to call Start(). The event listener returned
-     *   by this method will not automatically recover from a SignalR timeout which occurs when there is a 30+
+     *   by this method WILL NOT automatically recover from a SignalR timeout which occurs when there is a 30+
      *   second outage. To get an event listener that supports recovering from longer term outages, please use
-     *   Safeguard.A2A.Event to request a persistent event listener.
+     *   getPersistentEventListener() to request a persistent event listener.
      * 
-     *  @param apiKey   API key corresponding to the configured account.
+     *  @param apiKey   API key corresponding to the configured account to listen for.
      *  @param handler  A delegate to call any time the AssetAccountPasswordUpdate event occurs.
      *  @return         The event listener.
      *  @throws ObjectDisposedException The object has already been disposed.
      *  @throws ArgumentException Invalid argument.
      */
-    ISafeguardEventListener getEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
+    ISafeguardEventListener getA2AEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
 
+    /**
+     * Gets a persistent A2A event listener. The handler passed in will be registered for the
+     * AssetAccountPasswordUpdated event, which is the only one supported in A2A. You just have to call Start().
+     * The event listener returned by this method will not automatically recover from a SignalR timeout which
+     * occurs when there is a 30+ second outage.
+     *
+     * @param apiKey    API key corresponding to the configured account to listen for.
+     * @param handler   A delegate to call any time the AssetAccountPasswordUpdate event occurs.
+     * @returns         The event listener.
+     * @throws ObjectDisposedException The object has already been disposed.
+     * @throws ArgumentException Invalid argument
+     */
+    ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
+        
     /**
      *  Creates an access request on behalf of another user using Safeguard A2A.
      * 
@@ -48,7 +72,7 @@ public interface ISafeguardA2AContext
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      *  @throws ArgumentException Invalid argument
      */
-    String BrokerAccessRequest(char[] apiKey, BrokeredAccessRequest accessRequest) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
+    String brokerAccessRequest(char[] apiKey, BrokeredAccessRequest accessRequest) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
     
     /**
      *  Dispose of an object

@@ -24,6 +24,11 @@ public class AccessTokenAuthenticator extends AuthenticatorBase
     }
 
     @Override
+    public Object cloneObject() throws SafeguardForJavaException {
+        throw new SafeguardForJavaException("Access token authenticators are not cloneable");
+    }
+    
+    @Override
     public void dispose()
     {
         super.dispose();

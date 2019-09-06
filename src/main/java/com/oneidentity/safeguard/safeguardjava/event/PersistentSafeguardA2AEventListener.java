@@ -30,14 +30,14 @@ public class PersistentSafeguardA2AEventListener extends PersistentSafeguardEven
             throw new ArgumentException("The apiKey parameter can not be null");
         this.apiKey = apiKey.clone();
         registerEventHandler("AssetAccountPasswordUpdated", handler);
-        Logger.getLogger(PersistentSafeguardA2AEventListener.class.getName()).log(Level.INFO, "Persistent A2A event listener successfully created.");
+        Logger.getLogger(PersistentSafeguardA2AEventListener.class.getName()).log(Level.FINEST, "Persistent A2A event listener successfully created.");
 }
 
     @Override
     public SafeguardEventListener reconnectEventListener() throws ObjectDisposedException, ArgumentException
     {
         // passing in a bogus handler because it will be overridden in PersistentSafeguardEventListenerBase
-        return (SafeguardEventListener) a2AContext.getEventListener(apiKey, new DefaultSafeguardEventHandler());
+        return (SafeguardEventListener) a2AContext.getA2AEventListener(apiKey, new DefaultSafeguardEventHandler());
     }
 
     @Override

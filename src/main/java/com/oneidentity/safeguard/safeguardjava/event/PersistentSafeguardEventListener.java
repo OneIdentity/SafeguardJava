@@ -15,7 +15,7 @@ public class PersistentSafeguardEventListener extends PersistentSafeguardEventLi
 
     public PersistentSafeguardEventListener(ISafeguardConnection connection) {
         this.connection = connection;
-        Logger.getLogger(PersistentSafeguardEventListener.class.getName()).log(Level.INFO, "Persistent event listener successfully created.");
+        Logger.getLogger(PersistentSafeguardEventListener.class.getName()).log(Level.FINEST, "Persistent event listener successfully created.");
     }
 
     @Override
