@@ -150,24 +150,4 @@ Building SafeguardJava requires Java JDK 8 or greater and Maven 3.0.5 or greater
             <version>2.4.0-beta1</version>
         </dependency>    
 
-The beta version of SafeguardJava is has a dependency on a SNAPSHOT version of org.java-websocket.Java-Websocket.1.4.0-SNAPSHOT.  Since the 1.4.0 version of Java-Websocket is yet available through Maven-Central, you must add a respository to your settings.xml.  You can add this repository by including the following profile to your settings.xml:
-
-        <profile>
-            <id>allow-snapshots</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <repositories>
-                <repository>
-                    <id>snapshots-repo</id>
-                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-        </profile>
 
