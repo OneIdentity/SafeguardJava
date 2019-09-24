@@ -50,6 +50,21 @@ public interface ISafeguardA2AContext
      *  @throws ArgumentException Invalid argument.
      */
     ISafeguardEventListener getA2AEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
+    
+    /**
+     *  Gets an A2A event listener. The handler passed in will be registered for the AssetAccountPasswordUpdated
+     *   event, which is the only one supported in A2A. You just have to call Start(). The event listener returned
+     *   by this method WILL NOT automatically recover from a SignalR timeout which occurs when there is a 30+
+     *   second outage. To get an event listener that supports recovering from longer term outages, please use
+     *   getPersistentEventListener() to request a persistent event listener.
+     * 
+     *  @param apiKeys  A list of API keys corresponding to the configured accounts to listen for.
+     *  @param handler  A delegate to call any time the AssetAccountPasswordUpdate event occurs.
+     *  @return         The event listener.
+     *  @throws ObjectDisposedException The object has already been disposed.
+     *  @throws ArgumentException Invalid argument.
+     */
+    ISafeguardEventListener getA2AEventListener(List<char[]> apiKeys, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
 
     /**
      * Gets a persistent A2A event listener. The handler passed in will be registered for the
@@ -64,7 +79,21 @@ public interface ISafeguardA2AContext
      * @throws ArgumentException Invalid argument
      */
     ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
-        
+
+    /**
+     * Gets a persistent A2A event listener. The handler passed in will be registered for the
+     * AssetAccountPasswordUpdated event, which is the only one supported in A2A. You just have to call Start().
+     * The event listener returned by this method will not automatically recover from a SignalR timeout which
+     * occurs when there is a 30+ second outage.
+     *
+     * @param apiKeys   A list of API keys corresponding to the configured accounts to listen for.
+     * @param handler   A delegate to call any time the AssetAccountPasswordUpdate event occurs.
+     * @return         The event listener.
+     * @throws ObjectDisposedException The object has already been disposed.
+     * @throws ArgumentException Invalid argument
+     */
+    ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
+    
     /**
      *  Creates an access request on behalf of another user using Safeguard A2A.
      * 

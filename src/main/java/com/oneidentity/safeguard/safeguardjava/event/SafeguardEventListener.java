@@ -6,7 +6,9 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardEventListenerDisconnectedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import microsoft.aspnet.signalr.client.ErrorCallback;
@@ -30,6 +32,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     private final boolean ignoreSsl;
     private char[] accessToken;
     private char[] apiKey;
+    private List<char[]> apiKeys;
     private CertificateContext clientCertificate;
 
     private EventHandlerRegistry eventHandlerRegistry;
@@ -47,6 +50,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         this.eventHandlerRegistry = new EventHandlerRegistry();
         this.accessToken = null;
         this.apiKey = null;
+        this.apiKeys = null;
         this.clientCertificate = null;
         this.disconnectHandler = new DefaultDisconnectHandler();
     }
@@ -74,6 +78,34 @@ public class SafeguardEventListener implements ISafeguardEventListener {
             throw new ArgumentException("The apiKey parameter can not be null");
         this.clientCertificate = clientCertificate.cloneObject();
         this.apiKey = apiKey.clone();
+    }
+    
+    public SafeguardEventListener(String eventUrl, String clientCertificatePath, char[] certificatePassword, 
+            String certificateAlias, List<char[]> apiKeys, boolean ignoreSsl) throws ArgumentException {
+        this(eventUrl, ignoreSsl);
+        if (apiKeys == null)
+            throw new ArgumentException("The apiKey parameter can not be null");
+        
+        this.clientCertificate = new CertificateContext(certificateAlias, clientCertificatePath, certificatePassword);
+        this.apiKeys = new ArrayList<>();
+        for (char[] key : apiKeys)
+            apiKeys.add(key.clone());
+        if (apiKeys.isEmpty())
+            throw new ArgumentException("The apiKeys parameter must include at least one item");
+    }
+    
+    public SafeguardEventListener(String eventUrl, CertificateContext clientCertificate, List<char[]> apiKeys, boolean ignoreSsl) throws ArgumentException
+    {
+        this(eventUrl, ignoreSsl);
+        if (apiKeys == null)
+            throw new ArgumentException("The apiKeys parameter can not be null");
+        
+        this.clientCertificate = clientCertificate.cloneObject();
+        this.apiKeys = new ArrayList<>();
+        for (char[] key : apiKeys)
+            apiKeys.add(key.clone());
+        if (apiKeys.isEmpty())
+            throw new ArgumentException("The apiKeys parameter must include at least one item");
     }
 
     public void setDisconnectHandler(IDisconnectHandler handler) {
@@ -125,7 +157,19 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         if (accessToken != null) {
             signalrConnection.getHeaders().put("Authorization", String.format("Bearer %s", new String(accessToken)));
         } else {
-            signalrConnection.getHeaders().put("Authorization", String.format("A2A %s", new String(apiKey)));
+            String authKey = "";
+            if (apiKey != null)
+                authKey = new String(apiKey);
+            else if (apiKeys != null) {
+                for (char[] key : apiKeys)
+                    authKey += new String(key) + " ";
+                authKey = authKey.trim();
+            }
+
+            if (authKey.isEmpty())
+                throw new SafeguardForJavaException("No API keys found in the authorization header");
+
+            signalrConnection.getHeaders().put("Authorization", String.format("A2A %s", authKey));
             signalrConnection.setClientCertificate(clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword(), clientCertificate.getCertificateAlias());
         }
         signalrHubProxy = signalrConnection.createHubProxy(NOTIFICATION_HUB);
@@ -186,6 +230,9 @@ public class SafeguardEventListener implements ISafeguardEventListener {
             clientCertificate.dispose();
         if (apiKey != null)
             Arrays.fill(apiKey, '0');
+        if (apiKeys != null)
+            for (char[] key : apiKeys)
+                Arrays.fill(key, '0');
         if (accessToken != null)
             Arrays.fill(accessToken, '0');
         disposed = true;
@@ -199,6 +246,9 @@ public class SafeguardEventListener implements ISafeguardEventListener {
                 clientCertificate.dispose();
             if (apiKey != null)
                 Arrays.fill(apiKey, '0');
+            if (apiKeys != null)
+                for (char[] key : apiKeys)
+                    Arrays.fill(key, '0');
             if (accessToken != null)
                 Arrays.fill(accessToken, '0');
             disposed = true;

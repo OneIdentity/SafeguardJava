@@ -173,6 +173,24 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.FINEST, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
     }
+    
+    @Override
+    public ISafeguardEventListener getA2AEventListener(List<char[]> apiKeys, ISafeguardEventHandler handler)
+            throws ObjectDisposedException, ArgumentException {
+        
+        if (disposed) {
+            throw new ObjectDisposedException("SafeguardA2AContext");
+        }
+        if (apiKeys == null) {
+            throw new ArgumentException("The apiKeys parameter may not be null");
+        }
+
+        SafeguardEventListener eventListener = new SafeguardEventListener(String.format("https://%s/service/a2a", networkAddress),
+                clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword(), clientCertificate.getCertificateAlias(), apiKeys, ignoreSsl);
+        eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
+        Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.FINEST, "Event listener successfully created for Safeguard A2A context.");
+        return eventListener;
+    }
 
     @Override
     public ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException
@@ -185,6 +203,19 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
 
         return new PersistentSafeguardA2AEventListener((ISafeguardA2AContext)this.cloneObject(), apiKey, handler);
+    }
+    
+    @Override
+    public ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException
+    {
+        if (disposed) {
+            throw new ObjectDisposedException("SafeguardA2AContext");
+        }
+        if (apiKeys == null) {
+            throw new ArgumentException("The apiKeys parameter may not be null");
+        }
+
+        return new PersistentSafeguardA2AEventListener((ISafeguardA2AContext)this.cloneObject(), apiKeys, handler);
     }
     
     @Override
