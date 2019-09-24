@@ -12,6 +12,7 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedExceptio
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
+import java.util.List;
 
 /**
  * This static class provides static methods for connecting to Safeguard API.
@@ -433,6 +434,90 @@ public final class Safeguard {
                         new SafeguardA2AContext(networkAddress, certificatePath, certificatePassword, version,
                                 ignoreSsl), apiKey, handler);
             }
+            
+            /**
+             *  Get a persistent A2A event listener for Gets an A2A event
+             *  listener. The handler passed in will be registered for the
+             *  AssetAccountPasswordUpdated event, which is the only one
+             *  supported in A2A.
+             *
+             *  @param apiKeys A list of API keys corresponding to the configured accounts to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param keystorePath Path to the keystore containing the client
+             *  certificate.
+             *  @param keystorePassword Keystore password.
+             *  @param certificateAlias Alias identifying a client certificate in
+             *  the keystore.
+             *  @param apiVersion Target API version to use.
+             *  @param ignoreSsl Ignore server certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys, ISafeguardEventHandler handler,
+                    String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias,
+                    Integer apiVersion, Boolean ignoreSsl)
+                    throws ObjectDisposedException, ArgumentException {
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                boolean sslIgnore = false;
+                if (ignoreSsl != null) {
+                    sslIgnore = ignoreSsl;
+                }
+
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, ignoreSsl),
+                        apiKeys, handler);
+            }
+
+            /**
+             *  Get a persistent A2A event listener for Gets an A2A event
+             *  listener. The handler passed in will be registered for the
+             *  AssetAccountPasswordUpdated event, which is the only one
+             *  supported in A2A.
+             *
+             *  @param apiKeys A list of API key corresponding to the configured accounts to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param certificatePath Path to PFX (or PKCS12) certificate file
+             *  also containing private key.
+             *  @param certificatePassword Password to decrypt the certificate file.
+             *  @param apiVersion Target API version to use.
+             *  @param ignoreSsl Ignore server certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys,
+                    ISafeguardEventHandler handler, String networkAddress, String certificatePath,
+                    char[] certificatePassword, Integer apiVersion, Boolean ignoreSsl)
+                    throws ObjectDisposedException, ArgumentException {
+                
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                boolean sslIgnore = false;
+                if (ignoreSsl != null) {
+                    sslIgnore = ignoreSsl;
+                }
+
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, certificatePath, certificatePassword, version,
+                                ignoreSsl), apiKeys, handler);
+            }
+            
         }
     }
 }
