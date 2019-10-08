@@ -107,6 +107,11 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
     }
 
     @Override
+    public boolean isStarted() {
+        return this.eventListener == null ? false : this.eventListener.isStarted();
+    }
+    
+    @Override
     public void dispose() {
         if (this.eventListener != null) {
             this.eventListener.dispose();
