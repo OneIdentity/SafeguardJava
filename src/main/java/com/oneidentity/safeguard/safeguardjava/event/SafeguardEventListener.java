@@ -13,6 +13,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import microsoft.aspnet.signalr.client.ErrorCallback;
 import microsoft.aspnet.signalr.client.MessageReceivedHandler;
+import microsoft.aspnet.signalr.client.SignalRFuture;
 import microsoft.aspnet.signalr.client.hubs.HubConnection;
 import microsoft.aspnet.signalr.client.hubs.HubProxy;
 
@@ -38,8 +39,8 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     private EventHandlerRegistry eventHandlerRegistry;
     private IDisconnectHandler disconnectHandler;
 
-    private boolean isStarted;
     private HubConnection signalrConnection = null;
+    private SignalRFuture<Void> signalrFuture = null;
     public HubProxy signalrHubProxy = null;
 
     private static final String NOTIFICATION_HUB = "notificationHub";
@@ -121,7 +122,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     }
 
     private void handleDisconnect() throws SafeguardEventListenerDisconnectedException {
-        if (!this.isStarted) {
+        if (!this.isStarted()) {
             return;
         }
         Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.WARNING, "SignalR disconnect detected, calling handler...");
@@ -133,10 +134,15 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         } finally {
             signalrConnection = null;
             signalrHubProxy = null;
-            isStarted = false;
+            signalrFuture = null;
         }
     }
 
+    @Override
+    public boolean isStarted() {
+        return signalrFuture == null ? false : signalrFuture.isDone();
+    }
+    
     @Override
     public void registerEventHandler(String eventName, ISafeguardEventHandler handler)
             throws ObjectDisposedException {
@@ -175,7 +181,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         signalrHubProxy = signalrConnection.createHubProxy(NOTIFICATION_HUB);
 
         try {
-            signalrConnection.start(ignoreSsl).get();
+            signalrFuture = signalrConnection.start(ignoreSsl);
             
             signalrConnection.received(new MessageReceivedHandler() {
                 @Override
@@ -200,8 +206,6 @@ public class SafeguardEventListener implements ISafeguardEventListener {
                 }
             });
             
-            this.isStarted = true;
-
         } catch (Exception ex) {
             throw new SafeguardForJavaException("Failure starting SignalR", ex);
         }
@@ -213,13 +217,12 @@ public class SafeguardEventListener implements ISafeguardEventListener {
             throw new ObjectDisposedException("SafeguardEventListener");
         }
         try {
-            isStarted = false;
             if (signalrConnection != null) {
                 signalrConnection.stop();
             }
             cleanupConnection();
         } catch (Exception ex) {
-            throw new SafeguardForJavaException("Failure stopping SignalR", ex);
+            throw new SafeguardForJavaException("Failure stopping SignalR.", ex);
         }
     }
 

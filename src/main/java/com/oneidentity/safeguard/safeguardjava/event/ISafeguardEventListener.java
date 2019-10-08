@@ -39,6 +39,11 @@ public interface ISafeguardEventListener
     void stop() throws ObjectDisposedException, SafeguardForJavaException;
 
     /**
+     * Indicates whether the SignalR connection has completed start up.
+     */
+    boolean isStarted();
+
+    /**
      *  Disposes of the connection.
      *  
      */  
