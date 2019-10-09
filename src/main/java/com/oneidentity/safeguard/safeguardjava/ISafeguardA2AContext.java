@@ -92,7 +92,7 @@ public interface ISafeguardA2AContext
      * @throws ObjectDisposedException The object has already been disposed.
      * @throws ArgumentException Invalid argument
      */
-    ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
+    ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
     
     /**
      *  Creates an access request on behalf of another user using Safeguard A2A.

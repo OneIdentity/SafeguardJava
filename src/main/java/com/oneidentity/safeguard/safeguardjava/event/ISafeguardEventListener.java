@@ -40,6 +40,8 @@ public interface ISafeguardEventListener
 
     /**
      * Indicates whether the SignalR connection has completed start up.
+     * 
+     * @return boolean flag
      */
     boolean isStarted();
 
