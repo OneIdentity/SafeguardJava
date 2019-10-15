@@ -1,6 +1,13 @@
 package com.oneidentity.safeguard.safeguardjava.restclient;
 
 import com.oneidentity.safeguard.safeguardjava.data.JsonObject;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.WebResource.Builder;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,6 +30,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -32,16 +40,16 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
+//import javax.ws.rs.client.Client;
+//import javax.ws.rs.client.ClientBuilder;
+//import javax.ws.rs.client.Entity;
+//import javax.ws.rs.client.Invocation.Builder;
+//import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+//import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 
-import org.glassfish.jersey.logging.LoggingFeature;
+//import org.glassfish.jersey.logging.LoggingFeature;
 
 public class RestClient {
 
@@ -64,10 +72,14 @@ public class RestClient {
         this.ignoreSsl = ignoreSsl;
         this.serverUrl = connectionAddr;
 
-        ClientBuilder builder = ClientBuilder.newBuilder()
-                .sslContext(getSSLContext(null, null, null))
-                .register(new LoggingFeature(logger, Level.FINE, null, null));
+//        ClientBuilder builder = ClientBuilder.newBuilder()
+//                .sslContext(getSSLContext(null, null, null))
+//                .register(new LoggingFeature(logger, Level.FINE, null, null));
+
+        ClientConfig config = new DefaultClientConfig();
+        SSLContext ctx = getSSLContext(null, null, null);
         
+        HostnameVerifier hostnameVerifier = HttpsURLConnection.getDefaultHostnameVerifier();
         if (ignoreSsl) {
             HostnameVerifier allowAll = new HostnameVerifier() {
                 @Override
@@ -75,10 +87,12 @@ public class RestClient {
                     return true;
                 }
             };
-            builder.hostnameVerifier(allowAll);
+//            builder.hostnameVerifier(allowAll);
         }
+        config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(hostnameVerifier, ctx));
 
-        client = builder.build();
+//        client = builder.build();
+        client = Client.create(config);
     }
 
     private URI getBaseURI() {
@@ -89,29 +103,35 @@ public class RestClient {
         return serverUrl;
     }
 
-    public Response execGET(String path, Map<String, String> queryParams, Map<String, String> headers) {
+//    public Response execGET(String path, Map<String, String> queryParams, Map<String, String> headers) {
+    public ClientResponse execGET(String path, Map<String, String> queryParams, Map<String, String> headers) {
 
-        WebTarget service = prepareService(client, path, queryParams);
+//        WebTarget service = prepareService(client, path, queryParams);
+        WebResource service = prepareService(client, path, queryParams);
         Builder requestBuilder = prepareRequest(service, headers);
 
         try {
-            Response r = requestBuilder.get(Response.class);
+//            Response r = requestBuilder.get(Response.class);
+            ClientResponse r = requestBuilder.get(ClientResponse.class);
             return r;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public Response execGET(String path, Map<String, String> queryParams, Map<String, String> headers, String certificatePath, char[] keyPass) {
+//    public Response execGET(String path, Map<String, String> queryParams, Map<String, String> headers, String certificatePath, char[] keyPass) {
+    public ClientResponse execGET(String path, Map<String, String> queryParams, Map<String, String> headers, String certificatePath, char[] keyPass) {
 
         Client certClient = getClientWithCertificate(certificatePath, keyPass, null);
 
         if (certClient != null) {
-            WebTarget service = prepareService(certClient, path, queryParams);
+//            WebTarget service = prepareService(certClient, path, queryParams);
+            WebResource service = prepareService(certClient, path, queryParams);
             Builder requestBuilder = prepareRequest(service, headers);
 
             try {
-                Response r = requestBuilder.get(Response.class);
+//                Response r = requestBuilder.get(Response.class);
+                ClientResponse r = requestBuilder.get(ClientResponse.class);
                 return r;
             } catch (Exception ex) {
                 return null;
@@ -120,54 +140,66 @@ public class RestClient {
         return null;
     }
 
-    public Response execGET(String path) {
+//    public Response execGET(String path) {
+    public ClientResponse execGET(String path) {
 
-        WebTarget service = client.target(path);
+//        WebTarget service = client.target(path);
+        WebResource service = client.resource(path);
         try {
-            Response r = service.request(MediaType.APPLICATION_JSON).get(Response.class);
+//            Response r = service.request(MediaType.APPLICATION_JSON).get(Response.class);
+            ClientResponse r = service.accept(MediaType.APPLICATION_JSON).get(ClientResponse.class);
             return r;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public Response execPUT(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
+//    public Response execPUT(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
+    public ClientResponse execPUT(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
 
-        WebTarget service = prepareService(client, path, queryParams);
+//        WebTarget service = prepareService(client, path, queryParams);
+        WebResource service = prepareService(client, path, queryParams);
         Builder requestBuilder = prepareRequest(service, headers);
 
         try {
-            Response r = requestBuilder.put(Entity.json(requestEntity.toJson()), Response.class);
+//            Response r = requestBuilder.put(Entity.json(requestEntity.toJson()), Response.class);
+            ClientResponse r = requestBuilder.type(MediaType.APPLICATION_JSON).put(ClientResponse.class, requestEntity.toJson());
             return r;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
+//    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
+    public ClientResponse execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
 
-        WebTarget service = prepareService(client, path, queryParams);
+//        WebTarget service = prepareService(client, path, queryParams);
+        WebResource service = prepareService(client, path, queryParams);
         Builder requestBuilder = prepareRequest(service, headers);
 
         try {
-            Response r = requestBuilder.post(Entity.json(requestEntity.toJson()), Response.class);
+//            Response r = requestBuilder.post(Entity.json(requestEntity.toJson()), Response.class);
+            ClientResponse r = requestBuilder.type(MediaType.APPLICATION_JSON).post(ClientResponse.class, requestEntity.toJson());
             return r;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity, 
+//    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity, 
+    public ClientResponse execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity, 
             String certificatePath, char[] keyPass, String certificateAlias) {
 
         Client certClient = getClientWithCertificate(certificatePath, keyPass, certificateAlias);
 
         if (certClient != null) {
-            WebTarget service = prepareService(certClient, path, queryParams);
+//            WebTarget service = prepareService(certClient, path, queryParams);
+            WebResource service = prepareService(certClient, path, queryParams);
             Builder requestBuilder = prepareRequest(service, headers);
 
             try {
-                Response r = requestBuilder.post(Entity.json(requestEntity.toJson()), Response.class);
+//                Response r = requestBuilder.post(Entity.json(requestEntity.toJson()), Response.class);
+                ClientResponse r = requestBuilder.type(MediaType.APPLICATION_JSON).post(ClientResponse.class, requestEntity.toJson());
                 return r;
             } catch (Exception ex) {
                 return null;
@@ -177,10 +209,12 @@ public class RestClient {
         return null;
     }
 
-    public Response execPOSTFile(String path, String fileName, Map<String, String> queryParams, Object requestEntity) {
+//    public Response execPOSTFile(String path, String fileName, Map<String, String> queryParams, Object requestEntity) {
+    public ClientResponse execPOSTFile(String path, String fileName, Map<String, String> queryParams, Object requestEntity) {
 
         String contentDisp = "attachment; filename=\"" + fileName + "\"";
-        WebTarget service = client.target(getBaseURI()).path(path);
+//        WebTarget service = client.target(getBaseURI()).path(path);
+        WebResource service = client.resource(getBaseURI()).path(path);
 
         if (queryParams == null) {
             for (Map.Entry<String, String> entry : queryParams.entrySet()) {
@@ -188,18 +222,22 @@ public class RestClient {
             }
         }
 
-        Response r = service.request(MediaType.APPLICATION_JSON).header("Content-Disposition", contentDisp).post(Entity.entity(requestEntity, MediaType.APPLICATION_OCTET_STREAM), Response.class);
+//        Response r = service.request(MediaType.APPLICATION_JSON).header("Content-Disposition", contentDisp).post(Entity.entity(requestEntity, MediaType.APPLICATION_OCTET_STREAM), Response.class);
+        ClientResponse r = service.accept(MediaType.APPLICATION_JSON).type(MediaType.APPLICATION_OCTET_STREAM).header("Content-Disposition", contentDisp).post(ClientResponse.class, requestEntity);
 
         return r;
     }
 
-    public Response execDELETE(String path, Map<String, String> queryParams, Map<String, String> headers) {
+//    public Response execDELETE(String path, Map<String, String> queryParams, Map<String, String> headers) {
+    public ClientResponse execDELETE(String path, Map<String, String> queryParams, Map<String, String> headers) {
 
-        WebTarget service = prepareService(client, path, queryParams);
+//        WebTarget service = prepareService(client, path, queryParams);
+        WebResource service = prepareService(client, path, queryParams);
         Builder requestBuilder = prepareRequest(service, headers);
 
         try {
-            Response r = requestBuilder.delete(Response.class);
+//            Response r = requestBuilder.delete(Response.class);
+            ClientResponse r = requestBuilder.delete(ClientResponse.class);
             return r;
         } catch (Exception ex) {
             return null;
@@ -210,7 +248,8 @@ public class RestClient {
 
         Client certClient = null;
         if (certificatePath != null) {
-            HostnameVerifier allowAll = client.getHostnameVerifier();
+//            HostnameVerifier allowAll = client.getHostnameVerifier();
+            HTTPSProperties httpsProperty = (HTTPSProperties)(client.getProperties().getOrDefault(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, null));
 
             InputStream in;
             KeyStore clientKs = null;
@@ -227,18 +266,37 @@ public class RestClient {
                 Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            certClient = ClientBuilder.newBuilder()
-                    .sslContext(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias))
-                    .hostnameVerifier(allowAll)
-                    .register(new LoggingFeature(logger, Level.FINE, null, null)).build();
+//            certClient = ClientBuilder.newBuilder()
+//                    .sslContext(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias))
+//                    .hostnameVerifier(allowAll)
+//                    .register(new LoggingFeature(logger, Level.FINE, null, null)).build();
+
+            ClientConfig config = new DefaultClientConfig();
+            SSLContext ctx = getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias);
+
+            config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES, new HTTPSProperties(httpsProperty.getHostnameVerifier(), ctx));
+            certClient = Client.create(config);
         }
 
         return certClient;
     }
 
-    private WebTarget prepareService(Client targetClient, String path, Map<String, String> queryParams) {
+//    private WebTarget prepareService(Client targetClient, String path, Map<String, String> queryParams) {
+//
+//        WebTarget service = targetClient.target(getBaseURI()).path(path);
+//
+//        if (queryParams != null) {
+//            for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+//                service = service.queryParam(entry.getKey(), entry.getValue());
+//            }
+//        }
+//
+//        return service;
+//    }
+    
+    private WebResource prepareService(Client targetClient, String path, Map<String, String> queryParams) {
 
-        WebTarget service = targetClient.target(getBaseURI()).path(path);
+        WebResource service = targetClient.resource(getBaseURI()).path(path);
 
         if (queryParams != null) {
             for (Map.Entry<String, String> entry : queryParams.entrySet()) {
@@ -249,9 +307,21 @@ public class RestClient {
         return service;
     }
 
-    private Builder prepareRequest(WebTarget service, Map<String, String> headers) {
+//    private Builder prepareRequest(WebTarget service, Map<String, String> headers) {
+//
+//        Builder requestBuilder = service.request(MediaType.APPLICATION_JSON);
+//
+//        if (headers != null) {
+//            for (Map.Entry<String, String> entry : headers.entrySet()) {
+//                requestBuilder = requestBuilder.header(entry.getKey(), entry.getValue());
+//            }
+//        }
+//        return requestBuilder;
+//    }
 
-        Builder requestBuilder = service.request(MediaType.APPLICATION_JSON);
+    private Builder prepareRequest(WebResource service, Map<String, String> headers) {
+
+        Builder requestBuilder = service.accept(MediaType.APPLICATION_JSON);
 
         if (headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
@@ -260,7 +330,7 @@ public class RestClient {
         }
         return requestBuilder;
     }
-
+    
     private SSLContext getSSLContext(KeyStore keyStorePath, char[] keyStorePassword, String alias) {
 
         TrustManager[] customTrustManager = null;

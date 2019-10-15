@@ -15,12 +15,13 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import com.oneidentity.safeguard.safeguardjava.restclient.RestClient;
+import com.sun.jersey.api.client.ClientResponse;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import javax.ws.rs.core.Response;
+//import javax.ws.rs.core.Response;
 
 class SafeguardConnection implements ISafeguardConnection {
 
@@ -98,7 +99,8 @@ class SafeguardConnection implements ISafeguardConnection {
         }
         
         Map<String,String> headers = prepareHeaders(additionalHeaders, service);
-        Response response = null;
+//        Response response = null;
+        ClientResponse response = null;
 
         String msg = String.format("Invoking method: %s %s", method.toString().toUpperCase(), client.getBaseURL() + "/" + relativeUrl);
         Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, msg);
@@ -126,12 +128,14 @@ class SafeguardConnection implements ISafeguardConnection {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", client.getBaseURL()));
         }
         if (!Utils.isSuccessful(response.getStatus())) {
-            String reply = response.readEntity(String.class);
+//            String reply = response.readEntity(String.class);
+            String reply = response.getEntity(String.class);
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
                     + String.format("%d %s", response.getStatus(), reply));
         }
             
-        FullResponse fullResponse = new FullResponse(response.getStatus(), response.getHeaders(), response.readEntity(String.class));
+//        FullResponse fullResponse = new FullResponse(response.getStatus(), response.getHeaders(), response.readEntity(String.class));
+        FullResponse fullResponse = new FullResponse(response.getStatus(), response.getHeaders(), response.getEntity(String.class));
         
         Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Reponse status code: {0}", fullResponse.getStatusCode());
         msg = fullResponse.getHeaders() == null ? "None" : fullResponse.getHeaders().keySet().stream().map(key -> key + "=" + fullResponse.getHeaders().get(key)).collect(Collectors.joining(", ", "{", "}"));

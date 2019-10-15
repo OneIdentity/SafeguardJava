@@ -20,9 +20,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response;
+//import javax.ws.rs.core.Response;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 import com.oneidentity.safeguard.safeguardjava.event.PersistentSafeguardA2AEventListener;
+import com.sun.jersey.api.client.ClientResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -78,13 +79,15 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         Map<String, String> parameters = new HashMap<>();
         
-        Response response = coreClient.execGET("A2ARegistrations", parameters, headers, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword());
+//        Response response = coreClient.execGET("A2ARegistrations", parameters, headers, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword());
+        ClientResponse response = coreClient.execGET("A2ARegistrations", parameters, headers, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword());
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
         }
         if (!Utils.isSuccessful(response.getStatus())) 
-            throw new SafeguardForJavaException(String.format("Error returned from Safeguard API, Error: %s %s", response.getStatus(), response.readEntity(String.class)));
+//            throw new SafeguardForJavaException(String.format("Error returned from Safeguard API, Error: %s %s", response.getStatus(), response.readEntity(String.class)));
+            throw new SafeguardForJavaException(String.format("Error returned from Safeguard API, Error: %s %s", response.getStatus(), response.getEntity(String.class)));
         
         
         List<A2ARegistration> registrations = parseA2ARegistationResponse(response);
@@ -100,7 +103,8 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
                 throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
             }
             if (!Utils.isSuccessful(response.getStatus())) 
-                throw new SafeguardForJavaException(String.format("Error returned from Safeguard API, Error: %s %s", response.getStatus(), response.readEntity(String.class)));
+//                throw new SafeguardForJavaException(String.format("Error returned from Safeguard API, Error: %s %s", response.getStatus(), response.readEntity(String.class)));
+                throw new SafeguardForJavaException(String.format("Error returned from Safeguard API, Error: %s %s", response.getStatus(), response.getEntity(String.class)));
         
             List<A2ARetrievableAccountInternal> retrievals = parseA2ARetrievableAccountResponse(response);
             
@@ -142,17 +146,20 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("type", "Password");
 
-        Response response = a2AClient.execGET("Credentials", parameters, headers, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword());
+//        Response response = a2AClient.execGET("Credentials", parameters, headers, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword());
+        ClientResponse response = a2AClient.execGET("Credentials", parameters, headers, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword());
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
         }
         if (!Utils.isSuccessful(response.getStatus())) {
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
-                    + String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
+//                    + String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
+                    + String.format("%s %s", response.getStatus(), response.getEntity(String.class)));
         }
 
-        char[] password = response.readEntity(String.class).replaceAll("\"", "").toCharArray();
+//        char[] password = response.readEntity(String.class).replaceAll("\"", "").toCharArray();
+        char[] password = response.getEntity(String.class).replaceAll("\"", "").toCharArray();
         return password;
     }
 
@@ -244,7 +251,8 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         Map<String, String> parameters = new HashMap<>();
 
-        Response response = a2AClient.execPOST("AccessRequests", parameters, headers, accessRequest, clientCertificate.getCertificatePath(), 
+//        Response response = a2AClient.execPOST("AccessRequests", parameters, headers, accessRequest, clientCertificate.getCertificatePath(), 
+        ClientResponse response = a2AClient.execPOST("AccessRequests", parameters, headers, accessRequest, clientCertificate.getCertificatePath(), 
                 clientCertificate.getCertificatePassword(), clientCertificate.getCertificateAlias());
 
         if (response == null) {
@@ -252,11 +260,13 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
         if (!Utils.isSuccessful(response.getStatus())) {
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
-                    + String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
+//                    + String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
+                    + String.format("%s %s", response.getStatus(), response.getEntity(String.class)));
         }
 
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Successfully created A2A access request.");
-        return response.readEntity(String.class);
+//        return response.readEntity(String.class);
+        return response.getEntity(String.class);
     }
 
     @Override
@@ -282,12 +292,14 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
             : new SafeguardA2AContext(networkAddress, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword(), apiVersion, ignoreSsl);
     }
     
-    private List<A2ARegistration> parseA2ARegistationResponse(Response response) {
+//    private List<A2ARegistration> parseA2ARegistationResponse(Response response) {
+    private List<A2ARegistration> parseA2ARegistationResponse(ClientResponse response) {
         
         ObjectMapper mapper = new ObjectMapper();
         
         try {
-            A2ARegistration[] registrations = mapper.readValue(response.readEntity(String.class), A2ARegistration[].class);
+//            A2ARegistration[] registrations = mapper.readValue(response.readEntity(String.class), A2ARegistration[].class);
+            A2ARegistration[] registrations = mapper.readValue(response.getEntity(String.class), A2ARegistration[].class);
             return Arrays.asList(registrations);
         } catch (IOException ex) {
             Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
@@ -296,12 +308,14 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         return null;
     }
     
-    private List<A2ARetrievableAccountInternal> parseA2ARetrievableAccountResponse(Response response) {
+//    private List<A2ARetrievableAccountInternal> parseA2ARetrievableAccountResponse(Response response) {
+    private List<A2ARetrievableAccountInternal> parseA2ARetrievableAccountResponse(ClientResponse response) {
         
         ObjectMapper mapper = new ObjectMapper();
         
         try {
-            A2ARetrievableAccountInternal[] accounts = mapper.readValue(response.readEntity(String.class), A2ARetrievableAccountInternal[].class);
+//            A2ARetrievableAccountInternal[] accounts = mapper.readValue(response.readEntity(String.class), A2ARetrievableAccountInternal[].class);
+            A2ARetrievableAccountInternal[] accounts = mapper.readValue(response.getEntity(String.class), A2ARetrievableAccountInternal[].class);
             return Arrays.asList(accounts);
         } catch (IOException ex) {
             Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);

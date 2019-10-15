@@ -3,12 +3,13 @@ package com.oneidentity.safeguard.safeguardjava;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneidentity.safeguard.safeguardjava.authentication.PasswordAuthenticator;
+import com.sun.jersey.api.client.ClientResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response;
+//import javax.ws.rs.core.Response;
 
 public class Utils {
 
@@ -26,8 +27,10 @@ public class Utils {
         return "";
     }
 
-    public static Map<String,String> parseResponse(Response response) {
-        String resp = response.readEntity(String.class);
+//    public static Map<String,String> parseResponse(Response response) {
+    public static Map<String,String> parseResponse(ClientResponse response) {
+//        String resp = response.readEntity(String.class);
+        String resp = response.getEntity(String.class);
         
         ObjectMapper mapper = new ObjectMapper();
         Map<String,String> map = new HashMap<>();

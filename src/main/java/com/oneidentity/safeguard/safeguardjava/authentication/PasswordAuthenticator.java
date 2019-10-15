@@ -8,6 +8,7 @@ import com.oneidentity.safeguard.safeguardjava.data.OauthBody;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import com.sun.jersey.api.client.ClientResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response;
+//import javax.ws.rs.core.Response;
 
 public class PasswordAuthenticator extends AuthenticatorBase 
 {
@@ -52,7 +53,8 @@ public class PasswordAuthenticator extends AuthenticatorBase
     {
         try
         {
-            Response response;
+//            Response response;
+            ClientResponse response;
             Map<String,String> headers = new HashMap<>();
             Map<String,String> parameters = new HashMap<>();
             
@@ -73,7 +75,8 @@ public class PasswordAuthenticator extends AuthenticatorBase
                 throw new SafeguardForJavaException("Unable to connect to RSTS to find identity provider scopes");
             if (!Utils.isSuccessful(response.getStatus())) 
                 throw new SafeguardForJavaException("Error requesting identity provider scopes from RSTS, Error: " +
-                        String.format("%d %s", response.getStatus(), response.readEntity(String.class)));
+//                        String.format("%d %s", response.getStatus(), response.readEntity(String.class)));
+                        String.format("%d %s", response.getStatus(), response.getEntity(String.class)));
 
             List<String> knownScopes = parseLoginResponse(response);
             String scope = getMatchingScope(knownScopes, true);
@@ -104,13 +107,15 @@ public class PasswordAuthenticator extends AuthenticatorBase
             resolveProviderToScope();
 
         OauthBody body = new OauthBody("password", username, password, providerScope);
-        Response response = rstsClient.execPOST("oauth2/token", null, null, body);
+//        Response response = rstsClient.execPOST("oauth2/token", null, null, body);
+        ClientResponse response = rstsClient.execPOST("oauth2/token", null, null, body);
 
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s", rstsClient.getBaseURL()));
         if (!Utils.isSuccessful(response.getStatus())) 
             throw new SafeguardForJavaException(String.format("Error using password grant_type with scope %s, Error: ", providerScope) +
-                    String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
+//                    String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
+                    String.format("%s %s", response.getStatus(), response.getEntity(String.class)));
 
         Map<String,String> map = Utils.parseResponse(response);
 
@@ -153,13 +158,15 @@ public class PasswordAuthenticator extends AuthenticatorBase
         }
     }
     
-    private List<String> parseLoginResponse(Response response) {
+//    private List<String> parseLoginResponse(Response response) {
+    private List<String> parseLoginResponse(ClientResponse response) {
         
         List<String> providers = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         
         try {
-            JsonNode jsonNodeRoot = mapper.readTree(response.readEntity(String.class));
+//            JsonNode jsonNodeRoot = mapper.readTree(response.readEntity(String.class));
+            JsonNode jsonNodeRoot = mapper.readTree(response.getEntity(String.class));
             JsonNode jsonNodeProviders = jsonNodeRoot.get("Providers");
             Iterator<JsonNode> iter = jsonNodeProviders.elements();
             

@@ -5,9 +5,10 @@ import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
 import com.oneidentity.safeguard.safeguardjava.data.OauthBody;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import com.sun.jersey.api.client.ClientResponse;
 import java.util.Arrays;
 import java.util.Map;
-import javax.ws.rs.core.Response;
+//import javax.ws.rs.core.Response;
 
 public class CertificateAuthenticator extends AuthenticatorBase
 {
@@ -46,7 +47,8 @@ public class CertificateAuthenticator extends AuthenticatorBase
         if (disposed)
             throw new ObjectDisposedException("CertificateAuthenticator");
 
-        Response response = null;
+//        Response response = null;
+        ClientResponse response = null;
         OauthBody body = new OauthBody("client_credentials", "rsts:sts:primaryproviderid:certificate");
         
         response = rstsClient.execPOST("oauth2/token", null, null, body, clientCertificate.getCertificatePath(), 
@@ -57,7 +59,8 @@ public class CertificateAuthenticator extends AuthenticatorBase
         if (!Utils.isSuccessful(response.getStatus())) {
             String msg = Utils.isNullOrEmpty(clientCertificate.getCertificateAlias()) ? 
                     String.format("file=%s", clientCertificate.getCertificatePath()) : String.format("alias=%s", clientCertificate.getCertificateAlias());
-            String content = response.readEntity(String.class);
+//            String content = response.readEntity(String.class);
+            String content = response.getEntity(String.class);
             throw new SafeguardForJavaException("Error using client_credentials grant_type with " + clientCertificate.toString() +
                     String.format(", Error: %d %s", response.getStatus(), content));
         }
