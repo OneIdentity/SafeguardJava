@@ -3,7 +3,11 @@ package com.oneidentity.safeguard.safeguardjava;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneidentity.safeguard.safeguardjava.authentication.PasswordAuthenticator;
+import com.oneidentity.safeguard.safeguardjava.classloader.SafeguardClassLoader;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -50,6 +54,27 @@ public class Utils {
             default:
                 return false;
         }
+    }
+    
+    public static ClassLoader setClassLoader() throws SafeguardForJavaException {
+        URL u = null;
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        try {
+            String f = Safeguard.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+            while (f.startsWith("/")) {
+                f = f.substring(1);
+            }
+            u = new URL("file://"+f);
+        } catch (MalformedURLException ex) {
+            throw new SafeguardForJavaException("Failed to load the SafeguardClassLoader " + ex.getMessage());
+        }
+        Thread.currentThread().setContextClassLoader(SafeguardClassLoader.getInstance(new URL[]{u}));
+        
+        return cl;
+    }
+    
+    public static void restoreClassLoader(ClassLoader classLoader) {
+        Thread.currentThread().setContextClassLoader(classLoader);
     }
     
 }

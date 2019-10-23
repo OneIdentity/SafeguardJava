@@ -56,7 +56,7 @@ public class PersistentSafeguardA2AEventListener extends PersistentSafeguardEven
     }
     
     @Override
-    public SafeguardEventListener reconnectEventListener() throws ObjectDisposedException, ArgumentException
+    public SafeguardEventListener reconnectEventListener() throws ObjectDisposedException, ArgumentException, SafeguardForJavaException
     {
         // passing in a bogus handler because it will be overridden in PersistentSafeguardEventListenerBase
         if (this.apiKey != null)
