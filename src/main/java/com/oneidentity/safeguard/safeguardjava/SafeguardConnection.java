@@ -53,12 +53,20 @@ class SafeguardConnection implements ISafeguardConnection {
         if (disposed) {
             throw new ObjectDisposedException("SafeguardConnection");
         }
-        int lifetime = authenticationMechanism.getAccessTokenLifetimeRemaining();
+        int lifetime;
+        ClassLoader currentClassLoader = Utils.setClassLoader();
+        try {
+            lifetime = authenticationMechanism.getAccessTokenLifetimeRemaining();
+        } finally {
+            Utils.restoreClassLoader(currentClassLoader);
+        }
+
         if (lifetime > 0) {
             String msg = String.format("Access token lifetime remaining (in minutes): %d", lifetime);
             Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, msg);
-        } else
+        } else {
             Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Access token invalid or server unavailable");
+        }
         return lifetime;
     }
 
@@ -67,7 +75,13 @@ class SafeguardConnection implements ISafeguardConnection {
         if (disposed) {
             throw new ObjectDisposedException("SafeguardConnection");
         }
-        authenticationMechanism.refreshAccessToken();
+        ClassLoader currentClassLoader = Utils.setClassLoader();
+        try {
+            authenticationMechanism.refreshAccessToken();
+        } finally {
+            Utils.restoreClassLoader(currentClassLoader);
+        }
+
         Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Successfully obtained a new access token");
     }
 
@@ -89,64 +103,70 @@ class SafeguardConnection implements ISafeguardConnection {
         if (disposed) {
             throw new ObjectDisposedException("SafeguardConnection");
         }
-        if (Utils.isNullOrEmpty(relativeUrl))
+        if (Utils.isNullOrEmpty(relativeUrl)) {
             throw new ArgumentException("Parameter relativeUrl may not be null or empty");
-        
-        RestClient client = getClientForService(service);
-        if (!authenticationMechanism.isAnonymous() && !authenticationMechanism.hasAccessToken()) {
-            throw new SafeguardForJavaException("Access token is missing due to log out, you must refresh the access token to invoke a method");
         }
-        
-        Map<String,String> headers = prepareHeaders(additionalHeaders, service);
-        Response response = null;
 
-        String msg = String.format("Invoking method: %s %s", method.toString().toUpperCase(), client.getBaseURL() + "/" + relativeUrl);
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, msg);
-        msg = parameters == null ? "None" : parameters.keySet().stream().map(key -> key + "=" + parameters.get(key)).collect(Collectors.joining(", ", "{", "}"));
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Query parameters: {0}", msg);
-        msg = headers == null ? "None" : headers.keySet().stream().map(key -> key + "=" + headers.get(key)).collect(Collectors.joining(", ", "{", "}"));
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Additional headers: {0}", msg);
-        
-        switch (method) {
-            case Get:
-                response = client.execGET(relativeUrl, parameters, headers);
-                break;
-            case Post:
-                response = client.execPOST(relativeUrl, parameters, headers, new JsonBody(body));
-                break;
-            case Put:
-                response = client.execPUT(relativeUrl, parameters, headers, new JsonBody(body));
-                break;
-            case Delete:
-                response = client.execDELETE(relativeUrl, parameters, headers);
-                break;
+        ClassLoader currentClassLoader = Utils.setClassLoader();
+        try {
+            RestClient client = getClientForService(service);
+            if (!authenticationMechanism.isAnonymous() && !authenticationMechanism.hasAccessToken()) {
+                throw new SafeguardForJavaException("Access token is missing due to log out, you must refresh the access token to invoke a method");
+            }
+
+            Map<String, String> headers = prepareHeaders(additionalHeaders, service);
+            Response response = null;
+
+            String msg = String.format("Invoking method: %s %s", method.toString().toUpperCase(), client.getBaseURL() + "/" + relativeUrl);
+            Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, msg);
+            msg = parameters == null ? "None" : parameters.keySet().stream().map(key -> key + "=" + parameters.get(key)).collect(Collectors.joining(", ", "{", "}"));
+            Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Query parameters: {0}", msg);
+            msg = headers == null ? "None" : headers.keySet().stream().map(key -> key + "=" + headers.get(key)).collect(Collectors.joining(", ", "{", "}"));
+            Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Additional headers: {0}", msg);
+
+            switch (method) {
+                case Get:
+                    response = client.execGET(relativeUrl, parameters, headers);
+                    break;
+                case Post:
+                    response = client.execPOST(relativeUrl, parameters, headers, new JsonBody(body));
+                    break;
+                case Put:
+                    response = client.execPUT(relativeUrl, parameters, headers, new JsonBody(body));
+                    break;
+                case Delete:
+                    response = client.execDELETE(relativeUrl, parameters, headers);
+                    break;
+            }
+
+            if (response == null) {
+                throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", client.getBaseURL()));
+            }
+            if (!Utils.isSuccessful(response.getStatus())) {
+                String reply = response.readEntity(String.class);
+                throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
+                        + String.format("%d %s", response.getStatus(), reply));
+            }
+
+            FullResponse fullResponse = new FullResponse(response.getStatus(), response.getHeaders(), response.readEntity(String.class));
+
+            Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Reponse status code: {0}", fullResponse.getStatusCode());
+            msg = fullResponse.getHeaders() == null ? "None" : fullResponse.getHeaders().keySet().stream().map(key -> key + "=" + fullResponse.getHeaders().get(key)).collect(Collectors.joining(", ", "{", "}"));
+            Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Response headers: {0}", msg);
+            msg = fullResponse.getBody() == null ? "None" : String.format("%d", fullResponse.getBody().length());
+            Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Body size: {0}", msg);
+
+            return fullResponse;
+        } finally {
+            Utils.restoreClassLoader(currentClassLoader);
         }
-        
-        if (response == null) {
-            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", client.getBaseURL()));
-        }
-        if (!Utils.isSuccessful(response.getStatus())) {
-            String reply = response.readEntity(String.class);
-            throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
-                    + String.format("%d %s", response.getStatus(), reply));
-        }
-            
-        FullResponse fullResponse = new FullResponse(response.getStatus(), response.getHeaders(), response.readEntity(String.class));
-        
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Reponse status code: {0}", fullResponse.getStatusCode());
-        msg = fullResponse.getHeaders() == null ? "None" : fullResponse.getHeaders().keySet().stream().map(key -> key + "=" + fullResponse.getHeaders().get(key)).collect(Collectors.joining(", ", "{", "}"));
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Response headers: {0}", msg);
-        msg = fullResponse.getBody() == null ? "None" : String.format("%d",fullResponse.getBody().length());
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Body size: {0}", msg);
-        
-        return fullResponse;
     }
 
     @Override
-    public String invokeMethodCsv(Service service, Method method, String relativeUrl, 
+    public String invokeMethodCsv(Service service, Method method, String relativeUrl,
             String body, Map<String, String> parameters, Map<String, String> additionalHeaders)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
-        
+
         if (disposed) {
             throw new ObjectDisposedException("SafeguardConnection");
         }
@@ -154,10 +174,10 @@ class SafeguardConnection implements ISafeguardConnection {
             additionalHeaders = new HashMap<>();
         }
         additionalHeaders.put("Accept", "text/csv");
-        
+
         return invokeMethodFull(service, method, relativeUrl, body, parameters, additionalHeaders).getBody();
     }
-       
+
     @Override
     public SafeguardEventListener getEventListener() throws ObjectDisposedException, ArgumentException {
         SafeguardEventListener eventListener = new SafeguardEventListener(
@@ -171,36 +191,38 @@ class SafeguardConnection implements ISafeguardConnection {
     @Override
     public ISafeguardEventListener getPersistentEventListener()
             throws ObjectDisposedException, SafeguardForJavaException {
-        
-        if (disposed)
-            throw new ObjectDisposedException("SafeguardConnection");
 
-        if ((authenticationMechanism instanceof PasswordAuthenticator) ||
-            (authenticationMechanism instanceof CertificateAuthenticator)) {
-            return new PersistentSafeguardEventListener((ISafeguardConnection)this.cloneObject());
+        if (disposed) {
+            throw new ObjectDisposedException("SafeguardConnection");
+        }
+
+        if ((authenticationMechanism instanceof PasswordAuthenticator)
+                || (authenticationMechanism instanceof CertificateAuthenticator)) {
+            return new PersistentSafeguardEventListener((ISafeguardConnection) this.cloneObject());
         }
         throw new SafeguardForJavaException("Unable to create persistent event listener from " + this.authenticationMechanism.getClass().getName());
     }
 
     @Override
     public void logOut() throws ObjectDisposedException {
-        
-        if (disposed)
+
+        if (disposed) {
             throw new ObjectDisposedException("SafeguardConnection");
-        
-        if (!authenticationMechanism.hasAccessToken())
+        }
+
+        if (!authenticationMechanism.hasAccessToken()) {
             return;
+        }
         try {
             this.invokeMethodFull(Service.Core, Method.Post, "Token/Logout", null, null, null);
             Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Successfully logged out");
-        }
-        catch (Exception ex) {
+        } catch (Exception ex) {
             Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Exception occurred during logout", ex);
         }
         authenticationMechanism.clearAccessToken();
         Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Cleared access token");
     }
-    
+
     private RestClient getClientForService(Service service) throws SafeguardForJavaException {
         switch (service) {
             case Core:
@@ -216,45 +238,46 @@ class SafeguardConnection implements ISafeguardConnection {
                 throw new SafeguardForJavaException("Unknown or unsupported service specified");
         }
     }
-    
-    private Map<String,String> prepareHeaders(Map<String,String> additionalHeaders, Service service) 
+
+    private Map<String, String> prepareHeaders(Map<String, String> additionalHeaders, Service service)
             throws ObjectDisposedException {
-        
-        Map<String,String> headers = new HashMap<>();
-        if (!(authenticationMechanism instanceof AnonymousAuthenticator)) { 
+
+        Map<String, String> headers = new HashMap<>();
+        if (!(authenticationMechanism instanceof AnonymousAuthenticator)) {
             headers.put("Authorization", String.format("Bearer %s", new String(authenticationMechanism.getAccessToken())));
         }
-        
-        if (additionalHeaders != null) { 
+
+        if (additionalHeaders != null) {
             headers.putAll(additionalHeaders);
-            if (!additionalHeaders.containsKey("Accept"))
+            if (!additionalHeaders.containsKey("Accept")) {
                 headers.put("Accept", "application/json"); // Assume JSON unless specified
+            }
         }
         return headers;
     }
 
     @Override
-    public void dispose()
-    {
-        if (authenticationMechanism != null)
+    public void dispose() {
+        if (authenticationMechanism != null) {
             authenticationMechanism.dispose();
+        }
         disposed = true;
     }
 
     @Override
     protected void finalize() throws Throwable {
         try {
-            if (authenticationMechanism != null)
+            if (authenticationMechanism != null) {
                 authenticationMechanism.dispose();
+            }
         } finally {
             disposed = true;
             super.finalize();
         }
     }
-    
-    public Object cloneObject() throws SafeguardForJavaException 
-    {
-        return new SafeguardConnection((IAuthenticationMechanism)authenticationMechanism.cloneObject());
+
+    public Object cloneObject() throws SafeguardForJavaException {
+        return new SafeguardConnection((IAuthenticationMechanism) authenticationMechanism.cloneObject());
     }
 
 }

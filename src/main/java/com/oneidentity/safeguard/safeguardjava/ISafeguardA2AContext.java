@@ -49,7 +49,7 @@ public interface ISafeguardA2AContext
      *  @throws ObjectDisposedException The object has already been disposed.
      *  @throws ArgumentException Invalid argument.
      */
-    ISafeguardEventListener getA2AEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
+    ISafeguardEventListener getA2AEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException;
     
     /**
      *  Gets an A2A event listener. The handler passed in will be registered for the AssetAccountPasswordUpdated
@@ -64,7 +64,7 @@ public interface ISafeguardA2AContext
      *  @throws ObjectDisposedException The object has already been disposed.
      *  @throws ArgumentException Invalid argument.
      */
-    ISafeguardEventListener getA2AEventListener(List<char[]> apiKeys, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
+    ISafeguardEventListener getA2AEventListener(List<char[]> apiKeys, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException;
 
     /**
      * Gets a persistent A2A event listener. The handler passed in will be registered for the
@@ -78,7 +78,7 @@ public interface ISafeguardA2AContext
      * @throws ObjectDisposedException The object has already been disposed.
      * @throws ArgumentException Invalid argument
      */
-    ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
+    ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException;
 
     /**
      * Gets a persistent A2A event listener. The handler passed in will be registered for the
@@ -92,7 +92,7 @@ public interface ISafeguardA2AContext
      * @throws ObjectDisposedException The object has already been disposed.
      * @throws ArgumentException Invalid argument
      */
-    ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException;
+    ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys, ISafeguardEventHandler handler) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException;
     
     /**
      *  Creates an access request on behalf of another user using Safeguard A2A.
