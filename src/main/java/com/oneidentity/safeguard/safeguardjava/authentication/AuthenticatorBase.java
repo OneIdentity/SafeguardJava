@@ -8,7 +8,7 @@ import com.oneidentity.safeguard.safeguardjava.restclient.RestClient;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import javax.ws.rs.core.Response;
+import org.apache.http.client.methods.CloseableHttpResponse;
 
 abstract class AuthenticatorBase implements IAuthenticationMechanism
 {
@@ -89,14 +89,17 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
         headers.put("Authorization", String.format("Bearer %s", new String(accessToken)));
         headers.put("X-TokenLifetimeRemaining", "");
         
-        Response response = coreClient.execGET("LoginMessage", null, headers);
+        CloseableHttpResponse response = coreClient.execGET("LoginMessage", null, headers);
         
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", coreClient.getBaseURL()));
-        if (!Utils.isSuccessful(response.getStatus())) 
+        if (!Utils.isSuccessful(response.getStatusLine().getStatusCode())) 
             return 0;
 
-        String remainingStr = response.getHeaderString("X-TokenLifetimeRemaining");
+        String remainingStr = null;
+        if (response.containsHeader("X-TokenLifetimeRemaining")) {
+            remainingStr = response.getFirstHeader("X-TokenLifetimeRemaining").getValue();
+        }
 
         int remaining = 10; // Random magic value... the access token was good, but for some reason it didn't return the remaining lifetime
         if (remainingStr != null) {
@@ -118,15 +121,17 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
         
         char[] rStsToken = getRstsTokenInternal();
         AccessTokenBody body = new AccessTokenBody(rStsToken);
-        Response response = coreClient.execPOST("Token/LoginResponse", null, null, body);
+        CloseableHttpResponse response = coreClient.execPOST("Token/LoginResponse", null, null, body);
 
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", coreClient.getBaseURL()));
-        if (!Utils.isSuccessful(response.getStatus())) 
+        
+        String reply = Utils.getResponse(response);
+        if (!Utils.isSuccessful(response.getStatusLine().getStatusCode())) 
             throw new SafeguardForJavaException("Error exchanging RSTS token from " + this.getId() + "authenticator for Safeguard API access token, Error: " +
-                                               String.format("%d %s", response.getStatus(), response.readEntity(String.class)));
+                                               String.format("%d %s", response.getStatusLine().getStatusCode(), reply));
 
-        Map<String,String> map = Utils.parseResponse(response);
+        Map<String,String> map = Utils.parseResponse(reply);
         if (map.containsKey("UserToken"))
             accessToken =  map.get("UserToken").toCharArray();
     }

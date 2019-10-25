@@ -1,6 +1,9 @@
 package com.oneidentity.safeguard.safeguardjava.data;
 
-import javax.ws.rs.core.MultivaluedMap;
+import java.util.Arrays;
+import java.util.List;
+import org.apache.http.Header;
+
 
 /**
  * A simple class for returning extended information from a Safeguard API method call.
@@ -8,10 +11,10 @@ import javax.ws.rs.core.MultivaluedMap;
 public class FullResponse {
     
     private int statusCode;
-    private MultivaluedMap<String, Object> headers;
+    private Header[] headers;
     private String body;
 
-    public FullResponse(int statusCode, MultivaluedMap<String,Object> headers, String body) {
+    public FullResponse(int statusCode, Header[] headers, String body) {
         this.statusCode = statusCode;
         this.headers = headers;
         this.body = body;
@@ -25,11 +28,11 @@ public class FullResponse {
         this.statusCode = statusCode;
     }
 
-    public MultivaluedMap<String, Object> getHeaders() {
-        return headers;
+    public List<Header> getHeaders() {
+        return Arrays.asList(headers);
     }
 
-    public void setHeaders(MultivaluedMap<String, Object> headers) {
+    public void setHeaders(Header[] headers) {
         this.headers = headers;
     }
 

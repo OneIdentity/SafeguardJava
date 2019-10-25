@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response;
+import org.apache.http.client.methods.CloseableHttpResponse;
 
 public class PasswordAuthenticator extends AuthenticatorBase 
 {
@@ -52,7 +52,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
     {
         try
         {
-            Response response;
+            CloseableHttpResponse response;
             Map<String,String> headers = new HashMap<>();
             Map<String,String> parameters = new HashMap<>();
             
@@ -66,16 +66,18 @@ public class PasswordAuthenticator extends AuthenticatorBase
 
             response = rstsClient.execPOST("UserLogin/LoginController", parameters, headers, new JsonBody("RelayState="));
                 
-            if (response == null || (!Utils.isSuccessful(response.getStatus())))
+            if (response == null || (!Utils.isSuccessful(response.getStatusLine().getStatusCode())))
                 response = rstsClient.execGET("UserLogin/LoginController", parameters, headers);
             
             if (response == null)
                 throw new SafeguardForJavaException("Unable to connect to RSTS to find identity provider scopes");
-            if (!Utils.isSuccessful(response.getStatus())) 
+            
+            String reply = Utils.getResponse(response);
+            if (!Utils.isSuccessful(response.getStatusLine().getStatusCode())) 
                 throw new SafeguardForJavaException("Error requesting identity provider scopes from RSTS, Error: " +
-                        String.format("%d %s", response.getStatus(), response.readEntity(String.class)));
+                        String.format("%d %s", response.getStatusLine().getStatusCode(), reply));
 
-            List<String> knownScopes = parseLoginResponse(response);
+            List<String> knownScopes = parseLoginResponse(reply);
             String scope = getMatchingScope(knownScopes, true);
 
             if (scope != null)
@@ -104,15 +106,17 @@ public class PasswordAuthenticator extends AuthenticatorBase
             resolveProviderToScope();
 
         OauthBody body = new OauthBody("password", username, password, providerScope);
-        Response response = rstsClient.execPOST("oauth2/token", null, null, body);
+        CloseableHttpResponse response = rstsClient.execPOST("oauth2/token", null, null, body);
 
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s", rstsClient.getBaseURL()));
-        if (!Utils.isSuccessful(response.getStatus())) 
+        
+        String reply = Utils.getResponse(response);
+        if (!Utils.isSuccessful(response.getStatusLine().getStatusCode())) 
             throw new SafeguardForJavaException(String.format("Error using password grant_type with scope %s, Error: ", providerScope) +
-                    String.format("%s %s", response.getStatus(), response.readEntity(String.class)));
+                    String.format("%s %s", response.getStatusLine().getStatusCode(), reply));
 
-        Map<String,String> map = Utils.parseResponse(response);
+        Map<String,String> map = Utils.parseResponse(reply);
 
         if (!map.containsKey("access_token"))
             throw new SafeguardForJavaException(String.format("Error retrieving the access key for scope: %s", providerScope));
@@ -153,13 +157,13 @@ public class PasswordAuthenticator extends AuthenticatorBase
         }
     }
     
-    private List<String> parseLoginResponse(Response response) {
+    private List<String> parseLoginResponse(String response) {
         
         List<String> providers = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         
         try {
-            JsonNode jsonNodeRoot = mapper.readTree(response.readEntity(String.class));
+            JsonNode jsonNodeRoot = mapper.readTree(response);
             JsonNode jsonNodeProviders = jsonNodeRoot.get("Providers");
             Iterator<JsonNode> iter = jsonNodeProviders.elements();
             
@@ -193,6 +197,4 @@ public class PasswordAuthenticator extends AuthenticatorBase
         }
         return null;
     }
-    
-    
 }

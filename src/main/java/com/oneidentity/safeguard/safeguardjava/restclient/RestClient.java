@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -22,30 +23,31 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-
-import org.glassfish.jersey.logging.LoggingFeature;
+import org.apache.http.HttpHeaders;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.config.Registry;
+import org.apache.http.config.RegistryBuilder;
+import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.entity.StringEntity;
 
 public class RestClient {
 
-    private Client client = null;
+    private CloseableHttpClient client = null;
     private String serverUrl = null;
     private boolean ignoreSsl = false;
 
@@ -64,54 +66,52 @@ public class RestClient {
         this.ignoreSsl = ignoreSsl;
         this.serverUrl = connectionAddr;
 
-        ClientBuilder builder = ClientBuilder.newBuilder()
-                .sslContext(getSSLContext(null, null, null))
-                .register(new LoggingFeature(logger, Level.FINE, null, null));
-        
-        if (ignoreSsl) {
-            HostnameVerifier allowAll = new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            };
-            builder.hostnameVerifier(allowAll);
-        }
-
-        client = builder.build();
+        SSLConnectionSocketFactory sslsf = ignoreSsl ? 
+                new SSLConnectionSocketFactory(getSSLContext(null, null, null), NoopHostnameVerifier.INSTANCE) : 
+                new SSLConnectionSocketFactory(getSSLContext(null, null, null));
+        Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslsf).build();
+        BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
+        client = HttpClients.custom().setSSLSocketFactory(sslsf).setConnectionManager(connectionManager).build();
+    
     }
 
-    private URI getBaseURI() {
-        return UriBuilder.fromUri(serverUrl).build();
+    private URI getBaseURI(String segments) {
+        try {
+            URIBuilder ub = new URIBuilder(serverUrl);
+            List<String> uriPath = ub.getPathSegments();
+            uriPath.add(segments);
+            return ub.setPathSegments(uriPath).build();
+        } catch (URISyntaxException ex) {
+            Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, "Invalid URI", ex);
+        }
+        return null;
     }
 
     public String getBaseURL() {
         return serverUrl;
     }
 
-    public Response execGET(String path, Map<String, String> queryParams, Map<String, String> headers) {
+    public CloseableHttpResponse execGET(String path, Map<String, String> queryParams, Map<String, String> headers) {
 
-        WebTarget service = prepareService(client, path, queryParams);
-        Builder requestBuilder = prepareRequest(service, headers);
+        RequestBuilder rb = prepareRequest (RequestBuilder.get(getBaseURI(path)), queryParams, headers);
 
         try {
-            Response r = requestBuilder.get(Response.class);
+            CloseableHttpResponse r = client.execute(rb.build());
             return r;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public Response execGET(String path, Map<String, String> queryParams, Map<String, String> headers, String certificatePath, char[] keyPass) {
+    public CloseableHttpResponse execGET(String path, Map<String, String> queryParams, Map<String, String> headers, String certificatePath, char[] keyPass) {
 
-        Client certClient = getClientWithCertificate(certificatePath, keyPass, null);
+        CloseableHttpClient certClient = getClientWithCertificate(certificatePath, keyPass, null);
 
         if (certClient != null) {
-            WebTarget service = prepareService(certClient, path, queryParams);
-            Builder requestBuilder = prepareRequest(service, headers);
+            RequestBuilder rb = prepareRequest(RequestBuilder.get(getBaseURI(path)), queryParams, headers);
 
             try {
-                Response r = requestBuilder.get(Response.class);
+                CloseableHttpResponse r = certClient.execute(rb.build());
                 return r;
             } catch (Exception ex) {
                 return null;
@@ -120,54 +120,43 @@ public class RestClient {
         return null;
     }
 
-    public Response execGET(String path) {
+    public CloseableHttpResponse execPUT(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
 
-        WebTarget service = client.target(path);
+        RequestBuilder rb = prepareRequest(RequestBuilder.put(getBaseURI(path)), queryParams, headers);
+
         try {
-            Response r = service.request(MediaType.APPLICATION_JSON).get(Response.class);
+            rb.setEntity(new StringEntity(requestEntity.toJson()));
+            CloseableHttpResponse r = client.execute(rb.build());
             return r;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public Response execPUT(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
+    public CloseableHttpResponse execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
 
-        WebTarget service = prepareService(client, path, queryParams);
-        Builder requestBuilder = prepareRequest(service, headers);
+        RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers);
 
         try {
-            Response r = requestBuilder.put(Entity.json(requestEntity.toJson()), Response.class);
+            rb.setEntity(new StringEntity(requestEntity.toJson()));
+            CloseableHttpResponse r = client.execute(rb.build());
             return r;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity) {
-
-        WebTarget service = prepareService(client, path, queryParams);
-        Builder requestBuilder = prepareRequest(service, headers);
-
-        try {
-            Response r = requestBuilder.post(Entity.json(requestEntity.toJson()), Response.class);
-            return r;
-        } catch (Exception ex) {
-            return null;
-        }
-    }
-
-    public Response execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity, 
+    public CloseableHttpResponse execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity, 
             String certificatePath, char[] keyPass, String certificateAlias) {
 
-        Client certClient = getClientWithCertificate(certificatePath, keyPass, certificateAlias);
+        CloseableHttpClient certClient = getClientWithCertificate(certificatePath, keyPass, certificateAlias);
 
         if (certClient != null) {
-            WebTarget service = prepareService(certClient, path, queryParams);
-            Builder requestBuilder = prepareRequest(service, headers);
+            RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers);
 
             try {
-                Response r = requestBuilder.post(Entity.json(requestEntity.toJson()), Response.class);
+                rb.setEntity(new StringEntity(requestEntity.toJson()));
+                CloseableHttpResponse r = certClient.execute(rb.build());
                 return r;
             } catch (Exception ex) {
                 return null;
@@ -177,40 +166,22 @@ public class RestClient {
         return null;
     }
 
-    public Response execPOSTFile(String path, String fileName, Map<String, String> queryParams, Object requestEntity) {
+    public CloseableHttpResponse execDELETE(String path, Map<String, String> queryParams, Map<String, String> headers) {
 
-        String contentDisp = "attachment; filename=\"" + fileName + "\"";
-        WebTarget service = client.target(getBaseURI()).path(path);
-
-        if (queryParams == null) {
-            for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-                service = service.queryParam(entry.getKey(), entry.getValue());
-            }
-        }
-
-        Response r = service.request(MediaType.APPLICATION_JSON).header("Content-Disposition", contentDisp).post(Entity.entity(requestEntity, MediaType.APPLICATION_OCTET_STREAM), Response.class);
-
-        return r;
-    }
-
-    public Response execDELETE(String path, Map<String, String> queryParams, Map<String, String> headers) {
-
-        WebTarget service = prepareService(client, path, queryParams);
-        Builder requestBuilder = prepareRequest(service, headers);
+        RequestBuilder rb = prepareRequest(RequestBuilder.delete(getBaseURI(path)), queryParams, headers);
 
         try {
-            Response r = requestBuilder.delete(Response.class);
+            CloseableHttpResponse r = client.execute(rb.build());
             return r;
         } catch (Exception ex) {
             return null;
         }
     }
 
-    private Client getClientWithCertificate(String certificatePath, char[] keyPass, String certificateAlias) {
+    private CloseableHttpClient getClientWithCertificate(String certificatePath, char[] keyPass, String certificateAlias) {
 
-        Client certClient = null;
+        CloseableHttpClient certClient = null;
         if (certificatePath != null) {
-            HostnameVerifier allowAll = client.getHostnameVerifier();
 
             InputStream in;
             KeyStore clientKs = null;
@@ -227,38 +198,35 @@ public class RestClient {
                 Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            certClient = ClientBuilder.newBuilder()
-                    .sslContext(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias))
-                    .hostnameVerifier(allowAll)
-                    .register(new LoggingFeature(logger, Level.FINE, null, null)).build();
+            SSLConnectionSocketFactory sslsf = ignoreSsl ? 
+                    new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias), NoopHostnameVerifier.INSTANCE) : 
+                    new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias));
+            Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslsf).build();
+            BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
+            certClient = HttpClients.custom().setSSLSocketFactory(sslsf).setConnectionManager(connectionManager).build();
         }
 
         return certClient;
     }
 
-    private WebTarget prepareService(Client targetClient, String path, Map<String, String> queryParams) {
-
-        WebTarget service = targetClient.target(getBaseURI()).path(path);
-
-        if (queryParams != null) {
-            for (Map.Entry<String, String> entry : queryParams.entrySet()) {
-                service = service.queryParam(entry.getKey(), entry.getValue());
-            }
-        }
-
-        return service;
-    }
-
-    private Builder prepareRequest(WebTarget service, Map<String, String> headers) {
-
-        Builder requestBuilder = service.request(MediaType.APPLICATION_JSON);
+    private RequestBuilder prepareRequest(RequestBuilder rb, Map<String, String> queryParams, Map<String, String> headers) {
+        
+        if (headers == null || !headers.containsKey(HttpHeaders.ACCEPT))
+            rb.addHeader(HttpHeaders.ACCEPT, "application/json");
+        if (headers == null || !headers.containsKey(HttpHeaders.CONTENT_TYPE))
+            rb.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
 
         if (headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
-                requestBuilder = requestBuilder.header(entry.getKey(), entry.getValue());
+                rb.addHeader(entry.getKey(), entry.getValue());
             }
         }
-        return requestBuilder;
+        if (queryParams != null) {
+            for (Map.Entry<String, String> entry : headers.entrySet()) {
+                rb.addParameter(entry.getKey(), entry.getValue());
+            }
+        }
+        return rb;
     }
 
     private SSLContext getSSLContext(KeyStore keyStorePath, char[] keyStorePassword, String alias) {

@@ -8,38 +8,52 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.ws.rs.core.Response;
+import org.apache.http.HttpEntity;
+import org.apache.http.ParseException;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.util.EntityUtils;
 
 public class Utils {
 
     private Utils() {
     }
-    
+
     public static boolean isNullOrEmpty(String param) {
         return param == null || param.trim().length() == 0;
     }
-    
-    public static String toJsonString (String name, Object value, boolean prependSep) {
+
+    public static String toJsonString(String name, Object value, boolean prependSep) {
         if (value != null) {
             return (prependSep ? ", " : "") + "\"" + name + "\" : " + (value instanceof String ? "\"" + value.toString() + "\"" : value.toString());
         }
         return "";
     }
 
-    public static Map<String,String> parseResponse(Response response) {
-        String resp = response.readEntity(String.class);
-        
+    public static Map<String, String> parseResponse(String response) {
+
         ObjectMapper mapper = new ObjectMapper();
-        Map<String,String> map = new HashMap<>();
+        Map<String, String> map = new HashMap<>();
         try {
-            map = mapper.readValue(resp, new TypeReference<Map<String,String>>(){});
+            map = mapper.readValue(response, new TypeReference<Map<String, String>>() {
+            });
         } catch (IOException ex) {
             Logger.getLogger(PasswordAuthenticator.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         return map;
     }
-    
+
+    public static String getResponse(CloseableHttpResponse response) {
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            try {
+                return EntityUtils.toString(response.getEntity());
+                
+            } catch (IOException | ParseException ex) {}
+        }
+        return "";
+    }
+
     public static boolean isSuccessful(int status) {
         switch (status) {
             case 200:
@@ -51,5 +65,5 @@ public class Utils {
                 return false;
         }
     }
-    
+
 }
