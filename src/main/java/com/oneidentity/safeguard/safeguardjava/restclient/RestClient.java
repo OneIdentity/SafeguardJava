@@ -42,7 +42,6 @@ import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.entity.StringEntity;
 
 public class RestClient {
@@ -77,10 +76,7 @@ public class RestClient {
 
     private URI getBaseURI(String segments) {
         try {
-            URIBuilder ub = new URIBuilder(serverUrl);
-            List<String> uriPath = ub.getPathSegments();
-            uriPath.add(segments);
-            return ub.setPathSegments(uriPath).build();
+            return new URI(serverUrl+"/"+segments);
         } catch (URISyntaxException ex) {
             Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, "Invalid URI", ex);
         }
