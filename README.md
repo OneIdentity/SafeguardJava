@@ -147,7 +147,7 @@ Building SafeguardJava requires Java JDK 8 or greater and Maven 3.0.5 or greater
         <dependency>
             <groupId>com.oneidentity.safeguard</groupId>
             <artifactId>safeguardjava</artifactId>
-            <version>2.4.0-beta1</version>
+            <version>2.10.0</version>
         </dependency>    
 
 
