@@ -21,6 +21,8 @@ public class A2ARetrievableAccount {
     private int assetId;
     @JsonProperty("SystemName")
     private String assetName;
+    @JsonProperty("AssetDescription")
+    private String assetDescription;
     @JsonProperty("AccountId")
     private int accountId;
     @JsonProperty("AccountName")
@@ -29,8 +31,9 @@ public class A2ARetrievableAccount {
     private String domainName;
     @JsonProperty("AccountType")
     private String accountType;
+    @JsonProperty("AccountDescription")
+    private String accountDescription;
 
-    
     public String getApplicationName() {
         return applicationName;
     }
@@ -109,6 +112,22 @@ public class A2ARetrievableAccount {
 
     public void setAccountType(String accountType) {
         this.accountType = accountType;
+    }
+    
+    public String getAssetDescription() {
+        return assetDescription;
+    }
+
+    public void setAssetDescription(String assetDescription) {
+        this.assetDescription = assetDescription;
+    }
+
+    public String getAccountDescription() {
+        return accountDescription;
+    }
+
+    public void setAccountDescription(String accountDescription) {
+        this.accountDescription = accountDescription;
     }
 
     public void dispose()

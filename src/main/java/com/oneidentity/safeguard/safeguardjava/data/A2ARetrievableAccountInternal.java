@@ -23,6 +23,10 @@ public class A2ARetrievableAccountInternal {
     private String domainName;
     @JsonProperty("AccountType")
     private String accountType;
+    @JsonProperty("SystemDescription")
+    private String assetDescription;
+    @JsonProperty("AccountDescription")
+    private String accountDescription;
 
     public A2ARetrievableAccountInternal() {
     }
@@ -91,5 +95,19 @@ public class A2ARetrievableAccountInternal {
         this.accountType = accountType;
     }
 
-    
+    public String getAssetDescription() {
+        return assetDescription;
+    }
+
+    public void setAssetDescription(String assetDescription) {
+        this.assetDescription = assetDescription;
+    }
+
+    public String getAccountDescription() {
+        return accountDescription;
+    }
+
+    public void setAccountDescription(String accountDescription) {
+        this.accountDescription = accountDescription;
+    }
 }
