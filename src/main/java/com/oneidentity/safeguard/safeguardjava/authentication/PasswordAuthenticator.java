@@ -31,7 +31,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
     public PasswordAuthenticator(String networkAddress, String provider, String username,
         char[] password, int apiVersion, boolean ignoreSsl) throws ArgumentException
     {
-        super(networkAddress, null, null, apiVersion, ignoreSsl);
+        super(networkAddress, apiVersion, ignoreSsl);
         this.provider = provider;
         
         if (Utils.isNullOrEmpty(this.provider) || this.provider.equalsIgnoreCase("local"))

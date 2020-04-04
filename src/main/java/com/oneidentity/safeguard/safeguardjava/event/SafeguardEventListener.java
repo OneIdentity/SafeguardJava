@@ -69,7 +69,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         if (apiKey == null)
             throw new ArgumentException("The apiKey parameter can not be null");
         this.apiKey = apiKey.clone();
-        this.clientCertificate = new CertificateContext(certificateAlias, clientCertificatePath, certificatePassword);
+        this.clientCertificate = new CertificateContext(certificateAlias, clientCertificatePath, null, certificatePassword);
     }
     
     public SafeguardEventListener(String eventUrl, CertificateContext clientCertificate, 
@@ -87,7 +87,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         if (apiKeys == null)
             throw new ArgumentException("The apiKey parameter can not be null");
         
-        this.clientCertificate = new CertificateContext(certificateAlias, clientCertificatePath, certificatePassword);
+        this.clientCertificate = new CertificateContext(certificateAlias, clientCertificatePath, null, certificatePassword);
         this.apiKeys = new ArrayList<>();
         for (char[] key : apiKeys)
             apiKeys.add(key.clone());
