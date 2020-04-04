@@ -10,7 +10,7 @@ public class AccessTokenAuthenticator extends AuthenticatorBase
     public AccessTokenAuthenticator(String networkAddress, char[] accessToken,
         int apiVersion, boolean ignoreSsl) throws ArgumentException
     {
-        super(networkAddress, null, null, apiVersion, ignoreSsl);
+        super(networkAddress, apiVersion, ignoreSsl);
         if (accessToken == null)
             throw new ArgumentException("The accessToken parameter can not be null");
         

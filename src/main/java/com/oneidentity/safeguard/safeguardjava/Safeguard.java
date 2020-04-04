@@ -149,6 +149,36 @@ public final class Safeguard {
     }
 
     /**
+     *  Connect to Safeguard API using a certificate stored in memory.
+     *
+     *  @param networkAddress Network address of Safeguard appliance.
+     *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
+     *  @param certificatePassword Password to decrypt the certificate data.
+     *  @param apiVersion Target API version to use.
+     *  @param ignoreSsl Ignore server certificate validation.
+     * 
+     *  @return Reusable Safeguard API connection.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     */
+    public static ISafeguardConnection connect(String networkAddress, byte[] certificateData,
+            char[] certificatePassword, String certificateAlias, Integer apiVersion, Boolean ignoreSsl) 
+            throws ObjectDisposedException, SafeguardForJavaException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        boolean sslIgnore = false;
+        if (ignoreSsl != null) {
+            sslIgnore = ignoreSsl;
+        }
+
+        return getConnection(new CertificateAuthenticator(networkAddress, certificateData, certificatePassword, certificateAlias,
+                version, sslIgnore));
+    }
+    
+    /**
      *  Connect to Safeguard API anonymously.
      *
      *  @param networkAddress Network address.
@@ -251,6 +281,37 @@ public final class Safeguard {
         }
 
         /**
+         *  Get a persistent event listener using a client certificate stored in memory.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
+         *  @param certificatePassword Password to decrypt the certificate file.
+         *  @param apiVersion Target API version to use.
+         *  @param ignoreSsl Ignore server certificate validation.
+         * 
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java
+         *  exception.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress, byte[] certificateData,
+                char[] certificatePassword, String certificateAlias, Integer apiVersion, Boolean ignoreSsl)
+                throws ObjectDisposedException, SafeguardForJavaException {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            boolean sslIgnore = false;
+            if (ignoreSsl != null) {
+                sslIgnore = ignoreSsl;
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(
+                    new CertificateAuthenticator(networkAddress, certificateData, certificatePassword, certificateAlias, version, ignoreSsl)));
+        }
+        
+        /**
          *  Get a persistent event listener using a client certificate from the
          *  certificate keystore for authentication.
          *
@@ -290,7 +351,7 @@ public final class Safeguard {
     public static class A2A {
 
         /**
-         *  Establish a Safeguard A2A context using a certificate from the keystore.
+         *  Establish a Safeguard A2A context using a client certificate from the keystore.
          *
          *  @param networkAddress Network address of Safeguard appliance.
          *  @param keystorePath Path to the keystore containing the client certificate.
@@ -317,7 +378,7 @@ public final class Safeguard {
         }
 
         /**
-         *  Establish a Safeguard A2A context using a certificate stored in a file.
+         *  Establish a Safeguard A2A context using a client certificate stored in a file.
          *
          *  @param networkAddress Network address of Safeguard appliance.
          *  @param certificatePath Path to PFX (or PKCS12) certificate file also
@@ -344,6 +405,32 @@ public final class Safeguard {
         }
 
         /**
+         *  Establish a Safeguard A2A context using a client certificate stored in memory.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
+         *  @param certificatePassword Password to decrypt the certificate file.
+         *  @param apiVersion Target API version to use.
+         *  @param ignoreSsl Ignore server certificate validation.
+         * 
+         *  @return Reusable Safeguard A2A context.
+         */
+        public static ISafeguardA2AContext getContext(String networkAddress, byte[] certificateData,
+                char[] certificatePassword, Integer apiVersion, Boolean ignoreSsl) {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            boolean sslIgnore = false;
+            if (ignoreSsl != null) {
+                sslIgnore = ignoreSsl;
+            }
+
+            return new SafeguardA2AContext(networkAddress, certificateData, certificatePassword, version, sslIgnore);
+        }
+        
+        /**
          * This static class provides access to Safeguard A2A Event
          * functionality with persistent event listeners. Persistent event
          * listeners can handle longer term service outages to reconnect SignalR
@@ -356,7 +443,7 @@ public final class Safeguard {
              *  Get a persistent A2A event listener for Gets an A2A event
              *  listener. The handler passed in will be registered for the
              *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A.
+             *  supported in A2A. Uses a client certificate the keystore.
              *
              *  @param apiKey API key corresponding to the configured account to
              *  listen for.
@@ -398,7 +485,7 @@ public final class Safeguard {
              *  Get a persistent A2A event listener for Gets an A2A event
              *  listener. The handler passed in will be registered for the
              *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A.
+             *  supported in A2A. Uses a client certificate from a file.
              *
              *  @param apiKey API key corresponding to the configured account to
              *  listen for.
@@ -439,7 +526,48 @@ public final class Safeguard {
              *  Get a persistent A2A event listener for Gets an A2A event
              *  listener. The handler passed in will be registered for the
              *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A.
+             *  supported in A2A. Uses a client certificate stored in memory.
+             *
+             *  @param apiKey API key corresponding to the configured account to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param certificatePath Path to PFX (or PKCS12) certificate file
+             *  also containing private key.
+             *  @param certificatePassword Password to decrypt the certificate file.
+             *  @param apiVersion Target API version to use.
+             *  @param ignoreSsl Ignore server certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey,
+                    ISafeguardEventHandler handler, String networkAddress, byte[] certificateData,
+                    char[] certificatePassword, Integer apiVersion, Boolean ignoreSsl)
+                    throws ObjectDisposedException, ArgumentException {
+                
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                boolean sslIgnore = false;
+                if (ignoreSsl != null) {
+                    sslIgnore = ignoreSsl;
+                }
+
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, certificateData, certificatePassword, version,
+                                ignoreSsl), apiKey, handler);
+            }
+            
+            /**
+             *  Get a persistent A2A event listener for Gets an A2A event
+             *  listener. The handler passed in will be registered for the
+             *  AssetAccountPasswordUpdated event, which is the only one
+             *  supported in A2A. Uses a client certificate from a keystore.
              *
              *  @param apiKeys A list of API keys corresponding to the configured accounts to
              *  listen for.
@@ -481,7 +609,7 @@ public final class Safeguard {
              *  Get a persistent A2A event listener for Gets an A2A event
              *  listener. The handler passed in will be registered for the
              *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A.
+             *  supported in A2A. Uses a client certificate stored in a file.
              *
              *  @param apiKeys A list of API key corresponding to the configured accounts to
              *  listen for.
@@ -518,6 +646,45 @@ public final class Safeguard {
                                 ignoreSsl), apiKeys, handler);
             }
             
+            /**
+             *  Get a persistent A2A event listener for Gets an A2A event
+             *  listener. The handler passed in will be registered for the
+             *  AssetAccountPasswordUpdated event, which is the only one
+             *  supported in A2A. Uses a client certificate stored in memory.
+             *
+             *  @param apiKeys A list of API key corresponding to the configured accounts to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
+             *  @param certificatePassword Password to decrypt the certificate file.
+             *  @param apiVersion Target API version to use.
+             *  @param ignoreSsl Ignore server certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys,
+                    ISafeguardEventHandler handler, String networkAddress, byte[] certificateData,
+                    char[] certificatePassword, Integer apiVersion, Boolean ignoreSsl)
+                    throws ObjectDisposedException, ArgumentException {
+                
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                boolean sslIgnore = false;
+                if (ignoreSsl != null) {
+                    sslIgnore = ignoreSsl;
+                }
+
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, certificateData, certificatePassword, version,
+                                ignoreSsl), apiKeys, handler);
+            }
         }
     }
 }

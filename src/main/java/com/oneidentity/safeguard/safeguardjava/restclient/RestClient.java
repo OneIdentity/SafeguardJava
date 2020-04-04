@@ -1,6 +1,8 @@
 package com.oneidentity.safeguard.safeguardjava.restclient;
 
+import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
 import com.oneidentity.safeguard.safeguardjava.data.JsonObject;
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -99,9 +101,9 @@ public class RestClient {
         }
     }
 
-    public CloseableHttpResponse execGET(String path, Map<String, String> queryParams, Map<String, String> headers, String certificatePath, char[] keyPass) {
+    public CloseableHttpResponse execGET(String path, Map<String, String> queryParams, Map<String, String> headers, CertificateContext certificateContext) {
 
-        CloseableHttpClient certClient = getClientWithCertificate(certificatePath, keyPass, null);
+        CloseableHttpClient certClient = getClientWithCertificate(certificateContext);
 
         if (certClient != null) {
             RequestBuilder rb = prepareRequest(RequestBuilder.get(getBaseURI(path)), queryParams, headers);
@@ -143,9 +145,9 @@ public class RestClient {
     }
 
     public CloseableHttpResponse execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, JsonObject requestEntity, 
-            String certificatePath, char[] keyPass, String certificateAlias) {
+            CertificateContext certificateContext) {
 
-        CloseableHttpClient certClient = getClientWithCertificate(certificatePath, keyPass, certificateAlias);
+        CloseableHttpClient certClient = getClientWithCertificate(certificateContext);
 
         if (certClient != null) {
             RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers);
@@ -174,16 +176,19 @@ public class RestClient {
         }
     }
 
-    private CloseableHttpClient getClientWithCertificate(String certificatePath, char[] keyPass, String certificateAlias) {
+    private CloseableHttpClient getClientWithCertificate(CertificateContext certificateContext) {
 
         CloseableHttpClient certClient = null;
-        if (certificatePath != null) {
+        if (certificateContext.getCertificatePath() != null || certificateContext.getCertificateData() != null) {
 
             InputStream in;
             KeyStore clientKs = null;
             List<String> aliases = null;
+            char[] keyPass = certificateContext.getCertificatePassword();
+            String certificateAlias = certificateContext.getCertificateAlias();
             try {
-                in = new FileInputStream(certificatePath);
+                in = certificateContext.getCertificatePath() != null ? new FileInputStream(certificateContext.getCertificatePath()) 
+                        : new ByteArrayInputStream(certificateContext.getCertificateData());
                 clientKs = KeyStore.getInstance("JKS");
                 clientKs.load(in, keyPass);
                 aliases = Collections.list(clientKs.aliases());

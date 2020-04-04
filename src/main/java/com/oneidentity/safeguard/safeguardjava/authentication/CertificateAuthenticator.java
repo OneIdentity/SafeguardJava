@@ -17,20 +17,27 @@ public class CertificateAuthenticator extends AuthenticatorBase
     public CertificateAuthenticator(String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias, 
             int apiVersion, boolean ignoreSsl)
     {
-        super(networkAddress, null, null, apiVersion, ignoreSsl);
-        clientCertificate = new CertificateContext(certificateAlias, keystorePath, keystorePassword);
+        super(networkAddress, apiVersion, ignoreSsl);
+        clientCertificate = new CertificateContext(certificateAlias, keystorePath, null, keystorePassword);
     }
 
     public CertificateAuthenticator(String networkAddress, String certificatePath, char[] certificatePassword,
             int apiVersion, boolean ignoreSsl) {
         
-        super(networkAddress, certificatePath, certificatePassword, apiVersion, ignoreSsl);
-        clientCertificate = new CertificateContext(null, certificatePath, certificatePassword);
+        super(networkAddress, apiVersion, ignoreSsl);
+        clientCertificate = new CertificateContext(null, certificatePath, null, certificatePassword);
     }
 
+    public CertificateAuthenticator(String networkAddress, byte[] certificateData, char[] certificatePassword, String certificateAlias,
+            int apiVersion, boolean ignoreSsl) {
+        
+        super(networkAddress, apiVersion, ignoreSsl);
+        clientCertificate = new CertificateContext(certificateAlias, null, certificateData, certificatePassword);
+    }
+    
     private CertificateAuthenticator(String networkAddress, CertificateContext clientCertificate, int apiVersion, boolean ignoreSsl) {
         
-        super(networkAddress, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword(), apiVersion, ignoreSsl);
+        super(networkAddress, apiVersion, ignoreSsl);
         this.clientCertificate = clientCertificate.cloneObject();
     }
     
@@ -48,8 +55,7 @@ public class CertificateAuthenticator extends AuthenticatorBase
         CloseableHttpResponse response = null;
         OauthBody body = new OauthBody("client_credentials", "rsts:sts:primaryproviderid:certificate");
         
-        response = rstsClient.execPOST("oauth2/token", null, null, body, clientCertificate.getCertificatePath(), 
-                clientCertificate.getCertificatePassword(), clientCertificate.getCertificateAlias());
+        response = rstsClient.execPOST("oauth2/token", null, null, body, clientCertificate);
             
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s", rstsClient.getBaseURL()));

@@ -26,7 +26,7 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
     protected RestClient rstsClient;
     protected RestClient coreClient;
 
-    protected AuthenticatorBase(String networkAddress, String certificatePath, char[] certificatePassword, int apiVersion, boolean ignoreSsl)
+    protected AuthenticatorBase(String networkAddress, int apiVersion, boolean ignoreSsl)
     {
         this.networkAddress = networkAddress;
         this.apiVersion = apiVersion;

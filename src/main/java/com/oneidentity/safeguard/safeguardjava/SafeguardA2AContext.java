@@ -37,8 +37,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
     private final RestClient coreClient;
 
     
-    public SafeguardA2AContext(String networkAddress, String certificateAlias, String certificatePath,
-            char[] certificatePassword, int apiVersion, boolean ignoreSsl) {
+    public SafeguardA2AContext(String networkAddress, CertificateContext clientCertificate, int apiVersion, boolean ignoreSsl) {
         this.networkAddress = networkAddress;
         
         String safeguardA2AUrl = String.format("https://%s/service/a2a/v%d", this.networkAddress, apiVersion);
@@ -46,18 +45,28 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         String safeguardCoreUrl = String.format("https://%s/service/core/v%d", this.networkAddress, apiVersion);
         this.coreClient = new RestClient(safeguardCoreUrl, ignoreSsl);
 
-        this.clientCertificate = new CertificateContext(certificateAlias, certificatePath, certificatePassword);
+        this.clientCertificate = clientCertificate.cloneObject();
         this.ignoreSsl = ignoreSsl;
         this.apiVersion = apiVersion;
     }
 
+    public SafeguardA2AContext(String networkAddress, String certificateAlias, String certificatePath,
+            char[] certificatePassword, int apiVersion, boolean ignoreSsl) {
+        this(networkAddress, new CertificateContext(certificateAlias, certificatePath, null, certificatePassword), apiVersion, ignoreSsl);
+    }
+    
     public SafeguardA2AContext(String networkAddress, String certificateAlias, int apiVersion, boolean ignoreSsl) {
-        this(networkAddress, certificateAlias, null, null, apiVersion, ignoreSsl);
+        this(networkAddress, new CertificateContext(certificateAlias, null, null, null), apiVersion, ignoreSsl);
     }
     
     public SafeguardA2AContext(String networkAddress, String certificatePath, char[] certificatePassword,
             int apiVersion, boolean ignoreSsl) {
-        this(networkAddress, null, certificatePath, certificatePassword, apiVersion, ignoreSsl);
+        this(networkAddress, new CertificateContext(null, certificatePath, null, certificatePassword), apiVersion, ignoreSsl);
+    }
+    
+    public SafeguardA2AContext(String networkAddress, byte[] certificateData, char[] certificatePassword,
+            int apiVersion, boolean ignoreSsl) {
+        this(networkAddress, new CertificateContext(null, null, certificateData, certificatePassword), apiVersion, ignoreSsl);
     }
 
     @Override
@@ -74,7 +83,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         Map<String, String> parameters = new HashMap<>();
         
-        CloseableHttpResponse response = coreClient.execGET("A2ARegistrations", parameters, headers, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword());
+        CloseableHttpResponse response = coreClient.execGET("A2ARegistrations", parameters, headers, clientCertificate);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
@@ -92,7 +101,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
             int registrationId = registration.getId();
             
             response = coreClient.execGET(String.format("A2ARegistrations/%d/RetrievableAccounts", registrationId), 
-                    parameters, headers, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword());
+                    parameters, headers, clientCertificate);
             
             if (response == null) {
                 throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
@@ -144,7 +153,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("type", "Password");
 
-        CloseableHttpResponse response = a2AClient.execGET("Credentials", parameters, headers, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword());
+        CloseableHttpResponse response = a2AClient.execGET("Credentials", parameters, headers, clientCertificate);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
@@ -172,7 +181,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
 
         SafeguardEventListener eventListener = new SafeguardEventListener(String.format("https://%s/service/a2a", networkAddress),
-                clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword(), clientCertificate.getCertificateAlias(), apiKey, ignoreSsl);
+                clientCertificate, apiKey, ignoreSsl);
         eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.FINEST, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
@@ -190,7 +199,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
 
         SafeguardEventListener eventListener = new SafeguardEventListener(String.format("https://%s/service/a2a", networkAddress),
-                clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword(), clientCertificate.getCertificateAlias(), apiKeys, ignoreSsl);
+                clientCertificate, apiKeys, ignoreSsl);
         eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.FINEST, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
@@ -248,8 +257,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         Map<String, String> parameters = new HashMap<>();
 
-        CloseableHttpResponse response = a2AClient.execPOST("AccessRequests", parameters, headers, accessRequest, clientCertificate.getCertificatePath(), 
-                clientCertificate.getCertificatePassword(), clientCertificate.getCertificateAlias());
+        CloseableHttpResponse response = a2AClient.execPOST("AccessRequests", parameters, headers, accessRequest, clientCertificate);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
@@ -283,9 +291,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
     
     public Object cloneObject()
     {
-        return !Utils.isNullOrEmpty(clientCertificate.getCertificateAlias())
-            ? new SafeguardA2AContext(networkAddress, clientCertificate.getCertificateAlias(), apiVersion, ignoreSsl)
-            : new SafeguardA2AContext(networkAddress, clientCertificate.getCertificatePath(), clientCertificate.getCertificatePassword(), apiVersion, ignoreSsl);
+        return new SafeguardA2AContext(networkAddress, clientCertificate, apiVersion, ignoreSsl);
     }
     
     private List<A2ARegistration> parseA2ARegistationResponse(String response) {

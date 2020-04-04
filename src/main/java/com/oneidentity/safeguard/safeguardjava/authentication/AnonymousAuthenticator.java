@@ -7,7 +7,7 @@ public class AnonymousAuthenticator extends AuthenticatorBase {
     private boolean disposed;
 
     public AnonymousAuthenticator(String networkAddress, int apiVersion, boolean ignoreSsl) {
-        super(networkAddress, null, null, apiVersion, ignoreSsl);
+        super(networkAddress, apiVersion, ignoreSsl);
     }
 
     @Override
