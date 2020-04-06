@@ -154,6 +154,7 @@ public final class Safeguard {
      *  @param networkAddress Network address of Safeguard appliance.
      *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
      *  @param certificatePassword Password to decrypt the certificate data.
+     *  @param certificateAlias Alias identifying a client certificate in the keystore.
      *  @param apiVersion Target API version to use.
      *  @param ignoreSsl Ignore server certificate validation.
      * 
@@ -286,6 +287,7 @@ public final class Safeguard {
          *  @param networkAddress Network address of Safeguard appliance.
          *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
          *  @param certificatePassword Password to decrypt the certificate file.
+         *  @param certificateAlias Alias identifying a client certificate in the keystore.
          *  @param apiVersion Target API version to use.
          *  @param ignoreSsl Ignore server certificate validation.
          * 
@@ -533,8 +535,7 @@ public final class Safeguard {
              *  @param handler A delegate to call any time the
              *  AssetAccountPasswordUpdate event occurs.
              *  @param networkAddress Network address of Safeguard appliance.
-             *  @param certificatePath Path to PFX (or PKCS12) certificate file
-             *  also containing private key.
+             *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
              *  @param certificatePassword Password to decrypt the certificate file.
              *  @param apiVersion Target API version to use.
              *  @param ignoreSsl Ignore server certificate validation.
