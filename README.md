@@ -7,6 +7,10 @@
 
 One Identity Safeguard Web API Java SDK
 
+## Support
+
+One Identity open source projects are supported through [One Identity GitHub issues](https://github.com/OneIdentity/SafeguardJava/issues) and the [One Identity Community](https://www.oneidentity.com/community/). This includes all scripts, plugins, SDKs, modules, code snippets or other solutions. For assistance with any One Identity GitHub project, please raise a new Issue on the [One Identity GitHub project](https://github.com/OneIdentity/SafeguardJava/issues) page. You may also visit the [One Identity Community](https://www.oneidentity.com/community/) to ask questions.  Requests for assistance made through official One Identity Support will be referred back to GitHub and the One Identity Community forums where those requests can benefit all users.
+
 ## Introduction
 
 All functionality in Safeguard is available via the Safeguard API. There is
@@ -134,7 +138,7 @@ String jsonBody = new StringBuffer ("{")
         .append("\"PrimaryAuthenticationProviderId\" : -1")
         .append("\"UserName\ : \"MyNewUser123\"")
         .append("}").toString();
-        
+
 String userJson = connection.invokeMethod(Service.Core, Method.Post, "Users", jsonBody, null, null);
 
 UserObj userObj = new Gson().fromJson(userJson, UserObj.class);
@@ -148,6 +152,6 @@ Building SafeguardJava requires Java JDK 8 or greater and Maven 3.0.5 or greater
             <groupId>com.oneidentity.safeguard</groupId>
             <artifactId>safeguardjava</artifactId>
             <version>2.10.0</version>
-        </dependency>    
+        </dependency>
 
 
