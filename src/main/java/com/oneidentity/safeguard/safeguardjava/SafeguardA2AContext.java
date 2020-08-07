@@ -22,6 +22,7 @@ import com.oneidentity.safeguard.safeguardjava.event.PersistentSafeguardA2AEvent
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.net.ssl.HostnameVerifier;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 public class SafeguardA2AContext implements ISafeguardA2AContext {
@@ -32,41 +33,43 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
     private final boolean ignoreSsl;
     private final int apiVersion;
     private final CertificateContext clientCertificate;
+    private final HostnameVerifier validationCallback;
 
     private final RestClient a2AClient;
     private final RestClient coreClient;
 
     
-    public SafeguardA2AContext(String networkAddress, CertificateContext clientCertificate, int apiVersion, boolean ignoreSsl) {
+    public SafeguardA2AContext(String networkAddress, CertificateContext clientCertificate, int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) {
         this.networkAddress = networkAddress;
         
         String safeguardA2AUrl = String.format("https://%s/service/a2a/v%d", this.networkAddress, apiVersion);
-        this.a2AClient = new RestClient(safeguardA2AUrl, ignoreSsl);
+        this.a2AClient = new RestClient(safeguardA2AUrl, ignoreSsl, validationCallback);
         String safeguardCoreUrl = String.format("https://%s/service/core/v%d", this.networkAddress, apiVersion);
-        this.coreClient = new RestClient(safeguardCoreUrl, ignoreSsl);
+        this.coreClient = new RestClient(safeguardCoreUrl, ignoreSsl, validationCallback);
 
         this.clientCertificate = clientCertificate.cloneObject();
         this.ignoreSsl = ignoreSsl;
         this.apiVersion = apiVersion;
+        this.validationCallback = validationCallback;
     }
 
     public SafeguardA2AContext(String networkAddress, String certificateAlias, String certificatePath,
-            char[] certificatePassword, int apiVersion, boolean ignoreSsl) {
-        this(networkAddress, new CertificateContext(certificateAlias, certificatePath, null, certificatePassword), apiVersion, ignoreSsl);
+            char[] certificatePassword, int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) {
+        this(networkAddress, new CertificateContext(certificateAlias, certificatePath, null, certificatePassword), apiVersion, ignoreSsl, validationCallback);
     }
     
-    public SafeguardA2AContext(String networkAddress, String certificateAlias, int apiVersion, boolean ignoreSsl) {
-        this(networkAddress, new CertificateContext(certificateAlias, null, null, null), apiVersion, ignoreSsl);
+    public SafeguardA2AContext(String networkAddress, String certificateAlias, int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) {
+        this(networkAddress, new CertificateContext(certificateAlias, null, null, null), apiVersion, ignoreSsl, validationCallback);
     }
     
     public SafeguardA2AContext(String networkAddress, String certificatePath, char[] certificatePassword,
-            int apiVersion, boolean ignoreSsl) {
-        this(networkAddress, new CertificateContext(null, certificatePath, null, certificatePassword), apiVersion, ignoreSsl);
+            int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) {
+        this(networkAddress, new CertificateContext(null, certificatePath, null, certificatePassword), apiVersion, ignoreSsl, validationCallback);
     }
     
     public SafeguardA2AContext(String networkAddress, byte[] certificateData, char[] certificatePassword,
-            int apiVersion, boolean ignoreSsl) {
-        this(networkAddress, new CertificateContext(null, null, certificateData, certificatePassword), apiVersion, ignoreSsl);
+            int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) {
+        this(networkAddress, new CertificateContext(null, null, certificateData, certificatePassword), apiVersion, ignoreSsl, validationCallback);
     }
 
     @Override
@@ -181,7 +184,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
 
         SafeguardEventListener eventListener = new SafeguardEventListener(String.format("https://%s/service/a2a", networkAddress),
-                clientCertificate, apiKey, ignoreSsl);
+                clientCertificate, apiKey, ignoreSsl, validationCallback);
         eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.FINEST, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
@@ -199,7 +202,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
 
         SafeguardEventListener eventListener = new SafeguardEventListener(String.format("https://%s/service/a2a", networkAddress),
-                clientCertificate, apiKeys, ignoreSsl);
+                clientCertificate, apiKeys, ignoreSsl, validationCallback);
         eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.FINEST, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
@@ -291,7 +294,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
     
     public Object cloneObject()
     {
-        return new SafeguardA2AContext(networkAddress, clientCertificate, apiVersion, ignoreSsl);
+        return new SafeguardA2AContext(networkAddress, clientCertificate, apiVersion, ignoreSsl, validationCallback);
     }
     
     private List<A2ARegistration> parseA2ARegistationResponse(String response) {

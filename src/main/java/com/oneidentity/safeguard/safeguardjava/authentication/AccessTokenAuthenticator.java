@@ -2,15 +2,16 @@ package com.oneidentity.safeguard.safeguardjava.authentication;
 
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import javax.net.ssl.HostnameVerifier;
 
 public class AccessTokenAuthenticator extends AuthenticatorBase
 {
     private boolean disposed;
 
     public AccessTokenAuthenticator(String networkAddress, char[] accessToken,
-        int apiVersion, boolean ignoreSsl) throws ArgumentException
+        int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException
     {
-        super(networkAddress, apiVersion, ignoreSsl);
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
         if (accessToken == null)
             throw new ArgumentException("The accessToken parameter can not be null");
         

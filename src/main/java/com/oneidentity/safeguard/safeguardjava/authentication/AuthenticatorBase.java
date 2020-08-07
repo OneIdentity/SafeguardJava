@@ -8,6 +8,7 @@ import com.oneidentity.safeguard.safeguardjava.restclient.RestClient;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import javax.net.ssl.HostnameVerifier;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 abstract class AuthenticatorBase implements IAuthenticationMechanism
@@ -16,7 +17,8 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
 
     private final String networkAddress; 
     private final int apiVersion;
-    private boolean ignoreSsl;
+    private final boolean ignoreSsl;
+    private final HostnameVerifier validationCallback;
     
     protected char[] accessToken;
 
@@ -26,17 +28,18 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
     protected RestClient rstsClient;
     protected RestClient coreClient;
 
-    protected AuthenticatorBase(String networkAddress, int apiVersion, boolean ignoreSsl)
+    protected AuthenticatorBase(String networkAddress, int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback)
     {
         this.networkAddress = networkAddress;
         this.apiVersion = apiVersion;
         this.ignoreSsl = ignoreSsl;
+        this.validationCallback = validationCallback;
 
         this.safeguardRstsUrl = String.format("https://%s/RSTS", this.networkAddress);
-        this.rstsClient = new RestClient(safeguardRstsUrl, ignoreSsl);
+        this.rstsClient = new RestClient(safeguardRstsUrl, ignoreSsl, validationCallback);
 
         this.safeguardCoreUrl = String.format("https://%s/service/core/v%d", this.networkAddress, this.apiVersion);
-        this.coreClient = new RestClient(safeguardCoreUrl, ignoreSsl);
+        this.coreClient = new RestClient(safeguardCoreUrl, ignoreSsl, validationCallback);
     }
 
     public abstract String getId();
@@ -55,6 +58,11 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
     public boolean isIgnoreSsl() {
         return ignoreSsl;
     }
+    
+    @Override
+    public HostnameVerifier getValidationCallback() {
+        return validationCallback;
+    }
 
     public boolean isAnonymous() {
         return false;
@@ -65,6 +73,7 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism
         return accessToken != null;
     }
 
+    @Override
     public void clearAccessToken() {
         if (accessToken != null)
             Arrays.fill(accessToken, '0');

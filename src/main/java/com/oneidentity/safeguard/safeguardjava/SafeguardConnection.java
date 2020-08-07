@@ -37,15 +37,15 @@ class SafeguardConnection implements ISafeguardConnection {
 
         String safeguardCoreUrl = String.format("https://%s/service/core/v%d",
                 this.authenticationMechanism.getNetworkAddress(), this.authenticationMechanism.getApiVersion());
-        coreClient = new RestClient(safeguardCoreUrl, authenticationMechanism.isIgnoreSsl());
+        coreClient = new RestClient(safeguardCoreUrl, authenticationMechanism.isIgnoreSsl(), authenticationMechanism.getValidationCallback());
 
         String safeguardApplianceUrl = String.format("https://%s/service/appliance/v%d",
                 this.authenticationMechanism.getNetworkAddress(), this.authenticationMechanism.getApiVersion());
-        applianceClient = new RestClient(safeguardApplianceUrl, authenticationMechanism.isIgnoreSsl());
+        applianceClient = new RestClient(safeguardApplianceUrl, authenticationMechanism.isIgnoreSsl(), authenticationMechanism.getValidationCallback());
 
         String safeguardNotificationUrl = String.format("https://%s/service/notification/v%d",
                 this.authenticationMechanism.getNetworkAddress(), this.authenticationMechanism.getApiVersion());
-        notificationClient = new RestClient(safeguardNotificationUrl, authenticationMechanism.isIgnoreSsl());
+        notificationClient = new RestClient(safeguardNotificationUrl, authenticationMechanism.isIgnoreSsl(), authenticationMechanism.getValidationCallback());
     }
 
     @Override
@@ -164,7 +164,7 @@ class SafeguardConnection implements ISafeguardConnection {
     public SafeguardEventListener getEventListener() throws ObjectDisposedException, ArgumentException {
         SafeguardEventListener eventListener = new SafeguardEventListener(
                 String.format("https://%s/service/event", authenticationMechanism.getNetworkAddress()),
-                authenticationMechanism.getAccessToken(), authenticationMechanism.isIgnoreSsl());
+                authenticationMechanism.getAccessToken(), authenticationMechanism.isIgnoreSsl(), authenticationMechanism.getValidationCallback());
         Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Event listener successfully created for Safeguard connection.");
 
         return eventListener;
