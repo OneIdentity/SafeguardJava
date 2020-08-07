@@ -13,6 +13,7 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaExcept
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import java.util.List;
+import javax.net.ssl.HostnameVerifier;
 
 /**
  * This static class provides static methods for connecting to Safeguard API.
@@ -55,9 +56,32 @@ public final class Safeguard {
 
         // Don't try to refresh access token on the access token connect method because it cannot be refreshed
         // So, don't use GetConnection() function above
-        return new SafeguardConnection(new AccessTokenAuthenticator(networkAddress, accessToken, version, sslIgnore));
+        return new SafeguardConnection(new AccessTokenAuthenticator(networkAddress, accessToken, version, sslIgnore, null));
     }
 
+    /**
+     *  Connect to Safeguard API using an API access token.
+     *
+     *  @param networkAddress Network address of Safeguard appliance.
+     *  @param accessToken Existing API access token.
+     *  @param apiVersion Target API version to use.
+     *  @param validationCallback Callback function to be executed during SSL certificate validation.
+     * 
+     *  @return Reusable Safeguard API connection.
+     *  @throws ArgumentException Invalid argument.
+     */
+    public static ISafeguardConnection connect(String networkAddress, char[] accessToken,
+            HostnameVerifier validationCallback, Integer apiVersion) throws ArgumentException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        // Don't try to refresh access token on the access token connect method because it cannot be refreshed
+        // So, don't use GetConnection() function above
+        return new SafeguardConnection(new AccessTokenAuthenticator(networkAddress, accessToken, version, false, validationCallback));
+    }
+    
     /**
      *  Connect to Safeguard API using a user name and password.
      *
@@ -73,7 +97,8 @@ public final class Safeguard {
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
     public static ISafeguardConnection connect(String networkAddress, String provider, String username,
-            char[] password, Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
+            char[] password, Integer apiVersion, Boolean ignoreSsl) 
+            throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
         int version = DEFAULTAPIVERSION;
         if (apiVersion != null) {
             version = apiVersion;
@@ -85,7 +110,33 @@ public final class Safeguard {
         }
 
         return getConnection(new PasswordAuthenticator(networkAddress, provider, username, password, version,
-                sslIgnore));
+                sslIgnore, null));
+    }
+
+    /**
+     *  Connect to Safeguard API using a user name and password.
+     *
+     *  @param networkAddress Network address of Safeguard appliance.
+     *  @param provider Safeguard authentication provider name (e.g. local).
+     *  @param username User name to use for authentication.
+     *  @param password User password to use for authentication.
+     *  @param apiVersion Target API version to use.
+     *  @param validationCallback Callback function to be executed during SSL certificate validation.
+     *  @return Reusable Safeguard API connection.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws ArgumentException Invalid argument.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     */
+    public static ISafeguardConnection connect(String networkAddress, String provider, String username,
+            char[] password, HostnameVerifier validationCallback, Integer apiVersion) 
+            throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        return getConnection(new PasswordAuthenticator(networkAddress, provider, username, password, version,
+                false, validationCallback));
     }
 
     /**
@@ -103,8 +154,10 @@ public final class Safeguard {
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
-    public static ISafeguardConnection connect(String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias,
-            Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, SafeguardForJavaException {
+    public static ISafeguardConnection connect(String networkAddress, String keystorePath, 
+            char[] keystorePassword, String certificateAlias,
+            Integer apiVersion, Boolean ignoreSsl) 
+            throws ObjectDisposedException, SafeguardForJavaException {
         int version = DEFAULTAPIVERSION;
         if (apiVersion != null) {
             version = apiVersion;
@@ -115,7 +168,36 @@ public final class Safeguard {
             sslIgnore = ignoreSsl;
         }
 
-        return getConnection(new CertificateAuthenticator(networkAddress, keystorePath, keystorePassword, certificateAlias, version, sslIgnore));
+        return getConnection(new CertificateAuthenticator(networkAddress, keystorePath, 
+                keystorePassword, certificateAlias, version, sslIgnore, null));
+    }
+
+    /**
+     *  Connect to Safeguard API using a certificate from the keystore. The
+     *  appropriate keystore must have been loaded in the java process.
+     *
+     *  @param networkAddress Network address of Safeguard appliance.
+     *  @param keystorePath Path to the keystore containing the client certificate.
+     *  @param keystorePassword Keystore password.
+     *  @param certificateAlias Alias identifying a client certificate in the keystore.
+     *  @param apiVersion Target API version to use.
+     *  @param validationCallback Callback function to be executed during SSL certificate validation.
+     * 
+     *  @return Reusable Safeguard API connection.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     */
+    public static ISafeguardConnection connect(String networkAddress, String keystorePath, 
+            char[] keystorePassword, String certificateAlias,
+            HostnameVerifier validationCallback, Integer apiVersion) 
+            throws ObjectDisposedException, SafeguardForJavaException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        return getConnection(new CertificateAuthenticator(networkAddress, keystorePath, 
+                keystorePassword, certificateAlias, version, false, validationCallback));
     }
 
     /**
@@ -133,7 +215,8 @@ public final class Safeguard {
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
     public static ISafeguardConnection connect(String networkAddress, String certificatePath,
-            char[] certificatePassword, Integer apiVersion, Boolean ignoreSsl) throws ObjectDisposedException, SafeguardForJavaException {
+            char[] certificatePassword, Integer apiVersion, Boolean ignoreSsl) 
+            throws ObjectDisposedException, SafeguardForJavaException {
         int version = DEFAULTAPIVERSION;
         if (apiVersion != null) {
             version = apiVersion;
@@ -145,7 +228,33 @@ public final class Safeguard {
         }
 
         return getConnection(new CertificateAuthenticator(networkAddress, certificatePath, certificatePassword,
-                version, sslIgnore));
+                version, sslIgnore, null));
+    }
+
+    /**
+     *  Connect to Safeguard API using a certificate stored in a file.
+     *
+     *  @param networkAddress Network address of Safeguard appliance.
+     *  @param certificatePath Path to PFX (or PKCS12) certificate file also
+     *  containing private key.
+     *  @param certificatePassword Password to decrypt the certificate file.
+     *  @param apiVersion Target API version to use.
+     *  @param validationCallback Callback function to be executed during SSL certificate validation.
+     * 
+     *  @return Reusable Safeguard API connection.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     */
+    public static ISafeguardConnection connect(String networkAddress, String certificatePath,
+            char[] certificatePassword, HostnameVerifier validationCallback, Integer apiVersion) 
+            throws ObjectDisposedException, SafeguardForJavaException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        return getConnection(new CertificateAuthenticator(networkAddress, certificatePath, certificatePassword,
+                version, false, validationCallback));
     }
 
     /**
@@ -176,7 +285,33 @@ public final class Safeguard {
         }
 
         return getConnection(new CertificateAuthenticator(networkAddress, certificateData, certificatePassword, certificateAlias,
-                version, sslIgnore));
+                version, sslIgnore, null));
+    }
+    
+    /**
+     *  Connect to Safeguard API using a certificate stored in memory.
+     *
+     *  @param networkAddress Network address of Safeguard appliance.
+     *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
+     *  @param certificatePassword Password to decrypt the certificate data.
+     *  @param certificateAlias Alias identifying a client certificate in the keystore.
+     *  @param apiVersion Target API version to use.
+     *  @param validationCallback Callback function to be executed during SSL certificate validation.
+     * 
+     *  @return Reusable Safeguard API connection.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     */
+    public static ISafeguardConnection connect(String networkAddress, byte[] certificateData,
+            char[] certificatePassword, String certificateAlias, HostnameVerifier validationCallback, Integer apiVersion) 
+            throws ObjectDisposedException, SafeguardForJavaException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        return getConnection(new CertificateAuthenticator(networkAddress, certificateData, certificatePassword, certificateAlias,
+                version, false, validationCallback));
     }
     
     /**
@@ -187,8 +322,10 @@ public final class Safeguard {
      *  @param ignoreSsl If set to <code>true</code> ignore ssl.
      * 
      *  @return The connect.
+     *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
      */
-    public static ISafeguardConnection connect(String networkAddress, Integer apiVersion, Boolean ignoreSsl) {
+    public static ISafeguardConnection connect(String networkAddress, Integer apiVersion, Boolean ignoreSsl) 
+            throws SafeguardForJavaException {
         int version = DEFAULTAPIVERSION;
         if (apiVersion != null) {
             version = apiVersion;
@@ -201,9 +338,31 @@ public final class Safeguard {
 
         // Don't try to refresh access token on the anonymous connect method because it cannot be refreshed
         // So, don't use GetConnection() function above
-        return new SafeguardConnection(new AnonymousAuthenticator(networkAddress, version, sslIgnore));
+        return new SafeguardConnection(new AnonymousAuthenticator(networkAddress, version, sslIgnore, null));
     }
 
+    /**
+     *  Connect to Safeguard API anonymously.
+     *
+     *  @param networkAddress Network address.
+     *  @param apiVersion API version.
+     *  @param validationCallback Callback function to be executed during SSL certificate validation.
+     * 
+     *  @return The connect.
+     *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+     */
+    public static ISafeguardConnection connect(String networkAddress, HostnameVerifier validationCallback, Integer apiVersion) 
+            throws SafeguardForJavaException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        // Don't try to refresh access token on the anonymous connect method because it cannot be refreshed
+        // So, don't use GetConnection() function above
+        return new SafeguardConnection(new AnonymousAuthenticator(networkAddress, version, false, validationCallback));
+    }
+    
     /**
      *  This static class provides access to Safeguard Event functionality with
      *  persistent event listeners. Persistent event listeners can handle longer
@@ -245,7 +404,37 @@ public final class Safeguard {
             }
 
             return new PersistentSafeguardEventListener(getConnection(
-                    new PasswordAuthenticator(networkAddress, provider, username, password, version, ignoreSsl)));
+                    new PasswordAuthenticator(networkAddress, provider, username, password, version, ignoreSsl, null)));
+        }
+
+        /**
+         *  Get a persistent event listener using a username and password
+         *  credential for authentication.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param provider Safeguard authentication provider name (e.g. local).
+         *  @param username User name to use for authentication.
+         *  @param password User password to use for authentication.
+         *  @param apiVersion Target API version to use.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         * 
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java
+         *  @throws ArgumentException Invalid argument.
+         *  exception.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress, String provider,
+                String username, char[] password, HostnameVerifier validationCallback, Integer apiVersion)
+                throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
+            
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(
+                    new PasswordAuthenticator(networkAddress, provider, username, password, version, false, validationCallback)));
         }
 
         /**
@@ -278,7 +467,35 @@ public final class Safeguard {
             }
 
             return new PersistentSafeguardEventListener(getConnection(
-                    new CertificateAuthenticator(networkAddress, certificatePath, certificatePassword, version, ignoreSsl)));
+                    new CertificateAuthenticator(networkAddress, certificatePath, certificatePassword, version, ignoreSsl, null)));
+        }
+
+        /**
+         *  Get a persistent event listener using a client certificate stored in
+         *  a file.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param certificatePath Path to PFX (or PKCS12) certificate file also
+         *  containing private key.
+         *  @param certificatePassword Password to decrypt the certificate file.
+         *  @param apiVersion Target API version to use.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         * 
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java
+         *  exception.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress, String certificatePath,
+                char[] certificatePassword, HostnameVerifier validationCallback, Integer apiVersion)
+                throws ObjectDisposedException, SafeguardForJavaException {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(
+                    new CertificateAuthenticator(networkAddress, certificatePath, certificatePassword, version, false, validationCallback)));
         }
 
         /**
@@ -310,7 +527,34 @@ public final class Safeguard {
             }
 
             return new PersistentSafeguardEventListener(getConnection(
-                    new CertificateAuthenticator(networkAddress, certificateData, certificatePassword, certificateAlias, version, ignoreSsl)));
+                    new CertificateAuthenticator(networkAddress, certificateData, certificatePassword, certificateAlias, version, ignoreSsl, null)));
+        }
+        
+        /**
+         *  Get a persistent event listener using a client certificate stored in memory.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
+         *  @param certificatePassword Password to decrypt the certificate file.
+         *  @param certificateAlias Alias identifying a client certificate in the keystore.
+         *  @param apiVersion Target API version to use.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         * 
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java
+         *  exception.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress, byte[] certificateData,
+                char[] certificatePassword, String certificateAlias, HostnameVerifier validationCallback, Integer apiVersion)
+                throws ObjectDisposedException, SafeguardForJavaException {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(
+                    new CertificateAuthenticator(networkAddress, certificateData, certificatePassword, certificateAlias, version, false, validationCallback)));
         }
         
         /**
@@ -342,7 +586,34 @@ public final class Safeguard {
             }
 
             return new PersistentSafeguardEventListener(getConnection(new CertificateAuthenticator(networkAddress,
-                    keystorePath, keystorePassword, certificateAlias, version, ignoreSsl)));
+                    keystorePath, keystorePassword, certificateAlias, version, ignoreSsl, null)));
+        }
+        
+        /**
+         *  Get a persistent event listener using a client certificate from the
+         *  certificate keystore for authentication.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param keystorePath Path to the keystore containing the client certificate.
+         *  @param keystorePassword Keystore password.
+         *  @param certificateAlias Alias identifying a client certificate in the keystore.
+         *  @param apiVersion Target API version to use.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         * 
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java exception.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress,
+                String keystorePath, char[] keystorePassword, String certificateAlias, HostnameVerifier validationCallback, Integer apiVersion)
+                throws ObjectDisposedException, SafeguardForJavaException {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(new CertificateAuthenticator(networkAddress,
+                    keystorePath, keystorePassword, certificateAlias, version, false, validationCallback)));
         }
     }
 
@@ -376,7 +647,29 @@ public final class Safeguard {
                 sslIgnore = ignoreSsl;
             }
 
-            return new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, sslIgnore);
+            return new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, sslIgnore, null);
+        }
+
+        /**
+         *  Establish a Safeguard A2A context using a client certificate from the keystore.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param keystorePath Path to the keystore containing the client certificate.
+         *  @param keystorePassword Keystore password.
+         *  @param certificateAlias Alias identifying a client certificate in the keystore.
+         *  @param apiVersion Target API version to use.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         * 
+         *  @return Reusable Safeguard A2A context.
+         */
+        public static ISafeguardA2AContext getContext(String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias,
+                HostnameVerifier validationCallback, Integer apiVersion) {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            return new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, false, validationCallback);
         }
 
         /**
@@ -403,7 +696,29 @@ public final class Safeguard {
                 sslIgnore = ignoreSsl;
             }
 
-            return new SafeguardA2AContext(networkAddress, certificatePath, certificatePassword, version, sslIgnore);
+            return new SafeguardA2AContext(networkAddress, certificatePath, certificatePassword, version, sslIgnore, null);
+        }
+
+        /**
+         *  Establish a Safeguard A2A context using a client certificate stored in a file.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param certificatePath Path to PFX (or PKCS12) certificate file also
+         *  containing private key.
+         *  @param certificatePassword Password to decrypt the certificate file.
+         *  @param apiVersion Target API version to use.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         * 
+         *  @return Reusable Safeguard A2A context.
+         */
+        public static ISafeguardA2AContext getContext(String networkAddress, String certificatePath,
+                char[] certificatePassword, HostnameVerifier validationCallback, Integer apiVersion) {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            return new SafeguardA2AContext(networkAddress, certificatePath, certificatePassword, version, false, validationCallback);
         }
 
         /**
@@ -429,7 +744,28 @@ public final class Safeguard {
                 sslIgnore = ignoreSsl;
             }
 
-            return new SafeguardA2AContext(networkAddress, certificateData, certificatePassword, version, sslIgnore);
+            return new SafeguardA2AContext(networkAddress, certificateData, certificatePassword, version, sslIgnore, null);
+        }
+        
+        /**
+         *  Establish a Safeguard A2A context using a client certificate stored in memory.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
+         *  @param certificatePassword Password to decrypt the certificate file.
+         *  @param apiVersion Target API version to use.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         * 
+         *  @return Reusable Safeguard A2A context.
+         */
+        public static ISafeguardA2AContext getContext(String networkAddress, byte[] certificateData,
+                char[] certificatePassword, HostnameVerifier validationCallback, Integer apiVersion) {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            return new SafeguardA2AContext(networkAddress, certificateData, certificatePassword, version, false, validationCallback);
         }
         
         /**
@@ -479,7 +815,44 @@ public final class Safeguard {
                 }
 
                 return new PersistentSafeguardA2AEventListener(
-                        new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, ignoreSsl),
+                        new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, ignoreSsl, null),
+                        apiKey, handler);
+            }
+
+            /**
+             *  Get a persistent A2A event listener for Gets an A2A event
+             *  listener. The handler passed in will be registered for the
+             *  AssetAccountPasswordUpdated event, which is the only one
+             *  supported in A2A. Uses a client certificate the keystore.
+             *
+             *  @param apiKey API key corresponding to the configured account to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param keystorePath Path to the keystore containing the client
+             *  certificate.
+             *  @param keystorePassword Keystore password.
+             *  @param certificateAlias Alias identifying a client certificate in
+             *  the keystore.
+             *  @param apiVersion Target API version to use.
+             *  @param validationCallback Callback function to be executed during SSL certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey, ISafeguardEventHandler handler,
+                    String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias,
+                    HostnameVerifier validationCallback, Integer apiVersion)
+                    throws ObjectDisposedException, ArgumentException {
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, false, validationCallback),
                         apiKey, handler);
             }
 
@@ -521,7 +894,43 @@ public final class Safeguard {
 
                 return new PersistentSafeguardA2AEventListener(
                         new SafeguardA2AContext(networkAddress, certificatePath, certificatePassword, version,
-                                ignoreSsl), apiKey, handler);
+                                ignoreSsl, null), apiKey, handler);
+            }
+            
+            /**
+             *  Get a persistent A2A event listener for Gets an A2A event
+             *  listener. The handler passed in will be registered for the
+             *  AssetAccountPasswordUpdated event, which is the only one
+             *  supported in A2A. Uses a client certificate from a file.
+             *
+             *  @param apiKey API key corresponding to the configured account to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param certificatePath Path to PFX (or PKCS12) certificate file
+             *  also containing private key.
+             *  @param certificatePassword Password to decrypt the certificate file.
+             *  @param apiVersion Target API version to use.
+             *  @param validationCallback Callback function to be executed during SSL certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey,
+                    ISafeguardEventHandler handler, String networkAddress, String certificatePath,
+                    char[] certificatePassword, HostnameVerifier validationCallback, Integer apiVersion)
+                    throws ObjectDisposedException, ArgumentException {
+                
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, certificatePath, certificatePassword, version,
+                                false, validationCallback), apiKey, handler);
             }
             
             /**
@@ -561,7 +970,42 @@ public final class Safeguard {
 
                 return new PersistentSafeguardA2AEventListener(
                         new SafeguardA2AContext(networkAddress, certificateData, certificatePassword, version,
-                                ignoreSsl), apiKey, handler);
+                                ignoreSsl, null), apiKey, handler);
+            }
+            
+            /**
+             *  Get a persistent A2A event listener for Gets an A2A event
+             *  listener. The handler passed in will be registered for the
+             *  AssetAccountPasswordUpdated event, which is the only one
+             *  supported in A2A. Uses a client certificate stored in memory.
+             *
+             *  @param apiKey API key corresponding to the configured account to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
+             *  @param certificatePassword Password to decrypt the certificate file.
+             *  @param apiVersion Target API version to use.
+             *  @param validationCallback Callback function to be executed during SSL certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(char[] apiKey,
+                    ISafeguardEventHandler handler, String networkAddress, byte[] certificateData,
+                    char[] certificatePassword, HostnameVerifier validationCallback, Integer apiVersion)
+                    throws ObjectDisposedException, ArgumentException {
+                
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, certificateData, certificatePassword, version,
+                                false, validationCallback), apiKey, handler);
             }
             
             /**
@@ -602,7 +1046,44 @@ public final class Safeguard {
                 }
 
                 return new PersistentSafeguardA2AEventListener(
-                        new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, ignoreSsl),
+                        new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, ignoreSsl, null),
+                        apiKeys, handler);
+            }
+
+            /**
+             *  Get a persistent A2A event listener for Gets an A2A event
+             *  listener. The handler passed in will be registered for the
+             *  AssetAccountPasswordUpdated event, which is the only one
+             *  supported in A2A. Uses a client certificate from a keystore.
+             *
+             *  @param apiKeys A list of API keys corresponding to the configured accounts to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param keystorePath Path to the keystore containing the client
+             *  certificate.
+             *  @param keystorePassword Keystore password.
+             *  @param certificateAlias Alias identifying a client certificate in
+             *  the keystore.
+             *  @param apiVersion Target API version to use.
+             *  @param validationCallback Callback function to be executed during SSL certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys, ISafeguardEventHandler handler,
+                    String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias,
+                    HostnameVerifier validationCallback, Integer apiVersion)
+                    throws ObjectDisposedException, ArgumentException {
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, certificateAlias, keystorePath, keystorePassword, version, false, validationCallback),
                         apiKeys, handler);
             }
 
@@ -644,7 +1125,43 @@ public final class Safeguard {
 
                 return new PersistentSafeguardA2AEventListener(
                         new SafeguardA2AContext(networkAddress, certificatePath, certificatePassword, version,
-                                ignoreSsl), apiKeys, handler);
+                                ignoreSsl, null), apiKeys, handler);
+            }
+            
+            /**
+             *  Get a persistent A2A event listener for Gets an A2A event
+             *  listener. The handler passed in will be registered for the
+             *  AssetAccountPasswordUpdated event, which is the only one
+             *  supported in A2A. Uses a client certificate stored in a file.
+             *
+             *  @param apiKeys A list of API key corresponding to the configured accounts to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param certificatePath Path to PFX (or PKCS12) certificate file
+             *  also containing private key.
+             *  @param certificatePassword Password to decrypt the certificate file.
+             *  @param apiVersion Target API version to use.
+             *  @param validationCallback Callback function to be executed during SSL certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys,
+                    ISafeguardEventHandler handler, String networkAddress, String certificatePath,
+                    char[] certificatePassword, HostnameVerifier validationCallback, Integer apiVersion)
+                    throws ObjectDisposedException, ArgumentException {
+                
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, certificatePath, certificatePassword, version,
+                                false, validationCallback), apiKeys, handler);
             }
             
             /**
@@ -684,7 +1201,42 @@ public final class Safeguard {
 
                 return new PersistentSafeguardA2AEventListener(
                         new SafeguardA2AContext(networkAddress, certificateData, certificatePassword, version,
-                                ignoreSsl), apiKeys, handler);
+                                ignoreSsl, null), apiKeys, handler);
+            }
+            
+            /**
+             *  Get a persistent A2A event listener for Gets an A2A event
+             *  listener. The handler passed in will be registered for the
+             *  AssetAccountPasswordUpdated event, which is the only one
+             *  supported in A2A. Uses a client certificate stored in memory.
+             *
+             *  @param apiKeys A list of API key corresponding to the configured accounts to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param certificateData Bytes containing a PFX (or PKCS12) formatted certificate and private key.
+             *  @param certificatePassword Password to decrypt the certificate file.
+             *  @param apiVersion Target API version to use.
+             *  @param validationCallback Callback function to be executed during SSL certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys,
+                    ISafeguardEventHandler handler, String networkAddress, byte[] certificateData,
+                    char[] certificatePassword, HostnameVerifier validationCallback, Integer apiVersion)
+                    throws ObjectDisposedException, ArgumentException {
+                
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, certificateData, certificatePassword, version,
+                                false, validationCallback), apiKeys, handler);
             }
         }
     }

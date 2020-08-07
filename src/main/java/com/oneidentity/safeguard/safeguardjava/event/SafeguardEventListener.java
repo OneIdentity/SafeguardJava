@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.HostnameVerifier;
 import microsoft.aspnet.signalr.client.ErrorCallback;
 import microsoft.aspnet.signalr.client.MessageReceivedHandler;
 import microsoft.aspnet.signalr.client.SignalRFuture;
@@ -31,6 +32,7 @@ public class SafeguardEventListener implements ISafeguardEventListener {
 
     private final String eventUrl;
     private final boolean ignoreSsl;
+    private final HostnameVerifier validationCallback;
     private char[] accessToken;
     private char[] apiKey;
     private List<char[]> apiKeys;
@@ -45,9 +47,10 @@ public class SafeguardEventListener implements ISafeguardEventListener {
 
     private static final String NOTIFICATION_HUB = "notificationHub";
 
-    private SafeguardEventListener(String eventUrl, boolean ignoreSsl) {
+    private SafeguardEventListener(String eventUrl, boolean ignoreSsl, HostnameVerifier validationCallback) {
         this.eventUrl = eventUrl;
         this.ignoreSsl = ignoreSsl;
+        this.validationCallback = validationCallback;
         this.eventHandlerRegistry = new EventHandlerRegistry();
         this.accessToken = null;
         this.apiKey = null;
@@ -56,16 +59,16 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         this.disconnectHandler = new DefaultDisconnectHandler();
     }
 
-    public SafeguardEventListener(String eventUrl, char[] accessToken, boolean ignoreSsl) throws ArgumentException {
-        this(eventUrl, ignoreSsl);
+    public SafeguardEventListener(String eventUrl, char[] accessToken, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException {
+        this(eventUrl, ignoreSsl, validationCallback);
         if (accessToken == null)
             throw new ArgumentException("The accessToken parameter can not be null");
         this.accessToken = accessToken.clone();
     }
 
     public SafeguardEventListener(String eventUrl, String clientCertificatePath, char[] certificatePassword, 
-            String certificateAlias, char[] apiKey, boolean ignoreSsl) throws ArgumentException {
-        this(eventUrl, ignoreSsl);
+            String certificateAlias, char[] apiKey, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException {
+        this(eventUrl, ignoreSsl, validationCallback);
         if (apiKey == null)
             throw new ArgumentException("The apiKey parameter can not be null");
         this.apiKey = apiKey.clone();
@@ -73,8 +76,8 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     }
     
     public SafeguardEventListener(String eventUrl, CertificateContext clientCertificate, 
-            char[] apiKey, boolean ignoreSsl) throws ArgumentException {
-        this(eventUrl, ignoreSsl);
+            char[] apiKey, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException {
+        this(eventUrl, ignoreSsl, validationCallback);
         if (apiKey == null)
             throw new ArgumentException("The apiKey parameter can not be null");
         this.clientCertificate = clientCertificate.cloneObject();
@@ -82,8 +85,8 @@ public class SafeguardEventListener implements ISafeguardEventListener {
     }
     
     public SafeguardEventListener(String eventUrl, String clientCertificatePath, char[] certificatePassword, 
-            String certificateAlias, List<char[]> apiKeys, boolean ignoreSsl) throws ArgumentException {
-        this(eventUrl, ignoreSsl);
+            String certificateAlias, List<char[]> apiKeys, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException {
+        this(eventUrl, ignoreSsl, validationCallback);
         if (apiKeys == null)
             throw new ArgumentException("The apiKey parameter can not be null");
         
@@ -95,9 +98,10 @@ public class SafeguardEventListener implements ISafeguardEventListener {
             throw new ArgumentException("The apiKeys parameter must include at least one item");
     }
     
-    public SafeguardEventListener(String eventUrl, CertificateContext clientCertificate, List<char[]> apiKeys, boolean ignoreSsl) throws ArgumentException
+    public SafeguardEventListener(String eventUrl, CertificateContext clientCertificate, 
+            List<char[]> apiKeys, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException
     {
-        this(eventUrl, ignoreSsl);
+        this(eventUrl, ignoreSsl, validationCallback);
         if (apiKeys == null)
             throw new ArgumentException("The apiKeys parameter can not be null");
         
@@ -181,7 +185,9 @@ public class SafeguardEventListener implements ISafeguardEventListener {
         signalrHubProxy = signalrConnection.createHubProxy(NOTIFICATION_HUB);
 
         try {
-            signalrFuture = signalrConnection.start(ignoreSsl);
+            // The java version of Signalr doesn't support a HostnameVerifier callback.  So if
+            //  one is set then it will be the same as ignoreSsl.
+            signalrFuture = signalrConnection.start(ignoreSsl || (this.validationCallback != null));
             
             signalrConnection.received(new MessageReceivedHandler() {
                 @Override

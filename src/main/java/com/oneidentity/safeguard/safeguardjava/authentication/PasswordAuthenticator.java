@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.HostnameVerifier;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 public class PasswordAuthenticator extends AuthenticatorBase 
@@ -29,9 +30,10 @@ public class PasswordAuthenticator extends AuthenticatorBase
     private final char[] password;
 
     public PasswordAuthenticator(String networkAddress, String provider, String username,
-        char[] password, int apiVersion, boolean ignoreSsl) throws ArgumentException
+            char[] password, int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) 
+            throws ArgumentException
     {
-        super(networkAddress, apiVersion, ignoreSsl);
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
         this.provider = provider;
         
         if (Utils.isNullOrEmpty(this.provider) || this.provider.equalsIgnoreCase("local"))
@@ -91,6 +93,9 @@ public class PasswordAuthenticator extends AuthenticatorBase
                     throw new SafeguardForJavaException(String.format("Unable to find scope matching '%s' in [%s]", provider, String.join(",", knownScopes)));
             }
         }
+        catch (SafeguardForJavaException ex) {
+            throw ex;
+        }
         catch (Exception ex)
         {
             throw new SafeguardForJavaException("Unable to connect to determine identity provider", ex);
@@ -128,7 +133,8 @@ public class PasswordAuthenticator extends AuthenticatorBase
     public Object cloneObject() throws SafeguardForJavaException
     {
         try {
-            PasswordAuthenticator auth = new PasswordAuthenticator(getNetworkAddress(), provider, username, password, getApiVersion(), isIgnoreSsl());
+            PasswordAuthenticator auth = new PasswordAuthenticator(getNetworkAddress(), provider, username, password, 
+                    getApiVersion(), isIgnoreSsl(), getValidationCallback());
             auth.accessToken = this.accessToken == null ? null : this.accessToken.clone();
             return auth;
         } catch (ArgumentException ex) {

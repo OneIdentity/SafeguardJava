@@ -6,6 +6,7 @@ import com.oneidentity.safeguard.safeguardjava.data.OauthBody;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.util.Map;
+import javax.net.ssl.HostnameVerifier;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 public class CertificateAuthenticator extends AuthenticatorBase
@@ -15,29 +16,30 @@ public class CertificateAuthenticator extends AuthenticatorBase
     private final CertificateContext clientCertificate;
 
     public CertificateAuthenticator(String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias, 
-            int apiVersion, boolean ignoreSsl)
+            int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback)
     {
-        super(networkAddress, apiVersion, ignoreSsl);
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
         clientCertificate = new CertificateContext(certificateAlias, keystorePath, null, keystorePassword);
     }
 
     public CertificateAuthenticator(String networkAddress, String certificatePath, char[] certificatePassword,
-            int apiVersion, boolean ignoreSsl) {
+            int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) {
         
-        super(networkAddress, apiVersion, ignoreSsl);
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
         clientCertificate = new CertificateContext(null, certificatePath, null, certificatePassword);
     }
 
     public CertificateAuthenticator(String networkAddress, byte[] certificateData, char[] certificatePassword, String certificateAlias,
-            int apiVersion, boolean ignoreSsl) {
+            int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) {
         
-        super(networkAddress, apiVersion, ignoreSsl);
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
         clientCertificate = new CertificateContext(certificateAlias, null, certificateData, certificatePassword);
     }
     
-    private CertificateAuthenticator(String networkAddress, CertificateContext clientCertificate, int apiVersion, boolean ignoreSsl) {
+    private CertificateAuthenticator(String networkAddress, CertificateContext clientCertificate, 
+            int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) {
         
-        super(networkAddress, apiVersion, ignoreSsl);
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
         this.clientCertificate = clientCertificate.cloneObject();
     }
     
@@ -80,7 +82,8 @@ public class CertificateAuthenticator extends AuthenticatorBase
 
     @Override
     public Object cloneObject() throws SafeguardForJavaException {
-        CertificateAuthenticator auth = new CertificateAuthenticator(this.getNetworkAddress(), clientCertificate, this.getApiVersion(), this.isIgnoreSsl());
+        CertificateAuthenticator auth = new CertificateAuthenticator(this.getNetworkAddress(), clientCertificate, 
+                this.getApiVersion(), this.isIgnoreSsl(), this.getValidationCallback());
         if (this.accessToken != null) {
             auth.accessToken = this.accessToken.clone();
         }

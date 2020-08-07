@@ -25,6 +25,7 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -51,10 +52,11 @@ public class RestClient {
     private CloseableHttpClient client = null;
     private String serverUrl = null;
     private boolean ignoreSsl = false;
+    private HostnameVerifier validationCallback = null;
 
     Logger logger = Logger.getLogger(getClass().getName());
 
-    public RestClient(String connectionAddr, boolean ignoreSsl) {
+    public RestClient(String connectionAddr, boolean ignoreSsl, HostnameVerifier validationCallback) {
 
         if (false) {
             Handler handlerObj = new ConsoleHandler();
@@ -67,9 +69,16 @@ public class RestClient {
         this.ignoreSsl = ignoreSsl;
         this.serverUrl = connectionAddr;
 
-        SSLConnectionSocketFactory sslsf = ignoreSsl ? 
-                new SSLConnectionSocketFactory(getSSLContext(null, null, null), NoopHostnameVerifier.INSTANCE) : 
-                new SSLConnectionSocketFactory(getSSLContext(null, null, null));
+        SSLConnectionSocketFactory sslsf = null; 
+        if (ignoreSsl) {
+            this.validationCallback = null;
+            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null), NoopHostnameVerifier.INSTANCE);
+        } else if (validationCallback != null) {
+            this.validationCallback = validationCallback;
+            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null), validationCallback); 
+        } else {
+            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null));
+        }
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslsf).build();
         BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
         client = HttpClients.custom().setSSLSocketFactory(sslsf).setConnectionManager(connectionManager).build();
@@ -199,9 +208,14 @@ public class RestClient {
                 Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, null, ex);
             }
 
-            SSLConnectionSocketFactory sslsf = ignoreSsl ? 
-                    new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias), NoopHostnameVerifier.INSTANCE) : 
-                    new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias));
+            SSLConnectionSocketFactory sslsf = null; 
+            if (ignoreSsl) {
+                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias), NoopHostnameVerifier.INSTANCE);
+            } else if (validationCallback != null) {
+                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias), validationCallback); 
+            } else {
+                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias));
+            }
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslsf).build();
             BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
             certClient = HttpClients.custom().setSSLSocketFactory(sslsf).setConnectionManager(connectionManager).build();
@@ -235,7 +249,7 @@ public class RestClient {
         TrustManager[] customTrustManager = null;
         KeyManager[] customKeyManager = null;
 
-        if (ignoreSsl) {
+        if (ignoreSsl || validationCallback != null) {
             customTrustManager = new TrustManager[]{new X509TrustManager() {
                 @Override
                 public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {

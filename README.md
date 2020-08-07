@@ -131,7 +131,9 @@ String jsonBody = new StringBuffer ("{")
 String json = connection.invokeMethod(Service.Core, Method.Post, "Assets", jsonBody, null, null);
 System.out.println(json);
 ```
+
 #### Create a New User and Set the Password
+
 ```Java
 // Assume connection is already made
 String jsonBody = new StringBuffer ("{")
@@ -144,6 +146,37 @@ String userJson = connection.invokeMethod(Service.Core, Method.Post, "Users", js
 UserObj userObj = new Gson().fromJson(userJson, UserObj.class);
 connection.invokeMethod(Service.Core, Method.Put, String.format("Users/%s/Password", userObj.Id), "{\"MyNewUser123\"}");
 ```
+
+#### Using an SSL Certificate Validation Callback
+
+```Java
+ISafeguardConnection connection = Safeguard.connect("safeguard.sample.corp", "local", "myuser", "secret".toCharArray(), new CertificateValidator(), null);
+
+String userJson = connection.invokeMethod(Service.Core, Method.Get, "Users", null, null, null);
+```
+
+```Java
+package com.mycompany.mypackage;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLSession;
+
+public class CertificateValidator implements HostnameVerifier {
+
+    @Override
+    public boolean verify(final String s, final SSLSession sslSession) {
+        // Do your validation here
+        return <true | false>; // Return the result of the validation.
+    }
+
+    @Override
+    public final String toString() {
+        return "CertificateValidator";
+    }
+}
+
+```
+
 ### Building SafeguardJava
 
 Building SafeguardJava requires Java JDK 8 or greater and Maven 3.0.5 or greater.  The following dependency should be added to your POM file:
@@ -153,5 +186,4 @@ Building SafeguardJava requires Java JDK 8 or greater and Maven 3.0.5 or greater
             <artifactId>safeguardjava</artifactId>
             <version>2.10.0</version>
         </dependency>
-
 
