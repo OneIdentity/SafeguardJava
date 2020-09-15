@@ -31,6 +31,8 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+
+import okhttp3.Protocol;
 import okhttp3.OkHttpClient.Builder;
 
 class DefaultDisconnectHandler implements IDisconnectHandler {
@@ -60,7 +62,7 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
     private static final String NOTIFICATION_HUB = "signalr";
 
     private SafeguardEventListener(String eventUrl, boolean ignoreSsl, HostnameVerifier validationCallback) {
-        this.eventUrl = String.format("%s/%s",eventUrl, NOTIFICATION_HUB);
+        this.eventUrl = String.format("%s/%s", eventUrl, NOTIFICATION_HUB);
         this.ignoreSsl = ignoreSsl;
         this.validationCallback = validationCallback;
         this.eventHandlerRegistry = new EventHandlerRegistry();
@@ -86,7 +88,7 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         this.apiKey = apiKey.clone();
         this.clientCertificate = new CertificateContext(certificateAlias, clientCertificatePath, null, certificatePassword);
     }
-    
+
     public SafeguardEventListener(String eventUrl, CertificateContext clientCertificate, 
             char[] apiKey, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException {
         this(eventUrl, ignoreSsl, validationCallback);
@@ -95,13 +97,13 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         this.clientCertificate = clientCertificate.cloneObject();
         this.apiKey = apiKey.clone();
     }
-    
+
     public SafeguardEventListener(String eventUrl, String clientCertificatePath, char[] certificatePassword, 
             String certificateAlias, List<char[]> apiKeys, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException {
         this(eventUrl, ignoreSsl, validationCallback);
         if (apiKeys == null)
             throw new ArgumentException("The apiKey parameter can not be null");
-        
+
         this.clientCertificate = new CertificateContext(certificateAlias, clientCertificatePath, null, certificatePassword);
         this.apiKeys = new ArrayList<>();
         for (char[] key : apiKeys)
@@ -109,14 +111,14 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         if (apiKeys.isEmpty())
             throw new ArgumentException("The apiKeys parameter must include at least one item");
     }
-    
+
     public SafeguardEventListener(String eventUrl, CertificateContext clientCertificate, 
             List<char[]> apiKeys, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException
     {
         this(eventUrl, ignoreSsl, validationCallback);
         if (apiKeys == null)
             throw new ArgumentException("The apiKeys parameter can not be null");
-        
+
         this.clientCertificate = clientCertificate.cloneObject();
         this.apiKeys = new ArrayList<>();
         for (char[] key : apiKeys)
@@ -133,36 +135,12 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         this.eventHandlerRegistry = registry;
     }
 
-    private void handleEvent(JsonElement eventObject) {
-        eventHandlerRegistry.handleEvent(eventObject);
-    }
-
-    private void handleDisconnect() throws SafeguardEventListenerDisconnectedException {
-        if(!this.isStarted()) {
-            return;
-        }
-        Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.WARNING, "SignalR disconnect detected, calling handler...");
-        disconnectHandler.func();
-    }
-    
-    private void cleanupConnection() {
-        try {
-            _isStarted = false;
-            if(signalrConnection != null){
-                signalrConnection.stop().blockingAwait();
-                signalrConnection.close();
-            }
-        } finally {
-            signalrConnection = null;
-        }
-    }
-
     private boolean _isStarted = false;
     @Override
     public boolean isStarted() {
         return _isStarted;
     }
-    
+
     @Override
     public void registerEventHandler(String eventName, ISafeguardEventHandler handler)
             throws ObjectDisposedException {
@@ -171,25 +149,6 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         }
         eventHandlerRegistry.registerEventHandler(eventName, handler);
     }
-
-    TrustManager[] _trustAllCerts = new TrustManager[]{
-        new X509TrustManager() {
-            @Override
-            public void checkClientTrusted(java.security.cert.X509Certificate[] chain,
-                                           String authType) throws java.security.cert.CertificateException {
-            }
-
-            @Override
-            public void checkServerTrusted(java.security.cert.X509Certificate[] chain,
-                                           String authType) throws java.security.cert.CertificateException {
-            }
-
-            @Override
-            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                return new java.security.cert.X509Certificate[0];
-            }
-        }
-    };
 
     @Override
     public void start() throws ObjectDisposedException, SafeguardForJavaException, SafeguardEventListenerDisconnectedException {
@@ -219,7 +178,7 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
                     handleDisconnect();
                 } catch (SafeguardEventListenerDisconnectedException ex) {
                     Logger.getLogger(SafeguardEventListener.class.getName()).log(Level.SEVERE, null, ex);
-                }                    
+                }
             }
         });
 
@@ -238,13 +197,15 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
             throw new ObjectDisposedException("SafeguardEventListener");
         }
         try {
-            if (signalrConnection != null) {
-                signalrConnection.stop().wait();
-            }
             cleanupConnection();
         } catch (Exception ex) {
             throw new SafeguardForJavaException("Failure stopping SignalR.", ex);
         }
+    }
+
+    @Override
+    public void close() throws Exception {
+        dispose();
     }
 
     @Override
@@ -282,14 +243,33 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         }
     }
 
-    @Override
-    public void close() throws Exception {
-        dispose();
+    private void handleEvent(JsonElement eventObject) {
+        eventHandlerRegistry.handleEvent(eventObject);
+    }
+
+    private void handleDisconnect() throws SafeguardEventListenerDisconnectedException {
+        if(!this.isStarted()) {
+            return;
+        }
+        Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.WARNING, "SignalR disconnect detected, calling handler...");
+        disconnectHandler.func();
+    }
+
+    private void cleanupConnection() {
+        try {
+            _isStarted = false;
+            if(signalrConnection != null){
+                signalrConnection.stop().blockingAwait();
+                signalrConnection.close();
+            }
+        } finally {
+            signalrConnection = null;
+        }
     }
 
     private HubConnection CreateConnection(String eventUrl) throws SafeguardForJavaException {
         HttpHubConnectionBuilder builder = HubConnectionBuilder.create(eventUrl);
-        
+
         if(accessToken != null) {
             builder.withAccessTokenProvider(Single.just(new String(accessToken)));
         } else {
@@ -324,7 +304,7 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         if(validationCallback != null) {
             builder.hostnameVerifier(validationCallback);
         }
-        
+
         KeyManager[] km = null;
         if(clientCertificate != null){
             // If we have a client certificate, set it into the KeyStore/KeyManager
@@ -336,6 +316,11 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
                 keyManagerFactory.init(keyStore, clientCertificate.getCertificatePassword());
                 km = keyManagerFactory.getKeyManagers();
+
+                // when we send a client certificate singlar resets the stream
+                // and requires 1.1. No idea why. okhttp3 doesn't handle this reset 
+                // automatically so the only option is to restrict the client to 1.1
+                builder.protocols(Arrays.asList(Protocol.HTTP_1_1));
             }
             catch(Exception error)
             {
@@ -343,7 +328,7 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
                 Logger.getLogger(SafeguardEventListener.class.getName()).log(Level.SEVERE, msg);
             }
         }
-        
+
         try{
             TrustManager[] tm = null;
             X509TrustManager x509tm = null;
@@ -365,7 +350,6 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
 
             // Configure the SSL Context according to options and set the 
             // OkHttpClient builder SSL socket factory
-        
             SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(km, tm, null);
             builder.sslSocketFactory(sslContext.getSocketFactory(), x509tm);        
@@ -380,4 +364,23 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
             Logger.getLogger(SafeguardEventListener.class.getName()).log(Level.SEVERE, ex.getMessage());
         }
     }
+
+    TrustManager[] _trustAllCerts = new TrustManager[]{
+        new X509TrustManager() {
+            @Override
+            public void checkClientTrusted(java.security.cert.X509Certificate[] chain,
+                                           String authType) throws java.security.cert.CertificateException {
+            }
+
+            @Override
+            public void checkServerTrusted(java.security.cert.X509Certificate[] chain,
+                                           String authType) throws java.security.cert.CertificateException {
+            }
+
+            @Override
+            public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                return new java.security.cert.X509Certificate[0];
+            }
+        }
+    };
 }

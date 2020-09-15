@@ -1,7 +1,13 @@
 package com.oneidentity.safeguard.safeguardjava.data;
 
 import com.oneidentity.safeguard.safeguardjava.Utils;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CertificateContext {
     
@@ -39,6 +45,15 @@ public class CertificateContext {
     }
 
     public byte[] getCertificateData() {
+        if(certificateData == null) {
+            try {
+                File file = new File(getCertificatePath());
+                certificateData = Files.readAllBytes(file.toPath());
+                return certificateData;
+            }catch(IOException err){
+                Logger.getLogger(CertificateContext.class.getName()).log(Level.WARNING, String.format("Error reading certificate file: %s", err.getMessage()));
+            }
+        }
         return certificateData;
     }
 
