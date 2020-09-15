@@ -4,7 +4,7 @@
     
     <groupId>com.oneidentity.safeguard</groupId>
     <artifactId>safeguardjava</artifactId>
-    <version>6.7.0-SNAPSHOT</version>
+    <version>6.8.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     
     <name>safeguardjava</name>
@@ -34,6 +34,16 @@
         
     <dependencies>
         <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.signalr</groupId>
+            <artifactId>signalr</artifactId>
+            <version>5.0.0-preview.8.20414.8</version>
+        </dependency>
+        <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <version>4.5.5</version>        
@@ -48,7 +58,7 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
-        </dependency>        
+        </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>

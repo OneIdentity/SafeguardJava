@@ -6,7 +6,7 @@ public class SafeguardForJavaException extends Exception {
         super(msg);
     }
     
-    public SafeguardForJavaException(String msg, Exception cause) {
+    public SafeguardForJavaException(String msg, Throwable cause) {
         super(msg, cause);
     }
 

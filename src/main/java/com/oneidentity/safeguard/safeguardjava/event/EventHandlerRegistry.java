@@ -46,20 +46,17 @@ public class EventHandlerRegistry
         try
         {
             HashMap<String,JsonElement> events = new HashMap<>();
-            JsonArray jEvents = ((JsonObject)eventObject).getAsJsonArray("A");
-            for(JsonElement jEvent : jEvents) {
-                String name = ((JsonObject)jEvent).get("Name").getAsString();
-                JsonElement body = ((JsonObject)jEvent).get("Data");
-                // Work around for bug in A2A events in Safeguard 2.2 and 2.3
-                if (name != null) {
-                    try {
-                        Integer.parseInt(name);
-                        name = ((JsonObject)body).get("EventName").getAsString();
-                    } catch (Exception e) {                      
-                    }
+            String name = ((JsonObject)eventObject).get("Name").getAsString();
+            JsonElement body = ((JsonObject)eventObject).get("Data");
+            // Work around for bug in A2A events in Safeguard 2.2 and 2.3
+            if (name != null) {
+                try {
+                    Integer.parseInt(name);
+                    name = ((JsonObject)body).get("EventName").getAsString();
+                } catch (Exception e) {                      
                 }
-                events.put(name, body);
             }
+            events.put(name, body);
             return events;
         }
         catch (Exception ex)
