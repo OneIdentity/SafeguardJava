@@ -1,6 +1,9 @@
 package com.oneidentity.safeguard.safeguardjava.data;
 
+import com.oneidentity.safeguard.safeguardjava.CertificateUtilities;
 import com.oneidentity.safeguard.safeguardjava.Utils;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
 public class CertificateContext {
@@ -9,8 +12,8 @@ public class CertificateContext {
     private String certificatePath;
     private byte[] certificateData;
     private char[] certificatePassword;
-
-
+    private String certificateThumbprint; //Windows Only
+    
     public CertificateContext(String certificateAlias, String certificatePath, byte[] certificateData, char[] certificatePassword) {
 
         this.certificateAlias = certificateAlias;
@@ -18,10 +21,23 @@ public class CertificateContext {
         this.certificateData = certificateData;
         this.certificatePassword = certificatePassword == null ? null : certificatePassword.clone();
     }
+
+    //Windows Only
+    public CertificateContext(String thumbprint) throws SafeguardForJavaException {
+
+        this.certificateAlias = CertificateUtilities.getClientCertificateAliasFromStore(thumbprint);
+        this.certificatePath = null;
+        this.certificateData = null;
+        this.certificatePassword = null;
+        this.certificateThumbprint = thumbprint;
+    }
     
     private CertificateContext() {
     }
 
+    public boolean isWindowsKeyStore() {
+        return this.certificateThumbprint != null;
+    }
     public String getCertificateAlias() {
         return certificateAlias;
     }
@@ -52,6 +68,14 @@ public class CertificateContext {
 
     public void setCertificatePassword(char[] certificatePassword) {
         this.certificatePassword = certificatePassword;
+    }
+    
+    public String getCertificateThumbprint() {
+        return certificateThumbprint;
+    }
+
+    public void setCertificateThumbprint(String certificateThumbprint) {
+        this.certificateThumbprint = certificateThumbprint;
     }
 
     public CertificateContext cloneObject()
