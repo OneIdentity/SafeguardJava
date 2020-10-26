@@ -21,6 +21,13 @@ public class CertificateAuthenticator extends AuthenticatorBase
         super(networkAddress, apiVersion, ignoreSsl, validationCallback);
         clientCertificate = new CertificateContext(certificateAlias, keystorePath, null, keystorePassword);
     }
+    
+    public CertificateAuthenticator(String networkAddress, String certificateThumbprint, int apiVersion, 
+            boolean ignoreSsl, HostnameVerifier validationCallback) throws SafeguardForJavaException
+    {
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
+        clientCertificate = new CertificateContext(certificateThumbprint);
+    }
 
     public CertificateAuthenticator(String networkAddress, String certificatePath, char[] certificatePassword,
             int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) {

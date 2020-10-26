@@ -1,5 +1,7 @@
 package com.oneidentity.safeguard.safeguardjava.restclient;
 
+import com.oneidentity.safeguard.safeguardjava.CertificateUtilities;
+import static com.oneidentity.safeguard.safeguardjava.CertificateUtilities.WINDOWSKEYSTORE;
 import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
 import com.oneidentity.safeguard.safeguardjava.data.JsonObject;
 import java.io.ByteArrayInputStream;
@@ -18,6 +20,7 @@ import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -72,12 +75,12 @@ public class RestClient {
         SSLConnectionSocketFactory sslsf = null; 
         if (ignoreSsl) {
             this.validationCallback = null;
-            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null), NoopHostnameVerifier.INSTANCE);
+            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null, null), NoopHostnameVerifier.INSTANCE);
         } else if (validationCallback != null) {
             this.validationCallback = validationCallback;
-            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null), validationCallback); 
+            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null, null), validationCallback); 
         } else {
-            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null));
+            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null, null));
         }
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslsf).build();
         BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
@@ -188,7 +191,9 @@ public class RestClient {
     private CloseableHttpClient getClientWithCertificate(CertificateContext certificateContext) {
 
         CloseableHttpClient certClient = null;
-        if (certificateContext.getCertificatePath() != null || certificateContext.getCertificateData() != null) {
+        if (certificateContext.getCertificatePath() != null 
+                || certificateContext.getCertificateData() != null 
+                || certificateContext.getCertificateThumbprint() != null) {
 
             InputStream in;
             KeyStore clientKs = null;
@@ -196,12 +201,19 @@ public class RestClient {
             char[] keyPass = certificateContext.getCertificatePassword();
             String certificateAlias = certificateContext.getCertificateAlias();
             try {
-                in = certificateContext.getCertificatePath() != null ? new FileInputStream(certificateContext.getCertificatePath()) 
-                        : new ByteArrayInputStream(certificateContext.getCertificateData());
-                clientKs = KeyStore.getInstance("JKS");
-                clientKs.load(in, keyPass);
-                aliases = Collections.list(clientKs.aliases());
-                in.close();
+                if (certificateContext.isWindowsKeyStore()) {
+                    clientKs = KeyStore.getInstance(WINDOWSKEYSTORE);
+                    clientKs.load(null, null);
+                    aliases = new ArrayList<>();
+                    aliases = Collections.list(clientKs.aliases());
+                } else {
+                    in = certificateContext.getCertificatePath() != null ? new FileInputStream(certificateContext.getCertificatePath()) 
+                            : new ByteArrayInputStream(certificateContext.getCertificateData());
+                    clientKs = KeyStore.getInstance("JKS");
+                    clientKs.load(in, keyPass);
+                    aliases = Collections.list(clientKs.aliases());
+                    in.close();
+                }
             } catch (FileNotFoundException ex) {
                 Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, null, ex);
             } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException ex) {
@@ -210,11 +222,11 @@ public class RestClient {
 
             SSLConnectionSocketFactory sslsf = null; 
             if (ignoreSsl) {
-                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias), NoopHostnameVerifier.INSTANCE);
+                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext), NoopHostnameVerifier.INSTANCE);
             } else if (validationCallback != null) {
-                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias), validationCallback); 
+                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext), validationCallback); 
             } else {
-                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias));
+                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext));
             }
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslsf).build();
             BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
@@ -244,7 +256,7 @@ public class RestClient {
         return rb;
     }
 
-    private SSLContext getSSLContext(KeyStore keyStorePath, char[] keyStorePassword, String alias) {
+    private SSLContext getSSLContext(KeyStore keyStorePath, char[] keyStorePassword, String alias, CertificateContext certificateContext) {
 
         TrustManager[] customTrustManager = null;
         KeyManager[] customKeyManager = null;
@@ -265,8 +277,8 @@ public class RestClient {
                 }
             }};
         }
-  
-        if (keyStorePath != null && keyStorePassword != null && alias != null) {
+
+        if ((keyStorePath != null && keyStorePassword != null && alias != null) || (keyStorePath != null && certificateContext.isWindowsKeyStore())) {
             try {
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
                 keyManagerFactory.init(keyStorePath, keyStorePassword);
