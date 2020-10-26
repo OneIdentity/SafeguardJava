@@ -33,16 +33,22 @@ steps:
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
 
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'ls'
+  displayName: 'Display environment variables'
+
 - task: CopyFiles@2
   inputs:
-    sourceFolder: '$(Build.SourcesDirectory)\$(targetDir)'
+    sourceFolder: '$(Build.SourcesDirectory)/$(targetDir)'
     contents: '*.jar'
     targetFolder: $(Build.ArtifactStagingDirectory)
   displayName: 'Copy files to staging folder'
 
 - task: CopyFiles@2
   inputs:
-    sourceFolder: '$(Build.SourcesDirectory)\$(targetDir)'
+    sourceFolder: '$(Build.SourcesDirectory)/$(targetDir)'
     contents: '**\lib\**'
     targetFolder: $(Build.ArtifactStagingDirectory)
   displayName: 'Copy files to staging folder'
