@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneidentity.safeguard.safeguardjava.authentication.PasswordAuthenticator;
 import java.io.IOException;
+import java.security.Provider;
+import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -14,6 +16,8 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.util.EntityUtils;
 
 public class Utils {
+
+    private static String OS = null;
 
     private Utils() {
     }
@@ -65,5 +69,21 @@ public class Utils {
                 return false;
         }
     }
+    
+    public static String getOsName() {
+        if (OS == null) {
+            OS = System.getProperty("os.name");
+        }
+        return OS;
+    }
 
+    public static boolean isWindows() {
+        return getOsName().startsWith("Windows");
+    }
+    
+    public static boolean isSunMSCAPILoaded() {
+        Provider provider = Security.getProvider("SunMSCAPI");
+        return provider != null;
+    }
+    
 }

@@ -12,8 +12,11 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedExceptio
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
+import java.security.Provider;
+import java.security.Security;
 import java.util.List;
 import javax.net.ssl.HostnameVerifier;
+import sun.security.mscapi.SunMSCAPI;
 
 /**
  * This static class provides static methods for connecting to Safeguard API.
@@ -198,6 +201,83 @@ public final class Safeguard {
 
         return getConnection(new CertificateAuthenticator(networkAddress, keystorePath, 
                 keystorePassword, certificateAlias, version, false, validationCallback));
+    }
+
+    /**
+     *  Connect to Safeguard API using a certificate from the Windows 
+     *  certificate store. This is a Windows only API and requires that the
+     *  SunMSCAPI security provider is available in the Java environment.
+     *
+     *  @param networkAddress Network address of Safeguard appliance.
+     *  @param thumbprint Thumbprint of the client certificate.
+     *  @param apiVersion Target API version to use.
+     *  @param ignoreSsl Ignore server certificate validation.
+     * 
+     *  @return Reusable Safeguard API connection.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     */
+    public static ISafeguardConnection connect(String networkAddress, String thumbprint, 
+            Integer apiVersion, Boolean ignoreSsl) 
+            throws ObjectDisposedException, SafeguardForJavaException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        boolean sslIgnore = false;
+        if (ignoreSsl != null) {
+            sslIgnore = ignoreSsl;
+        }
+
+        if (Utils.isWindows()) {
+            if (!Utils.isSunMSCAPILoaded()) {
+                SunMSCAPI providerMSCAPI = new SunMSCAPI();
+                Security.addProvider(providerMSCAPI);
+            }
+        }
+        else {
+            throw new SafeguardForJavaException("Not implemented. This function is only available on the Windows platform.");
+        }
+        
+        return getConnection(new CertificateAuthenticator(networkAddress, thumbprint, 
+                version, sslIgnore, null));
+    }
+
+    /**
+     *  Connect to Safeguard API using a certificate from the Windows 
+     *  certificate store. This is a Windows only API and requires that the
+     *  SunMSCAPI security provider is available in the Java environment.
+     *
+     *  @param networkAddress Network address of Safeguard appliance.
+     *  @param thumbprint Thumbprint of the client certificate.
+     *  @param apiVersion Target API version to use.
+     *  @param validationCallback Callback function to be executed during SSL certificate validation.
+     * 
+     *  @return Reusable Safeguard API connection.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     */
+    public static ISafeguardConnection connect(String networkAddress, String thumbprint, 
+            HostnameVerifier validationCallback, Integer apiVersion) 
+            throws ObjectDisposedException, SafeguardForJavaException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        if (Utils.isWindows()) {
+            if (!Utils.isSunMSCAPILoaded()) {
+                SunMSCAPI providerMSCAPI = new SunMSCAPI();
+                Security.addProvider(providerMSCAPI);
+            }
+        }
+        else {
+            throw new SafeguardForJavaException("Not implemented. This function is only available on the Windows platform.");
+        }
+        
+        return getConnection(new CertificateAuthenticator(networkAddress, thumbprint, 
+                version, false, validationCallback));
     }
 
     /**
