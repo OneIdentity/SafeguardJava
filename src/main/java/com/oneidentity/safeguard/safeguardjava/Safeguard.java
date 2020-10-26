@@ -12,11 +12,8 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedExceptio
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
-import java.security.Provider;
-import java.security.Security;
 import java.util.List;
 import javax.net.ssl.HostnameVerifier;
-import sun.security.mscapi.SunMSCAPI;
 
 /**
  * This static class provides static methods for connecting to Safeguard API.
@@ -232,8 +229,7 @@ public final class Safeguard {
 
         if (Utils.isWindows()) {
             if (!Utils.isSunMSCAPILoaded()) {
-                SunMSCAPI providerMSCAPI = new SunMSCAPI();
-                Security.addProvider(providerMSCAPI);
+                throw new SafeguardForJavaException("Missing SunMSCAPI provider. The SunMSCAPI provider must be added as a security provider in $JAVA_HOME/jre/lib/security/java.security configuration file.");
             }
         }
         else {
@@ -268,8 +264,7 @@ public final class Safeguard {
 
         if (Utils.isWindows()) {
             if (!Utils.isSunMSCAPILoaded()) {
-                SunMSCAPI providerMSCAPI = new SunMSCAPI();
-                Security.addProvider(providerMSCAPI);
+                throw new SafeguardForJavaException("Missing SunMSCAPI provider. The SunMSCAPI provider must be added as a security provider in $JAVA_HOME/jre/lib/security/java.security configuration file.");
             }
         }
         else {
