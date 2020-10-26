@@ -10,6 +10,11 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
+# Maven Build Variables:
+variables:
+  targetDir: 'target'
+  codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
+
 steps:
 - task: Bash@3
   inputs:
@@ -27,3 +32,17 @@ steps:
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
+
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)\$(targetDir)'
+    contents: '*.jar'
+    targetFolder: $(Build.ArtifactStagingDirectory)
+  displayName: 'Copy files to staging folder'
+
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)\$(targetDir)'
+    contents: '**\lib\**'
+    targetFolder: $(Build.ArtifactStagingDirectory)
+  displayName: 'Copy files to staging folder'
