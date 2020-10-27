@@ -122,7 +122,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <finalName>safeguardjava-bundle</finalName>
+                    <finalName>safeguardjava-${revision}-bundle</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
             </plugin>        
