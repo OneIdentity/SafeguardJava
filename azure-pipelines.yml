@@ -12,7 +12,7 @@ pool:
 
 # Maven Build Variables:
 variables:
-  version: '6.7.0-SNAPSHOT'
+  version: '6.7.0.$(Build.BuildId)-SNAPSHOT'
   targetDir: 'target'
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
 
@@ -27,7 +27,7 @@ steps:
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
-    Options: '-Drevision=$(version).$(Build.BuildId)'
+    Options: '-Drevision=$(version)'
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
     jdkArchitectureOption: 'x64'
