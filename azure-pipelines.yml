@@ -15,6 +15,8 @@ variables:
   version: '6.7.0.$(Build.BuildId)-SNAPSHOT'
   targetDir: 'target'
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
+  isPrerelease: ${{ true }}
+  isReleaseBranch: $[ or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release-') ) ]
 
 steps:
 - task: Bash@3
@@ -55,3 +57,19 @@ steps:
     artifactName: 'SafeguardJava'
   displayName: 'Publishing the artifacts'
 
+- task: GitHubRelease@1
+  inputs:
+    gitHubConnection: 'github.ReleaseServiceAccount'
+    repositoryName: 'OneIdentity/SafeguardJava'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'userSpecifiedTag'
+    tag: 'release-$(version)'
+    title: '$(VersionString)'
+    isPreRelease: $(isPrerelease)
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
+    assets: |
+      $(Build.ArtifactStagingDirectory)\*.jar
+  displayName: 'Creating and publishing a release to Github'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
