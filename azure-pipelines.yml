@@ -12,8 +12,11 @@ pool:
 
 # Maven Build Variables:
 variables:
+  version: '6.7.0.$(Build.BuildId)-SNAPSHOT'
   targetDir: 'target'
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
+  isPrerelease: ${{ true }}
+  isReleaseBranch: $[ or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release-') ) ]
 
 steps:
 - task: Bash@3
@@ -26,6 +29,7 @@ steps:
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
+    Options: '-Drevision=$(version)'
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
     jdkArchitectureOption: 'x64'
@@ -35,14 +39,37 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    sourceFolder: '$(Build.SourcesDirectory)\$(targetDir)'
+    sourceFolder: '$(Build.SourcesDirectory)/$(targetDir)'
     contents: '*.jar'
     targetFolder: $(Build.ArtifactStagingDirectory)
   displayName: 'Copy files to staging folder'
 
 - task: CopyFiles@2
   inputs:
-    sourceFolder: '$(Build.SourcesDirectory)\$(targetDir)'
-    contents: '**\lib\**'
+    sourceFolder: '$(Build.SourcesDirectory)/$(targetDir)'
+    contents: '**/lib/**'
     targetFolder: $(Build.ArtifactStagingDirectory)
   displayName: 'Copy files to staging folder'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'SafeguardJava'
+  displayName: 'Publishing the artifacts'
+
+- task: GitHubRelease@1
+  inputs:
+    gitHubConnection: 'github.ReleaseServiceAccount'
+    repositoryName: 'OneIdentity/SafeguardJava'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'userSpecifiedTag'
+    tag: 'release-$(version)'
+    title: '$(VersionString)'
+    isPreRelease: $(isPrerelease)
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
+    assets: |
+      $(Build.ArtifactStagingDirectory)\*.jar
+  displayName: 'Creating and publishing a release to Github'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, false))

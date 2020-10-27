@@ -4,7 +4,7 @@
     
     <groupId>com.oneidentity.safeguard</groupId>
     <artifactId>safeguardjava</artifactId>
-    <version>6.7.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <packaging>jar</packaging>
     
     <name>safeguardjava</name>
@@ -13,6 +13,7 @@
       
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <revision>6.7.0-SNAPSHOT</revision>
     </properties>
     
     <licenses>
@@ -63,7 +64,7 @@
     
 
     <build>
-        <finalName>safeguardjava</finalName>
+        <finalName>safeguardjava-${revision}</finalName>
         
         <plugins>
             <plugin>
@@ -121,7 +122,7 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <finalName>safeguardjava-bundle</finalName>
+                    <finalName>safeguardjava-${revision}-bundle</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
             </plugin>        
