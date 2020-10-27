@@ -76,6 +76,6 @@ steps:
     changeLogCompareToRelease: 'lastFullRelease'
     changeLogType: 'commitBased'
     assets: |
-      $(Build.ArtifactStagingDirectory)\SafeguardJava\*.jar
+      $(Build.ArtifactStagingDirectory)/*.jar
   displayName: 'Creating and publishing a release to Github'
-  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
+  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
