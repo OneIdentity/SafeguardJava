@@ -57,6 +57,12 @@ steps:
     artifactName: 'SafeguardJava'
   displayName: 'Publishing the artifacts'
 
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'ls $(Build.ArtifactStagingDirectory)'
+  displayName: 'List staging directory'
+  
 - task: GitHubRelease@1
   inputs:
     gitHubConnection: 'github.ReleaseServiceAccount'
