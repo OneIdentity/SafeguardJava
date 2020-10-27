@@ -19,20 +19,20 @@ variables:
   isReleaseBranch: $[ or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release-') ) ]
 
 steps:
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'OneIdentity.RD.SBox.Safeguard-ServiceConnection'
+    KeyVaultName: 'SafeguardBuildSecrets'
+    SecretsFilter: '*'
+  displayName: 'Get Sonatype password from Sandbox Azure Key Vault'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+    
 - task: Bash@3
   inputs:
     targetType: 'inline'
     script: 'env | sort'
   displayName: 'Display environment variables'
 
-- task: AzureKeyVault@1
-  inputs:
-    azureSubscription: 'OneIdentity.RD.SBox.Safeguard-ServiceConnection'
-    KeyVaultName: 'SafeguardBuildSecrets'
-    SecretsFilter: 'SonatypeRepositoryPassword'
-  displayName: 'Get Sonatype password from Sandbox Azure Key Vault'
-  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
-    
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
