@@ -64,7 +64,7 @@
     
 
     <build>
-        <finalName>safeguardjava</finalName>
+        <finalName>safeguardjava-${revision}</finalName>
         
         <plugins>
             <plugin>
