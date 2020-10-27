@@ -65,11 +65,11 @@ steps:
     target: '$(Build.SourceVersion)'
     tagSource: 'userSpecifiedTag'
     tag: 'release-$(version)'
-    title: '$(VersionString)'
+    title: '$(version)'
     isPreRelease: $(isPrerelease)
     changeLogCompareToRelease: 'lastFullRelease'
     changeLogType: 'commitBased'
     assets: |
       $(Build.ArtifactStagingDirectory)\*.jar
   displayName: 'Creating and publishing a release to Github'
-  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
