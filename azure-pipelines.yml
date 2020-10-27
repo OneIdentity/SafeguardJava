@@ -25,6 +25,14 @@ steps:
     script: 'env | sort'
   displayName: 'Display environment variables'
 
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'OneIdentity.RD.SBox.Safeguard-ServiceConnection'
+    KeyVaultName: 'SafeguardBuildSecrets'
+    SecretsFilter: 'SonatypeRepositoryPassword'
+  displayName: 'Get Sonatype password from Sandbox Azure Key Vault'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+    
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
@@ -36,6 +44,22 @@ steps:
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
+  displayName: 'Build and package SafeguardJava $(version)'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    Options: '--settings $(Build.SourcesDirectory)/settings/settings.xml -D sonatypeusername=bnicholes -D sonatypepassword=$(SonatypeRepositoryPassword) -D revision=$(version)'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    goals: 'deploy'
+  displayName: 'Build and deploy SafeguardJava $(version)'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
 
 - task: CopyFiles@2
   inputs:
