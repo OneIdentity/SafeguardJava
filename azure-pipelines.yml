@@ -26,7 +26,8 @@ steps:
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m -D=$(version).$(Build.BuildId)'
+    mavenOptions: '-Xmx3072m'
+    Options: '-D=$(version).$(Build.BuildId)'
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
     jdkArchitectureOption: 'x64'
