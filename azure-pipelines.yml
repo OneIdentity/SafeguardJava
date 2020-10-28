@@ -28,8 +28,9 @@ steps:
 - task: AzureKeyVault@1
   inputs:
     azureSubscription: 'OneIdentity.RD.SBox.Safeguard-ServiceConnection'
-    KeyVaultName: 'SafeguardBuildSecrets'
-    SecretsFilter: '*'
+    keyVaultName: 'SafeguardBuildSecrets'
+    secretsFilter: '*'
+    runAsPreJob: true
   displayName: 'Get Sonatype password from Sandbox Azure Key Vault'
   condition: and(succeeded(), eq(variables.isReleaseBranch, false))
     
