@@ -34,7 +34,7 @@ steps:
   displayName: 'Get Sonatype password from Sandbox Azure Key Vault'
   condition: and(succeeded(), eq(variables.isReleaseBranch, false))
     
-- script: echo '$(SonatypeRepositoryPassword)' > repopass.txt
+- script: echo "$(SonatypeRepositoryPassword)" > repopass.txt
 
 - script: cat repopass.txt
 
