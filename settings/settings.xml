@@ -3,9 +3,9 @@
     <servers>
         <server>
             <id>ossrh</id>
-            <username>$(sonatypeusername)</username>
-            <password>$(sonatypepassword)</password>
+            <username>${sonatypeusername}</username>
+            <password>${sonatypepassword}</password>
         </server>
     </servers>
-	
+            
 </settings>
