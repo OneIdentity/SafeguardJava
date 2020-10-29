@@ -56,7 +56,7 @@ steps:
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
-    Options: '--settings $(Build.SourcesDirectory)/settings/settings.xml -D sonatypeusername=bnicholes -D sonatypepassword=$(SonatypeRepositoryPassword) -D revision=$(version)'
+    Options: '--settings $(Build.SourcesDirectory)/settings/settings.xml -D sonatypeusername=hteyoz5c -D sonatypepassword=$(SonatypeRepositoryPassword) -D revision=$(version)'
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
     jdkArchitectureOption: 'x64'
