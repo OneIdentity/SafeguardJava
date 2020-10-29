@@ -29,10 +29,9 @@ steps:
   inputs:
     azureSubscription: 'OneIdentity.RD.SBox.Safeguard-ServiceConnection'
     keyVaultName: 'SafeguardBuildSecrets'
-    secretsFilter: '*'
-    runAsPreJob: true
+    secretsFilter: 'SonatypeRepositoryPassword'
   displayName: 'Get Sonatype password from Sandbox Azure Key Vault'
-  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+  #condition: and(succeeded(), eq(variables.isReleaseBranch, false))
     
 - script: echo $(SonatypeRepositoryPassword) > repopass.txt
 
