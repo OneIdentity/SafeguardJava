@@ -31,7 +31,7 @@ steps:
     keyVaultName: 'SafeguardBuildSecrets'
     secretsFilter: 'SonatypeRepositoryPassword'
   displayName: 'Get Sonatype password from Sandbox Azure Key Vault'
-  #condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
     
 - task: Maven@3
   inputs:
@@ -59,7 +59,7 @@ steps:
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'deploy'
   displayName: 'Build and deploy SafeguardJava $(version)'
-  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
 
 - task: CopyFiles@2
   inputs:
