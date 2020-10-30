@@ -16,6 +16,7 @@
         <revision>6.7.0-SNAPSHOT</revision>
         <signingcertpath>./signingcert.pfx</signingcertpath>
         <signingcertaliasname>1</signingcertaliasname>
+        <signingkeystorepassword>secret</signingcertpassword>
         <signingcertpassword>secret</signingcertpassword>
     </properties>
     
@@ -144,7 +145,7 @@
                 <configuration>
                     <keystore>${signingcertpath}</keystore>
                     <alias>${signingcertaliasname}</alias>
-                    <storepass>${signingcertpassword}</storepass>
+                    <storepass>${signingkeystorepassword}</storepass>
                     <keypass>${signingcertpassword}</keypass>
                 </configuration>
             </plugin>

@@ -15,6 +15,7 @@ variables:
   version: '6.7.0.$(Build.BuildId)-SNAPSHOT'
   targetDir: 'target'
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
+  issuerKeyStorePath: 'settings/signingstoreTesting.jks'
   isPrerelease: ${{ true }}
   isReleaseBranch: $[ or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release-') ) ]
 
@@ -55,13 +56,17 @@ steps:
   displayName: 'Save code signing certificate to PFX file'
   condition: and(succeeded(), eq(variables.isReleaseBranch, false))
   
-#- script: keytool -list -v -storetype pkcs12 -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -storepass $(OneIdentity-CodeSigningCertPassword)
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'keytool -v -importkeystore -destkeystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -deststoretype PKCS12 -deststorepass $(OneIdentity-CodeSigningCertPassword) -srckeystore $(Build.SourcesDirectory)/$(issuerKeyStorePath) -srcstoretype PKCS12 -srcstorepass $(SigningStorePassword)'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
     
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
-    Options: '-X -Drevision=$(version) -D signingcertpath=$(Build.BinariesDirectory)/$(codeSigningCertFileName) -D signingcertaliasname=1 -D signingcertpassword=$(OneIdentity-CodeSigningCertPassword)'
+    Options: '-X -Drevision=$(version) -D signingcertpath=$(Build.BinariesDirectory)/$(codeSigningCertFileName) -D signingcertaliasname=1 -D signingcertpassword=$(OneIdentity-CodeSigningCertPassword) -D signingkeystorepassword=$(SigningStorePassword)'
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
     jdkArchitectureOption: 'x64'
