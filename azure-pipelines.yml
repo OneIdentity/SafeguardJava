@@ -32,7 +32,7 @@ steps:
     keyVaultName: 'SafeguardBuildSecrets'
     secretsFilter: '*'
   displayName: 'Get Sonatype password from Sandbox Azure Key Vault'
-  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
+  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
   
 - task: AzureKeyVault@1
   inputs:
