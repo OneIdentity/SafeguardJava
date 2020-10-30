@@ -55,13 +55,13 @@ steps:
   displayName: 'Save code signing certificate to PFX file'
   condition: and(succeeded(), eq(variables.isReleaseBranch, false))
   
-- script: keytool -list -v -storetype pkcs12 -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -storepass $(OneIdentity-CodeSigningCertPassword)
+#- script: keytool -list -v -storetype pkcs12 -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -storepass $(OneIdentity-CodeSigningCertPassword)
     
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
-    Options: '-Drevision=$(version)'
+    Options: '-Drevision=$(version) -D signingcertpath=$(Build.BinariesDirectory)/$(codeSigningCertFileName) -D signingcertaliasname=1 -D signingcertpassword=$(OneIdentity-CodeSigningCertPassword)'
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
     jdkArchitectureOption: 'x64'
@@ -85,6 +85,14 @@ steps:
   displayName: 'Build and deploy SafeguardJava $(version)'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
 
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: jarsigner -storetype pkcs12 -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) file.jar "alias" 'ls $(Build.ArtifactStagingDirectory)'
+  displayName: 'Signing the release jars'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+#- script: keytool -list -v -storetype pkcs12 -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -storepass $(OneIdentity-CodeSigningCertPassword)
+  
 - task: DeleteFiles@1
   inputs:
     SourceFolder: '$(Build.BinariesDirectory)'
