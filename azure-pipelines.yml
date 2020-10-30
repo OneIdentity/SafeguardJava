@@ -95,7 +95,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      'keytool -list -v -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName)'
+      'keytool -list -v -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -storepass $(OneIdentity-CodeSigningCertPassword)'
       'jarsigner -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -storepass $(OneIdentity-CodeSigningCertPassword) $(Build.SourcesDirectory)/$(targetDir)/safeguardjava-$(version).jar l'
   displayName: 'Verifying the signing jar file'
   condition: and(succeeded(), eq(variables.isReleaseBranch, false))
