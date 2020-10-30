@@ -15,7 +15,7 @@ variables:
   version: '6.7.0.$(Build.BuildId)-SNAPSHOT'
   targetDir: 'target'
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
-  issuerKeyStorePath: 'settings/signingstoreTesting.jks'
+  issuerKeyStorePath: 'settings/signingstore.jks'
   isPrerelease: ${{ true }}
   isReleaseBranch: $[ or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release-') ) ]
 
