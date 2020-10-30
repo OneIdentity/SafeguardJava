@@ -81,7 +81,7 @@ steps:
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
-    Options: '-X --settings $(Build.SourcesDirectory)/settings/settings.xml -D sonatypeusername=$(SonatypeUserToken) -D sonatypepassword=$(SonatypeRepositoryPassword) -D revision=$(version) -D signingcertpath=$(Build.BinariesDirectory)/$(codeSigningCertFileName) -D signingcertaliasname=1 -D signingcertpassword=$(OneIdentity-CodeSigningCertPassword) -D signingkeystorepassword=$(SigningStorePassword)'
+    Options: '-X --settings $(Build.SourcesDirectory)/settings/settings.xml -P release -D sonatypeusername=$(SonatypeUserToken) -D sonatypepassword=$(SonatypeRepositoryPassword) -D revision=$(version) -D signingcertpath=$(Build.BinariesDirectory)/$(codeSigningCertFileName) -D signingcertaliasname=1 -D signingcertpassword=$(OneIdentity-CodeSigningCertPassword) -D signingkeystorepassword=$(SigningStorePassword)'
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
     jdkArchitectureOption: 'x64'
