@@ -16,7 +16,7 @@
         <revision>6.7.0-SNAPSHOT</revision>
         <signingcertpath>./signingcert.pfx</signingcertpath>
         <signingcertaliasname>1</signingcertaliasname>
-        <signingkeystorepassword>secret</signingcertpassword>
+        <signingkeystorepassword>secret</signingkeystorepassword>
         <signingcertpassword>secret</signingcertpassword>
     </properties>
     
