@@ -54,17 +54,9 @@ steps:
       [System.IO.File]::WriteAllBytes($certpath, $protectedCertificateBytes)
   displayName: 'Save code signing certificate to PFX file'
   condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+  
+- script: keytool -list -v -storetype pkcs12 -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -storepass $(OneIdentity-CodeSigningCertPassword)
     
-#- task: Bash@3
-#  inputs:
-#    targetType: 'inline'
-#    script: |
-#        echo "$(OneIdentity-CodeSigning)" > cert.b64
-#        base64 --decode cert.b64 > $(codeSigningCertFileName)
-#        openssl pkcs12 -in $(codeSigningCertFileName) -noout -passin pass:$(OneIdentity-CodeSigningCertPassword)
-#  displayName: 'Save code signing certificate to PFX file'
-#  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
-        
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
@@ -93,6 +85,13 @@ steps:
   displayName: 'Build and deploy SafeguardJava $(version)'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
 
+- task: DeleteFiles@1
+  inputs:
+    SourceFolder: '$(Build.BinariesDirectory)'
+    Contents: '$(codeSigningCertFileName)'
+  condition: succeededOrFailed()
+  displayName: 'Delete code signing certificate files'
+    
 - task: CopyFiles@2
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)/$(targetDir)'
