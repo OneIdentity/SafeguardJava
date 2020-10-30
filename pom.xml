@@ -4,7 +4,7 @@
     
     <groupId>com.oneidentity.safeguard</groupId>
     <artifactId>safeguardjava</artifactId>
-    <version>6.7.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <packaging>jar</packaging>
     
     <name>safeguardjava</name>
@@ -13,6 +13,11 @@
       
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <revision>6.7.0-SNAPSHOT</revision>
+        <signingcertpath>./signingcert.pfx</signingcertpath>
+        <signingcertaliasname>1</signingcertaliasname>
+        <signingkeystorepassword>secret</signingkeystorepassword>
+        <signingcertpassword>secret</signingcertpassword>
     </properties>
     
     <licenses>
@@ -63,7 +68,7 @@
     
 
     <build>
-        <finalName>safeguardjava</finalName>
+        <finalName>safeguardjava-${revision}</finalName>
         
         <plugins>
             <plugin>
@@ -121,10 +126,10 @@
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>
-                    <finalName>safeguardjava-bundle</finalName>
+                    <finalName>safeguardjava-${revision}-bundle</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
-            </plugin>        
+            </plugin>    
         </plugins>
     </build>
 
@@ -159,7 +164,7 @@
                             </execution>
                         </executions>
                     </plugin>   
-                    <plugin>
+                    <!--plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
                         <version>1.6</version>
@@ -172,7 +177,26 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>   
+                    </plugin-->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jarsigner-plugin</artifactId>
+                        <version>3.0.0</version>
+                        <executions>
+                            <execution>
+                                <id>sign</id>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <keystore>${signingcertpath}</keystore>
+                            <alias>${signingcertaliasname}</alias>
+                            <storepass>${signingcertpassword}</storepass>
+                            <keypass>${signingcertpassword}</keypass>
+                        </configuration>
+                    </plugin>
                 </plugins>
             </build>
         </profile>

@@ -4,19 +4,139 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
 
 trigger:
-- master
+  branches:
+    include: [ master, azure-pipelines ]
 
 pool:
   vmImage: 'ubuntu-latest'
 
+# Maven Build Variables:
+variables:
+  version: '6.7.0.$(Build.BuildId)-SNAPSHOT'
+  targetDir: 'target'
+  codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
+  issuerKeyStorePath: 'settings/signingstore.jks'
+  isPrerelease: ${{ true }}
+  isReleaseBranch: $[ or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release-') ) ]
+
 steps:
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'env | sort'
+  displayName: 'Display environment variables'
+  
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'OneIdentity.RD.SBox.Safeguard-ServiceConnection'
+    keyVaultName: 'SafeguardBuildSecrets'
+    secretsFilter: '*'
+  displayName: 'Get Sonatype password from Sandbox Azure Key Vault'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
+  
+- task: AzureKeyVault@1
+  inputs:
+    azureSubscription: 'Azure.Infrastructure.CodeSigning'
+    KeyVaultName: 'CodeSigningCertificates'
+    SecretsFilter: '*'
+  displayName: 'Get code signing certificate from Azure Key Vault'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
+    
+- task: PowerShell@2
+  inputs:
+    targetType: 'inline'
+    script: |
+      $kvSecretBytes = [System.Convert]::FromBase64String("$(OneIdentity-CodeSigning)")
+      $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
+      $certCollection.Import($kvSecretBytes,$null,[System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+      $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12,"$(OneIdentity-CodeSigningCertPassword)")
+      $certpath = '$(Build.BinariesDirectory)/$(codeSigningCertFileName)'
+      Write-Verbose -Verbose $certpath
+      [System.IO.File]::WriteAllBytes($certpath, $protectedCertificateBytes)
+  displayName: 'Save code signing certificate to PFX file'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
+  
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'keytool -v -importkeystore -destkeystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -deststoretype PKCS12 -deststorepass $(OneIdentity-CodeSigningCertPassword) -srckeystore $(Build.SourcesDirectory)/$(issuerKeyStorePath) -srcstoretype PKCS12 -srcstorepass $(SigningStorePassword)'
+  displayName: 'Create the signing keystore'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
+    
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
     mavenOptions: '-Xmx3072m'
+    Options: '-X -Drevision=$(version)'
     javaHomeOption: 'JDKVersion'
     jdkVersionOption: '1.8'
     jdkArchitectureOption: 'x64'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
     goals: 'package'
+  displayName: 'Build and package SafeguardJava $(version)'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+
+- task: Maven@3
+  inputs:
+    mavenPomFile: 'pom.xml'
+    mavenOptions: '-Xmx3072m'
+    Options: '-X --settings $(Build.SourcesDirectory)/settings/settings.xml -P release -D sonatypeusername=$(SonatypeUserToken) -D sonatypepassword=$(SonatypeRepositoryPassword) -D revision=$(version) -D signingcertpath=$(Build.BinariesDirectory)/$(codeSigningCertFileName) -D signingcertaliasname=1 -D signingcertpassword=$(OneIdentity-CodeSigningCertPassword) -D signingkeystorepassword=$(SigningStorePassword)'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: true
+    testResultsFiles: '**/surefire-reports/TEST-*.xml'
+    goals: 'deploy'
+  displayName: 'Build and deploy SafeguardJava $(version)'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
+
+- task: DeleteFiles@1
+  inputs:
+    SourceFolder: '$(Build.BinariesDirectory)'
+    Contents: '$(codeSigningCertFileName)'
+  condition: succeededOrFailed()
+  displayName: 'Delete code signing certificate files'
+    
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)/$(targetDir)'
+    contents: '*.jar'
+    targetFolder: $(Build.ArtifactStagingDirectory)
+  displayName: 'Copy files to staging folder'
+
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)/$(targetDir)'
+    contents: '**/lib/**'
+    targetFolder: $(Build.ArtifactStagingDirectory)
+  displayName: 'Copy files to staging folder'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: '$(Build.ArtifactStagingDirectory)'
+    artifactName: 'SafeguardJava'
+  displayName: 'Publishing the artifacts'
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: 'ls $(Build.ArtifactStagingDirectory)'
+  displayName: 'List staging directory'
+  
+- task: GitHubRelease@1
+  inputs:
+    gitHubConnection: 'github.ReleaseServiceAccount'
+    repositoryName: 'OneIdentity/SafeguardJava'
+    action: 'create'
+    target: '$(Build.SourceVersion)'
+    tagSource: 'userSpecifiedTag'
+    tag: 'release-$(version)'
+    title: '$(version)'
+    isPreRelease: $(isPrerelease)
+    changeLogCompareToRelease: 'lastFullRelease'
+    changeLogType: 'commitBased'
+    assets: |
+      $(Build.ArtifactStagingDirectory)/*.jar
+  displayName: 'Creating and publishing a release to Github'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
