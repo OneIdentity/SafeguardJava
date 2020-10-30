@@ -41,16 +41,30 @@ steps:
   displayName: 'Get code signing certificate from Azure Key Vault'
   condition: and(succeeded(), eq(variables.isReleaseBranch, false))
     
-- task: Bash@3
+- task: PowerShell@2
   inputs:
-    targetType: 'inline'
+    targetType: 'inline
     script: |
-        echo "$(OneIdentity-CodeSigning)" > cert.b64
-        base64 --decode cert.b64 > $(codeSigningCertFileName)
-        openssl pkcs12 -in $(codeSigningCertFileName) -noout -passin pass:$(OneIdentity-CodeSigningCertPassword)
+        $kvSecretBytes = [System.Convert]::FromBase64String("$(OneIdentity-CodeSigning)")
+        $certCollection = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2Collection
+        $certCollection.Import($kvSecretBytes,$null,[System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::Exportable)
+        $protectedCertificateBytes = $certCollection.Export([System.Security.Cryptography.X509Certificates.X509ContentType]::Pkcs12,"$(OneIdentity-CodeSigningCertPassword)")
+        $certpath = '$(Build.BinariesDirectory)/$(codeSigningCertFileName)'
+        Write-Verbose -Verbose $certpath
+        [System.IO.File]::WriteAllBytes($certpath, $protectedCertificateBytes)
   displayName: 'Save code signing certificate to PFX file'
   condition: and(succeeded(), eq(variables.isReleaseBranch, false))
     
+#- task: Bash@3
+#  inputs:
+#    targetType: 'inline'
+#    script: |
+#        echo "$(OneIdentity-CodeSigning)" > cert.b64
+#        base64 --decode cert.b64 > $(codeSigningCertFileName)
+#        openssl pkcs12 -in $(codeSigningCertFileName) -noout -passin pass:$(OneIdentity-CodeSigningCertPassword)
+#  displayName: 'Save code signing certificate to PFX file'
+#  condition: and(succeeded(), eq(variables.isReleaseBranch, false))
+        
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
