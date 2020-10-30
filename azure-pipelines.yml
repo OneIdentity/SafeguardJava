@@ -94,7 +94,7 @@ steps:
 - task: Bash@3
   inputs:
     targetType: 'inline'
-    script: jarsigner -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -storepass $(OneIdentity-CodeSigningCertPassword) $(Build.SourcesDirectory)/$(targetDir)/safeguardjava-$(version).jar l'
+    script: 'jarsigner -keystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -storepass $(OneIdentity-CodeSigningCertPassword) $(Build.SourcesDirectory)/$(targetDir)/safeguardjava-$(version).jar l'
   displayName: 'Verifying the signing jar file'
   condition: and(succeeded(), eq(variables.isReleaseBranch, false))
   
