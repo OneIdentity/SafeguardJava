@@ -130,25 +130,6 @@
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
             </plugin>    
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jarsigner-plugin</artifactId>
-                <version>3.0.0</version>
-                <executions>
-                    <execution>
-                        <id>sign</id>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <keystore>${signingcertpath}</keystore>
-                    <alias>${signingcertaliasname}</alias>
-                    <storepass>${signingcertpassword}</storepass>
-                    <keypass>${signingcertpassword}</keypass>
-                </configuration>
-            </plugin>
         </plugins>
     </build>
 
@@ -211,7 +192,7 @@
                         </executions>
                         <configuration>
                             <keystore>${signingcertpath}</keystore>
-                            <alias>${aliasname}</alias>
+                            <alias>${signingcertaliasname}</alias>
                             <storepass>${signingcertpassword}</storepass>
                             <keypass>${signingcertpassword}</keypass>
                         </configuration>
