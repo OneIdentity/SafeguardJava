@@ -145,7 +145,7 @@
                 <configuration>
                     <keystore>${signingcertpath}</keystore>
                     <alias>${signingcertaliasname}</alias>
-                    <storepass>${signingkeystorepassword}</storepass>
+                    <storepass>${signingcertpassword}</storepass>
                     <keypass>${signingcertpassword}</keypass>
                 </configuration>
             </plugin>
