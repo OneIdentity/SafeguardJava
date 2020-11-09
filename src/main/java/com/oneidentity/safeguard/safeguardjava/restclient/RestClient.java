@@ -249,7 +249,7 @@ public class RestClient {
             }
         }
         if (queryParams != null) {
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
+            for (Map.Entry<String, String> entry : queryParams.entrySet()) {
                 rb.addParameter(entry.getKey(), entry.getValue());
             }
         }
