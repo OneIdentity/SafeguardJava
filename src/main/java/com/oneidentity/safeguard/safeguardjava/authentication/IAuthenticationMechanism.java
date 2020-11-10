@@ -18,6 +18,7 @@ public interface IAuthenticationMechanism
     int getAccessTokenLifetimeRemaining() throws ObjectDisposedException, SafeguardForJavaException;
     HostnameVerifier getValidationCallback();
     void refreshAccessToken() throws ObjectDisposedException, SafeguardForJavaException;
+    String resolveProviderToScope(String provider) throws SafeguardForJavaException;
     Object cloneObject() throws SafeguardForJavaException;
     void dispose();
 }

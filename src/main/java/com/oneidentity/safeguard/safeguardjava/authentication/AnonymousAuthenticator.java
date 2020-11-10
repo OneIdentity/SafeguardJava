@@ -6,6 +6,7 @@ import com.oneidentity.safeguard.safeguardjava.restclient.RestClient;
 import java.util.HashMap;
 import java.util.Map;
 import javax.net.ssl.HostnameVerifier;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 public class AnonymousAuthenticator extends AuthenticatorBase {
@@ -19,8 +20,8 @@ public class AnonymousAuthenticator extends AuthenticatorBase {
         RestClient notificationClient = new RestClient(notificationUrl, ignoreSsl, validationCallback);
         
         Map<String,String> headers = new HashMap<>();
-        headers.put("Accept", "application/json");
-        headers.put("Content-type", "application/json");
+        headers.put(HttpHeaders.ACCEPT, "application/json");
+        headers.put(HttpHeaders.CONTENT_TYPE, "application/json");
         CloseableHttpResponse response = notificationClient.execGET("Status", null, headers);
 
         if (response == null) {

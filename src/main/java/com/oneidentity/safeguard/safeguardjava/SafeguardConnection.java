@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 class SafeguardConnection implements ISafeguardConnection {
@@ -155,7 +156,7 @@ class SafeguardConnection implements ISafeguardConnection {
         if (additionalHeaders == null) {
             additionalHeaders = new HashMap<>();
         }
-        additionalHeaders.put("Accept", "text/csv");
+        additionalHeaders.put(HttpHeaders.ACCEPT, "text/csv");
         
         return invokeMethodFull(service, method, relativeUrl, body, parameters, additionalHeaders).getBody();
     }
@@ -224,13 +225,13 @@ class SafeguardConnection implements ISafeguardConnection {
         
         Map<String,String> headers = new HashMap<>();
         if (!(authenticationMechanism instanceof AnonymousAuthenticator)) { 
-            headers.put("Authorization", String.format("Bearer %s", new String(authenticationMechanism.getAccessToken())));
+            headers.put(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", new String(authenticationMechanism.getAccessToken())));
         }
         
         if (additionalHeaders != null) { 
             headers.putAll(additionalHeaders);
-            if (!additionalHeaders.containsKey("Accept"))
-                headers.put("Accept", "application/json"); // Assume JSON unless specified
+            if (!additionalHeaders.containsKey(HttpHeaders.ACCEPT))
+                headers.put(HttpHeaders.ACCEPT, "application/json"); // Assume JSON unless specified
         }
         return headers;
     }
