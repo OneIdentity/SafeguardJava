@@ -34,6 +34,7 @@ public class PersistentSafeguardA2AEventListener extends PersistentSafeguardEven
         this.apiKey = apiKey.clone();
         this.apiKeys = null;
         registerEventHandler("AssetAccountPasswordUpdated", handler);
+        registerEventHandler("AssetAccountSshKeyUpdated", handler);
         Logger.getLogger(PersistentSafeguardA2AEventListener.class.getName()).log(Level.FINEST, "Persistent A2A event listener successfully created.");
     }
 
@@ -52,6 +53,7 @@ public class PersistentSafeguardA2AEventListener extends PersistentSafeguardEven
             throw new ArgumentException("Parameter apiKeys must include at least one item");
         }
         registerEventHandler("AssetAccountPasswordUpdated", handler);
+        registerEventHandler("AssetAccountSshKeyUpdated", handler);
         Logger.getLogger(PersistentSafeguardA2AEventListener.class.getName()).log(Level.FINEST, "Persistent A2A event listener successfully created.");
     }
     

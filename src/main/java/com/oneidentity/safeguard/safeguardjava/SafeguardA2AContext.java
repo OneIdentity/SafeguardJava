@@ -6,6 +6,7 @@ import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccount;
 import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccountInternal;
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
+import com.oneidentity.safeguard.safeguardjava.data.KeyFormat;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.event.SafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import javax.net.ssl.HostnameVerifier;
+import org.apache.http.HttpHeaders;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 public class SafeguardA2AContext implements ISafeguardA2AContext {
@@ -82,7 +84,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         List<A2ARetrievableAccount> list = new ArrayList<>();
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Accept", "application/json");
+        headers.put(HttpHeaders.ACCEPT, "application/json");
 
         Map<String, String> parameters = new HashMap<>();
         
@@ -151,7 +153,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Authorization", String.format("A2A %s", new String(apiKey)));
+        headers.put(HttpHeaders.AUTHORIZATION, String.format("A2A %s", new String(apiKey)));
 
         Map<String, String> parameters = new HashMap<>();
         parameters.put("type", "Password");
@@ -169,7 +171,44 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
 
         char[] password = reply.replaceAll("\"", "").toCharArray();
+        Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Successfully retrieved A2A password.");
         return password;
+    }
+    
+    @Override
+    public char[] retrievePrivateKey(char[] apiKey, KeyFormat keyFormat) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
+        if (disposed) {
+            throw new ObjectDisposedException("SafeguardA2AContext");
+        }
+
+        if (keyFormat == null)
+            keyFormat = KeyFormat.OpenSsh;
+        
+        if (apiKey == null)
+            throw new ArgumentException("The apiKey parameter may not be null.");
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HttpHeaders.AUTHORIZATION, String.format("A2A %s", new String(apiKey)));
+
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("type", "PrivateKey");
+        parameters.put("keyFormat", keyFormat.name());
+
+        CloseableHttpResponse response = a2AClient.execGET("Credentials", parameters, headers, clientCertificate);
+
+        if (response == null) {
+            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
+        }
+        
+        String reply = Utils.getResponse(response);
+        if (!Utils.isSuccessful(response.getStatusLine().getStatusCode())) {
+            throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
+                    + String.format("%s %s", response.getStatusLine().getStatusCode(), reply));
+        }
+
+        char[] privateKey = reply.replaceAll("\"", "").toCharArray();
+        Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Successfully retrieved A2A private key.");
+        return privateKey;
     }
 
     @Override
@@ -186,7 +225,8 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         SafeguardEventListener eventListener = new SafeguardEventListener(String.format("https://%s/service/a2a", networkAddress),
                 clientCertificate, apiKey, ignoreSsl, validationCallback);
         eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
-        Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.FINEST, "Event listener successfully created for Safeguard A2A context.");
+        eventListener.registerEventHandler("AssetAccountSshKeyUpdated", handler);
+        Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
     }
     
@@ -204,7 +244,8 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         SafeguardEventListener eventListener = new SafeguardEventListener(String.format("https://%s/service/a2a", networkAddress),
                 clientCertificate, apiKeys, ignoreSsl, validationCallback);
         eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
-        Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.FINEST, "Event listener successfully created for Safeguard A2A context.");
+        eventListener.registerEventHandler("AssetAccountSshKeyUpdated", handler);
+        Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
     }
 
@@ -255,8 +296,8 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         }
 
         Map<String, String> headers = new HashMap<>();
-        headers.put("Accept", "application/json");
-        headers.put("Authorization", String.format("A2A %s", new String(apiKey)));
+        headers.put(HttpHeaders.ACCEPT, "application/json");
+        headers.put(HttpHeaders.AUTHORIZATION, String.format("A2A %s", new String(apiKey)));
 
         Map<String, String> parameters = new HashMap<>();
 

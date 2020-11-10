@@ -21,6 +21,7 @@ import microsoft.aspnet.signalr.client.http.HttpConnectionFuture.ResponseCallbac
 import microsoft.aspnet.signalr.client.http.InvalidHttpStatusCodeException;
 import microsoft.aspnet.signalr.client.http.Request;
 import microsoft.aspnet.signalr.client.http.Response;
+import org.apache.http.HttpHeaders;
 
 /**
  * ClientTransport base implementation over Http
@@ -120,7 +121,7 @@ public abstract class HttpClientTransport implements ClientTransport {
             post.setFormContent("data", data);
             post.setUrl(connection.getUrl() + "send" + TransportHelper.getSendQueryString(this, connection));
             post.setHeaders(connection.getHeaders());
-            post.addHeader("Content-Type", "application/x-www-form-urlencoded");
+            post.addHeader(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded");
 
             connection.prepareRequest(post);
 

@@ -14,6 +14,8 @@ public class CertificateAuthenticator extends AuthenticatorBase
     private boolean disposed;
 
     private final CertificateContext clientCertificate;
+    
+    private String provider;
 
     public CertificateAuthenticator(String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias, 
             int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback)
@@ -50,6 +52,46 @@ public class CertificateAuthenticator extends AuthenticatorBase
         this.clientCertificate = clientCertificate.cloneObject();
     }
     
+    public CertificateAuthenticator(String networkAddress, String keystorePath, char[] keystorePassword, String certificateAlias, 
+            int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback, String provider)
+    {
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
+        this.provider = provider;
+        clientCertificate = new CertificateContext(certificateAlias, keystorePath, null, keystorePassword);
+    }
+    
+    public CertificateAuthenticator(String networkAddress, String certificateThumbprint, int apiVersion, 
+            boolean ignoreSsl, HostnameVerifier validationCallback, String provider) throws SafeguardForJavaException
+    {
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
+        this.provider = provider;
+        clientCertificate = new CertificateContext(certificateThumbprint);
+    }
+
+    public CertificateAuthenticator(String networkAddress, String certificatePath, char[] certificatePassword,
+            int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback, String provider) {
+        
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
+        this.provider = provider;
+        clientCertificate = new CertificateContext(null, certificatePath, null, certificatePassword);
+    }
+
+    public CertificateAuthenticator(String networkAddress, byte[] certificateData, char[] certificatePassword, String certificateAlias,
+            int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback, String provider) {
+        
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
+        this.provider = provider;
+        clientCertificate = new CertificateContext(certificateAlias, null, certificateData, certificatePassword);
+    }
+    
+    private CertificateAuthenticator(String networkAddress, CertificateContext clientCertificate, 
+            int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback, String provider) {
+        
+        super(networkAddress, apiVersion, ignoreSsl, validationCallback);
+        this.provider = provider;
+        this.clientCertificate = clientCertificate.cloneObject();
+    }
+    
     @Override
     public String getId() {
         return "Certificate";
@@ -61,8 +103,13 @@ public class CertificateAuthenticator extends AuthenticatorBase
         if (disposed)
             throw new ObjectDisposedException("CertificateAuthenticator");
 
+        String providerScope = "rsts:sts:primaryproviderid:certificate";
+
+        if (!Utils.isNullOrEmpty(provider))
+            providerScope = resolveProviderToScope(provider);
+
         CloseableHttpResponse response = null;
-        OauthBody body = new OauthBody("client_credentials", "rsts:sts:primaryproviderid:certificate");
+        OauthBody body = new OauthBody("client_credentials", providerScope);
         
         response = rstsClient.execPOST("oauth2/token", null, null, body, clientCertificate);
             
