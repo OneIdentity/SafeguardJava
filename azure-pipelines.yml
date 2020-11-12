@@ -5,14 +5,14 @@
 
 trigger:
   branches:
-    include: [ master,  release-* ]
+    include: [ master,  release-*, fixreleaseissues ]
 
 pool:
   vmImage: 'ubuntu-latest'
 
 # Maven Build Variables:
 variables:
-  version: '6.7.1.$(Build.BuildId)'
+  version: '6.7.1.$(Build.BuildId)-SNAPSHOT'
   targetDir: 'target'
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
   issuerKeyStorePath: 'settings/signingstore.jks'
@@ -61,6 +61,15 @@ steps:
     targetType: 'inline'
     script: 'keytool -v -importkeystore -destkeystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -deststoretype PKCS12 -deststorepass $(OneIdentity-CodeSigningCertPassword) -srckeystore $(Build.SourcesDirectory)/$(issuerKeyStorePath) -srcstoretype PKCS12 -srcstorepass $(SigningStorePassword)'
   displayName: 'Create the signing keystore'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
+
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      'cat $(GpgCodeSigningKey) > ./signingkey.asc'
+      'gpg --import ./signingkey.asc'
+  displayName: 'Import the signing key'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
 
 - task: Maven@3

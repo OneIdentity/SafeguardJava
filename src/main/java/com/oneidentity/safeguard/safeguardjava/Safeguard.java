@@ -656,7 +656,7 @@ public final class Safeguard {
      *  @param ignoreSsl If set to <code>true</code> ignore ssl.
      * 
      *  @return The connect.
-     *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
     public static ISafeguardConnection connect(String networkAddress, Integer apiVersion, Boolean ignoreSsl) 
             throws SafeguardForJavaException {
@@ -683,7 +683,7 @@ public final class Safeguard {
      *  @param validationCallback Callback function to be executed during SSL certificate validation.
      * 
      *  @return The connect.
-     *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
     public static ISafeguardConnection connect(String networkAddress, HostnameVerifier validationCallback, Integer apiVersion) 
             throws SafeguardForJavaException {

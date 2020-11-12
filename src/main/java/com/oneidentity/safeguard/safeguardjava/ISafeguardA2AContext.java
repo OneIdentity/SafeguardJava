@@ -42,7 +42,10 @@ public interface ISafeguardA2AContext
      *
      *  @param apiKey    API key corresponding to the configured account.
      *  @param keyFormat Format to use when returning private key.
-     *  return           The SSH private key.
+     *  @return           The SSH private key.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     *  @throws ArgumentException Invalid argument.
      */ 
     char[] retrievePrivateKey(char[] apiKey, KeyFormat keyFormat) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
 
