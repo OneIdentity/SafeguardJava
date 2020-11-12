@@ -5,14 +5,14 @@
 
 trigger:
   branches:
-    include: [ master, azure-pipelines ]
+    include: [ master,  release-* ]
 
 pool:
   vmImage: 'ubuntu-latest'
 
 # Maven Build Variables:
 variables:
-  version: '6.7.0.$(Build.BuildId)-SNAPSHOT'
+  version: '6.7.1.$(Build.BuildId)-SNAPSHOT'
   targetDir: 'target'
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
   issuerKeyStorePath: 'settings/signingstore.jks'
@@ -25,7 +25,7 @@ steps:
     targetType: 'inline'
     script: 'env | sort'
   displayName: 'Display environment variables'
-  
+
 - task: AzureKeyVault@1
   inputs:
     azureSubscription: 'OneIdentity.RD.SBox.Safeguard-ServiceConnection'
@@ -33,7 +33,7 @@ steps:
     secretsFilter: '*'
   displayName: 'Get Sonatype password from Sandbox Azure Key Vault'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
-  
+
 - task: AzureKeyVault@1
   inputs:
     azureSubscription: 'Azure.Infrastructure.CodeSigning'
@@ -41,7 +41,7 @@ steps:
     SecretsFilter: '*'
   displayName: 'Get code signing certificate from Azure Key Vault'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
-    
+
 - task: PowerShell@2
   inputs:
     targetType: 'inline'
@@ -55,14 +55,14 @@ steps:
       [System.IO.File]::WriteAllBytes($certpath, $protectedCertificateBytes)
   displayName: 'Save code signing certificate to PFX file'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
-  
+
 - task: Bash@3
   inputs:
     targetType: 'inline'
     script: 'keytool -v -importkeystore -destkeystore $(Build.BinariesDirectory)/$(codeSigningCertFileName) -deststoretype PKCS12 -deststorepass $(OneIdentity-CodeSigningCertPassword) -srckeystore $(Build.SourcesDirectory)/$(issuerKeyStorePath) -srcstoretype PKCS12 -srcstorepass $(SigningStorePassword)'
   displayName: 'Create the signing keystore'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
-    
+
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
@@ -97,7 +97,7 @@ steps:
     Contents: '$(codeSigningCertFileName)'
   condition: succeededOrFailed()
   displayName: 'Delete code signing certificate files'
-    
+
 - task: CopyFiles@2
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)/$(targetDir)'
@@ -123,7 +123,7 @@ steps:
     targetType: 'inline'
     script: 'ls $(Build.ArtifactStagingDirectory)'
   displayName: 'List staging directory'
-  
+
 - task: GitHubRelease@1
   inputs:
     gitHubConnection: 'github.ReleaseServiceAccount'
