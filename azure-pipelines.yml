@@ -5,7 +5,7 @@
 
 trigger:
   branches:
-    include: [ master,  release-*, fixreleaseissues ]
+    include: [ master,  release-* ]
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -63,15 +63,22 @@ steps:
   displayName: 'Create the signing keystore'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
 
+- script: echo ${SIGNINGGKEY} > $(Build.BinariesDirectory)/signingkey.org
+  env:
+    SIGNINGGKEY: $(GpgCodeSigningKey)
+  displayName: 'Save signing key'
+  condition: and(succeeded(), eq(variables.isReleaseBranch, true))
+  
 - task: Bash@3
   inputs:
     targetType: 'inline'
     script: |
-      'cat $(GpgCodeSigningKey) > ./signingkey.asc'
-      'gpg --import ./signingkey.asc'
+      export GPG_TTY=$(tty)
+      sed 's/\\n/\n/g' $(Build.BinariesDirectory)/signingkey.org > $(Build.BinariesDirectory)/signingkey.asc
+      gpg --batch --import $(Build.BinariesDirectory)/signingkey.asc
   displayName: 'Import the signing key'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
-
+  
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
