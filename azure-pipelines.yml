@@ -121,6 +121,13 @@ steps:
     contents: '*.jar'
     targetFolder: $(Build.ArtifactStagingDirectory)
   displayName: 'Copy files to staging folder'
+  
+- task: CopyFiles@2
+  inputs:
+    sourceFolder: '$(Build.SourcesDirectory)/$(targetDir)'
+    contents: '*.asc'
+    targetFolder: $(Build.ArtifactStagingDirectory)
+  displayName: 'Copy files to staging folder'
 
 - task: CopyFiles@2
   inputs:
@@ -155,5 +162,6 @@ steps:
     changeLogType: 'commitBased'
     assets: |
       $(Build.ArtifactStagingDirectory)/*.jar
+      $(Build.ArtifactStagingDirectory)/*.asc
   displayName: 'Creating and publishing a release to Github'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
