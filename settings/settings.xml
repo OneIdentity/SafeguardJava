@@ -8,7 +8,7 @@
         </server>
         <server>
             <id>${gpgkeyname}</id>
-            <passphrase>${signingcertpassword}</passphrase>
+            <passphrase>${signingkeystorepassword}</passphrase>
         </server>
     </servers>
            
