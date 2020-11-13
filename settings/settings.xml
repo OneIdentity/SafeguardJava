@@ -6,6 +6,10 @@
             <username>${sonatypeusername}</username>
             <password>${sonatypepassword}</password>
         </server>
+        <server>
+            <id>${gpgkeyname}</id>
+            <passphrase>${signingcertpassword}</passphrase>
+        </server>
     </servers>
            
     <profiles>
@@ -16,7 +20,7 @@
             </activation>
             <properties>
                 <gpg.executable>gpg</gpg.executable>
-                <gpg.passphrase>${signingcertpassword}</gpg.passphrase>
+                <gpg.keyname>${gpgkeyname}</gpg.keyname>
             </properties>
         </profile>
     </profiles>

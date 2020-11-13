@@ -18,6 +18,7 @@
         <signingcertaliasname>1</signingcertaliasname>
         <signingkeystorepassword>secret</signingkeystorepassword>
         <signingcertpassword>secret</signingcertpassword>
+        <gpgkeyname>keyname</gpgkeyname>
     </properties>
     
     <licenses>
@@ -175,6 +176,15 @@
                                 <goals>
                                     <goal>sign</goal>
                                 </goals>
+                                <configuration>
+                                    <keyname>${gpgkeyname}</keyname>
+                                    <passphraseServerId>${gpgkeyname}</passphraseServerId>
+                                    <gpgArguments>
+                                        <arg>--batch</arg>
+                                        <arg>--pinentry-mode</arg>
+                                        <arg>loopback</arg>
+                                    </gpgArguments>
+                                </configuration>                            
                             </execution>
                         </executions>
                     </plugin>
