@@ -1,6 +1,7 @@
 package com.oneidentity.safeguard.safeguardjava;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.oneidentity.safeguard.safeguardjava.data.A2ARegistration;
 import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccount;
 import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccountInternal;
@@ -206,7 +207,8 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
                     + String.format("%s %s", response.getStatusLine().getStatusCode(), reply));
         }
 
-        char[] privateKey = reply.replaceAll("\"", "").toCharArray();
+        char[] privateKey = (new Gson().fromJson(reply, String.class)).toCharArray();
+        
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Successfully retrieved A2A private key.");
         return privateKey;
     }
