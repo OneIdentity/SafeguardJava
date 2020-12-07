@@ -148,7 +148,7 @@ public class SafeguardTests {
         ISafeguardConnection connection = null;
         
         String address = readLine("SPP address: ", null);
-        String provider = readLine("Provider:", "local");
+        String provider = readLine("Provider:", null);
         String keystorePath = readLine("Keystore Path:", null);
         String password = readLine("Password: ", null);
         String alias = readLine("Alias: ", null);

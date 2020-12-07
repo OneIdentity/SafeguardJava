@@ -209,7 +209,12 @@ public class RestClient {
                 } else {
                     in = certificateContext.getCertificatePath() != null ? new FileInputStream(certificateContext.getCertificatePath()) 
                             : new ByteArrayInputStream(certificateContext.getCertificateData());
-                    clientKs = KeyStore.getInstance("JKS");
+                    try {
+                        clientKs = KeyStore.getInstance("JKS");
+                    } catch (KeyStoreException ex) {
+                        Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, "Could not get instance of JDK, trying PKCS12", ex);
+                        clientKs = KeyStore.getInstance("PKCS12");
+                    }
                     clientKs.load(in, keyPass);
                     aliases = Collections.list(clientKs.aliases());
                     in.close();
