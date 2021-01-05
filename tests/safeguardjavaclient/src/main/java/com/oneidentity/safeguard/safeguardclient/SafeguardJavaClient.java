@@ -78,24 +78,27 @@ public class SafeguardJavaClient {
                     a2aContext = tests.safeguardGetA2AContextByKeystore();
                     break;
                 case 11:
-                    tests.safeguardTestA2AContext(a2aContext);
+                    a2aContext = tests.safeguardGetA2AContextByThumbprint();
                     break;
                 case 12:
-                    a2aContext = tests.safeguardDisconnectA2AContext(a2aContext);
+                    tests.safeguardTestA2AContext(a2aContext);
                     break;
                 case 13:
-                    eventListener = tests.safeguardEventListenerByUserPassword();
+                    a2aContext = tests.safeguardDisconnectA2AContext(a2aContext);
                     break;
                 case 14:
-                    eventListener = tests.safeguardEventListenerByCertificate();
+                    eventListener = tests.safeguardEventListenerByUserPassword();
                     break;
                 case 15:
-                    eventListener = tests.safeguardEventListenerByKeystore();
+                    eventListener = tests.safeguardEventListenerByCertificate();
                     break;
                 case 16:
-                    tests.safeguardTestEventListener(eventListener);
+                    eventListener = tests.safeguardEventListenerByKeystore();
                     break;
                 case 17:
+                    tests.safeguardTestEventListener(eventListener);
+                    break;
+                case 18:
                     eventListener = tests.safeguardDisconnectEventListener(eventListener);
                     break;
                 default:
@@ -120,13 +123,14 @@ public class SafeguardJavaClient {
         System.out.println ("\t8. Disconnect");
         System.out.println ("\t9. A2AContext by certificate file");
         System.out.println ("\t10. A2AContext by keystore");
-        System.out.println ("\t11. Test A2AContext");
-        System.out.println ("\t12. Disconnect A2AContext");
-        System.out.println ("\t13. Event Listener by user/password");
-        System.out.println ("\t14. Event Listener by certificate file");
-        System.out.println ("\t15. Event Listener by keystore");
-        System.out.println ("\t16. Test Event Listener");
-        System.out.println ("\t17. Disconnect Event Listener");
+        System.out.println ("\t11. A2AContext by thumbprint");
+        System.out.println ("\t12. Test A2AContext");
+        System.out.println ("\t13. Disconnect A2AContext");
+        System.out.println ("\t14. Event Listener by user/password");
+        System.out.println ("\t15. Event Listener by certificate file");
+        System.out.println ("\t16. Event Listener by keystore");
+        System.out.println ("\t17. Test Event Listener");
+        System.out.println ("\t18. Disconnect Event Listener");
         
         System.out.println ("\t99. Exit");
         

@@ -13,7 +13,7 @@
       
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <revision>6.8.0-SNAPSHOT</revision>
+        <revision>6.7.3-SNAPSHOT</revision>
         <signingcertpath>./signingcert.pfx</signingcertpath>
         <signingcertaliasname>1</signingcertaliasname>
         <signingkeystorepassword>secret</signingkeystorepassword>
