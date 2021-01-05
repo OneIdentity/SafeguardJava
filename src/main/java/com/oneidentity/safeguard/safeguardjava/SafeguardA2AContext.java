@@ -65,6 +65,10 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         this(networkAddress, new CertificateContext(certificateAlias, null, null, null), apiVersion, ignoreSsl, validationCallback);
     }
     
+    public SafeguardA2AContext(String networkAddress, int apiVersion, boolean ignoreSsl, String thumbprint, HostnameVerifier validationCallback) throws SafeguardForJavaException {
+        this(networkAddress, new CertificateContext(thumbprint), apiVersion, ignoreSsl, validationCallback);
+    }
+    
     public SafeguardA2AContext(String networkAddress, String certificatePath, char[] certificatePassword,
             int apiVersion, boolean ignoreSsl, HostnameVerifier validationCallback) {
         this(networkAddress, new CertificateContext(null, certificatePath, null, certificatePassword), apiVersion, ignoreSsl, validationCallback);

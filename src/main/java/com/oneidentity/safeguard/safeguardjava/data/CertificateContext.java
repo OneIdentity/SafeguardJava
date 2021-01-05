@@ -84,7 +84,8 @@ public class CertificateContext {
         clone.setCertificateAlias(certificateAlias);
         clone.setCertificatePath(certificatePath);
         clone.setCertificateData(certificateData);
-        clone.setCertificatePassword(certificatePassword.clone());
+        clone.setCertificatePassword(certificatePassword == null ? null : certificatePassword.clone());
+        clone.setCertificateThumbprint(certificateThumbprint);
         
         return clone;
     }
