@@ -1014,6 +1014,85 @@ public final class Safeguard {
         }
 
         /**
+         *  Get a persistent event listener using a certificate from the Windows 
+         *  certificate store. This is a Windows only API and requires that the
+         *  SunMSCAPI security provider is available in the Java environment.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param thumbprint Thumbprint of the client certificate.
+         *  @param apiVersion Target API version to use.
+         *  @param ignoreSsl Ignore server certificate validation.
+         *  @param provider Safeguard authentication provider name (e.g. local).
+         * 
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java
+         *  exception.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress, String thumbprint,
+                Integer apiVersion, Boolean ignoreSsl, String provider)
+                throws ObjectDisposedException, SafeguardForJavaException {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            boolean sslIgnore = false;
+            if (ignoreSsl != null) {
+                sslIgnore = ignoreSsl;
+            }
+            
+            if (Utils.isWindows()) {
+                if (!Utils.isSunMSCAPILoaded()) {
+                    throw new SafeguardForJavaException("Missing SunMSCAPI provider. The SunMSCAPI provider must be added as a security provider in $JAVA_HOME/jre/lib/security/java.security configuration file.");
+                }
+            }
+            else {
+                throw new SafeguardForJavaException("Not implemented. This function is only available on the Windows platform.");
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(
+                    new CertificateAuthenticator(networkAddress, thumbprint, version, ignoreSsl, null, provider)));
+        }
+
+        /**
+         *  Get a persistent event listener using a certificate from the Windows 
+         *  certificate store. This is a Windows only API and requires that the
+         *  SunMSCAPI security provider is available in the Java environment.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param thumbprint Thumbprint of the client certificate.
+         *  @param provider Safeguard authentication provider name (e.g. local).
+         *  @param apiVersion Target API version to use.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         * 
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java
+         *  exception.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress, String thumbprint,
+                HostnameVerifier validationCallback, String provider, Integer apiVersion)
+                throws ObjectDisposedException, SafeguardForJavaException {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+            
+            if (Utils.isWindows()) {
+                if (!Utils.isSunMSCAPILoaded()) {
+                    throw new SafeguardForJavaException("Missing SunMSCAPI provider. The SunMSCAPI provider must be added as a security provider in $JAVA_HOME/jre/lib/security/java.security configuration file.");
+                }
+            }
+            else {
+                throw new SafeguardForJavaException("Not implemented. This function is only available on the Windows platform.");
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(
+                    new CertificateAuthenticator(networkAddress, thumbprint, version, false, validationCallback, provider)));
+        }
+
+        /**
          *  Get a persistent event listener using a client certificate stored in memory.
          *
          *  @param networkAddress Network address of Safeguard appliance.
@@ -1195,6 +1274,75 @@ public final class Safeguard {
         }
 
         /**
+         *  Establish a Safeguard A2A context using a certificate from the Windows 
+         *  certificate store. This is a Windows only API and requires that the
+         *  SunMSCAPI security provider is available in the Java environment.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param thumbprint Thumbprint of the client certificate.
+         *  @param apiVersion Target API version to use.
+         *  @param ignoreSsl Ignore server certificate validation.
+         * 
+         *  @return Reusable Safeguard A2A context.
+         *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+         */
+        public static ISafeguardA2AContext getContext(String networkAddress, String thumbprint,
+                Integer apiVersion, Boolean ignoreSsl) throws SafeguardForJavaException {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            boolean sslIgnore = false;
+            if (ignoreSsl != null) {
+                sslIgnore = ignoreSsl;
+            }
+
+            if (Utils.isWindows()) {
+                if (!Utils.isSunMSCAPILoaded()) {
+                    throw new SafeguardForJavaException("Missing SunMSCAPI provider. The SunMSCAPI provider must be added as a security provider in $JAVA_HOME/jre/lib/security/java.security configuration file.");
+                }
+            }
+            else {
+                throw new SafeguardForJavaException("Not implemented. This function is only available on the Windows platform.");
+            }
+        
+            return new SafeguardA2AContext(networkAddress, version, sslIgnore, thumbprint, null);
+        }
+
+        /**
+         *  Establish a Safeguard A2A context using a certificate from the Windows 
+         *  certificate store. This is a Windows only API and requires that the
+         *  SunMSCAPI security provider is available in the Java environment.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param thumbprint Thumbprint of the client certificate.
+         *  @param apiVersion Target API version to use.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         * 
+         *  @return Reusable Safeguard A2A context.
+         *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+         */
+        public static ISafeguardA2AContext getContext(String networkAddress, String thumbprint,
+                HostnameVerifier validationCallback, Integer apiVersion) throws SafeguardForJavaException {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+            
+            if (Utils.isWindows()) {
+                if (!Utils.isSunMSCAPILoaded()) {
+                    throw new SafeguardForJavaException("Missing SunMSCAPI provider. The SunMSCAPI provider must be added as a security provider in $JAVA_HOME/jre/lib/security/java.security configuration file.");
+                }
+            }
+            else {
+                throw new SafeguardForJavaException("Not implemented. This function is only available on the Windows platform.");
+            }
+
+            return new SafeguardA2AContext(networkAddress, version, false, thumbprint, validationCallback);
+        }
+
+        /**
          *  Establish a Safeguard A2A context using a client certificate stored in a file.
          *
          *  @param networkAddress Network address of Safeguard appliance.
@@ -1300,10 +1448,10 @@ public final class Safeguard {
         public static class Event {
 
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate the keystore.
+             *  Get a persistent A2A event listener. The handler passed 
+             *  in will be registered for the AssetAccountPasswordUpdated 
+             *  event, which is the only one supported in A2A. Uses a 
+             *  client certificate in a keystore.
              *
              *  @param apiKey API key corresponding to the configured account to
              *  listen for.
@@ -1342,10 +1490,10 @@ public final class Safeguard {
             }
 
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate the keystore.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate the keystore.
              *
              *  @param apiKey API key corresponding to the configured account to
              *  listen for.
@@ -1379,10 +1527,10 @@ public final class Safeguard {
             }
 
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate from a file.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate from a file.
              *
              *  @param apiKey API key corresponding to the configured account to
              *  listen for.
@@ -1420,10 +1568,10 @@ public final class Safeguard {
             }
             
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate from a file.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate from a file.
              *
              *  @param apiKey API key corresponding to the configured account to
              *  listen for.
@@ -1456,10 +1604,10 @@ public final class Safeguard {
             }
             
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate stored in memory.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate stored in memory.
              *
              *  @param apiKey API key corresponding to the configured account to
              *  listen for.
@@ -1496,10 +1644,10 @@ public final class Safeguard {
             }
             
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate stored in memory.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate stored in memory.
              *
              *  @param apiKey API key corresponding to the configured account to
              *  listen for.
@@ -1531,10 +1679,10 @@ public final class Safeguard {
             }
             
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate from a keystore.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate from a keystore.
              *
              *  @param apiKeys A list of API keys corresponding to the configured accounts to
              *  listen for.
@@ -1573,10 +1721,10 @@ public final class Safeguard {
             }
 
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate from a keystore.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate from a keystore.
              *
              *  @param apiKeys A list of API keys corresponding to the configured accounts to
              *  listen for.
@@ -1610,10 +1758,10 @@ public final class Safeguard {
             }
 
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate stored in a file.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate stored in a file.
              *
              *  @param apiKeys A list of API key corresponding to the configured accounts to
              *  listen for.
@@ -1651,10 +1799,107 @@ public final class Safeguard {
             }
             
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate stored in a file.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate from the Windows certificate store. This is a 
+             *  Windows only API and requires that the SunMSCAPI security 
+             *  provider is available in the Java environment.
+             *
+             *  @param apiKeys A list of API key corresponding to the configured accounts to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param thumbprint Thumbprint of the client certificate.
+             *  @param apiVersion Target API version to use.
+             *  @param validationCallback Callback function to be executed during SSL certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys,
+                    ISafeguardEventHandler handler, String networkAddress, String thumbprint,
+                    HostnameVerifier validationCallback, Integer apiVersion)
+                    throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
+                
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                if (Utils.isWindows()) {
+                    if (!Utils.isSunMSCAPILoaded()) {
+                        throw new SafeguardForJavaException("Missing SunMSCAPI provider. The SunMSCAPI provider must be added as a security provider in $JAVA_HOME/jre/lib/security/java.security configuration file.");
+                    }
+                }
+                else {
+                    throw new SafeguardForJavaException("Not implemented. This function is only available on the Windows platform.");
+                }
+                
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, version, false, 
+                                thumbprint, validationCallback), apiKeys, handler);
+            }
+            
+            /**
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate from the Windows certificate store. This is a 
+             *  Windows only API and requires that the SunMSCAPI security 
+             *  provider is available in the Java environment.
+             *
+             *  @param apiKeys A list of API key corresponding to the configured accounts to
+             *  listen for.
+             *  @param handler A delegate to call any time the
+             *  AssetAccountPasswordUpdate event occurs.
+             *  @param networkAddress Network address of Safeguard appliance.
+             *  @param thumbprint Thumbprint of the client certificate.
+             *  @param apiVersion Target API version to use.
+             *  @param ignoreSsl Ignore server certificate validation.
+             * 
+             *  @return New persistent A2A event listener.
+             *  @throws ObjectDisposedException Object has already been disposed.
+             *  @throws ArgumentException Invalid argument.
+             *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+             */
+            public static ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys,
+                    ISafeguardEventHandler handler, String networkAddress, String thumbprint,
+                    Integer apiVersion, Boolean ignoreSsl)
+                    throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
+                
+                int version = DEFAULTAPIVERSION;
+                if (apiVersion != null) {
+                    version = apiVersion;
+                }
+
+                boolean sslIgnore = false;
+                if (ignoreSsl != null) {
+                    sslIgnore = ignoreSsl;
+                }
+
+                if (Utils.isWindows()) {
+                    if (!Utils.isSunMSCAPILoaded()) {
+                        throw new SafeguardForJavaException("Missing SunMSCAPI provider. The SunMSCAPI provider must be added as a security provider in $JAVA_HOME/jre/lib/security/java.security configuration file.");
+                    }
+                }
+                else {
+                    throw new SafeguardForJavaException("Not implemented. This function is only available on the Windows platform.");
+                }
+        
+                return new PersistentSafeguardA2AEventListener(
+                        new SafeguardA2AContext(networkAddress, version, ignoreSsl, 
+                                thumbprint, null), apiKeys, handler);
+            }
+            
+            /**
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate stored in a file.
              *
              *  @param apiKeys A list of API key corresponding to the configured accounts to
              *  listen for.
@@ -1687,10 +1932,10 @@ public final class Safeguard {
             }
             
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate stored in memory.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate stored in memory.
              *
              *  @param apiKeys A list of API key corresponding to the configured accounts to
              *  listen for.
@@ -1727,10 +1972,10 @@ public final class Safeguard {
             }
             
             /**
-             *  Get a persistent A2A event listener for Gets an A2A event
-             *  listener. The handler passed in will be registered for the
-             *  AssetAccountPasswordUpdated event, which is the only one
-             *  supported in A2A. Uses a client certificate stored in memory.
+             *  Get a persistent A2A event listener. The handler passed in 
+             *  will be registered for the AssetAccountPasswordUpdated event, 
+             *  which is the only one supported in A2A. Uses a client 
+             *  certificate stored in memory.
              *
              *  @param apiKeys A list of API key corresponding to the configured accounts to
              *  listen for.
