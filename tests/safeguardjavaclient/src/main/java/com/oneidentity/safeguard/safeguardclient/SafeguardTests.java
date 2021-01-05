@@ -258,6 +258,29 @@ public class SafeguardTests {
         return a2aContext;
     }
 
+    ISafeguardA2AContext safeguardGetA2AContextByThumbprint() {
+        ISafeguardA2AContext a2aContext = null;
+        
+        String address = readLine("SPP address: ", null);
+        String thumbprint = readLine("Thumbprint:", null);
+        boolean withCertValidator = readLine("With Certificate Validator(y/n): ", "y").equalsIgnoreCase("y");
+        boolean ignoreSsl = readLine("Ignore SSL(y/n): ", "y").equalsIgnoreCase("y");
+        
+        try {
+            if (withCertValidator) {
+                a2aContext = Safeguard.A2A.getContext(address, thumbprint, new CertificateValidator(), null);
+            } else {
+                a2aContext = Safeguard.A2A.getContext(address, thumbprint, null, ignoreSsl);
+            }
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]A2AContext failed: " + ex.getMessage());
+        }
+        
+        if (a2aContext != null)
+            System.out.println("\tSuccessful A2A context connection.");
+        return a2aContext;
+    }
+    
     public void safeguardTestA2AContext(ISafeguardA2AContext a2aContext) {
         
         if (a2aContext == null) {
@@ -436,7 +459,5 @@ public class SafeguardTests {
         }
         return null;
     }
-    
-    
-    
+
 }

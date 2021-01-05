@@ -23,7 +23,7 @@
         <dependency>
             <groupId>com.oneidentity.safeguard</groupId>
             <artifactId>safeguardjava</artifactId>
-            <version>6.8.0-SNAPSHOT</version>
+            <version>6.7.3-SNAPSHOT</version>
         </dependency>    
           
         <dependency>
