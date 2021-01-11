@@ -61,15 +61,6 @@ public class CertificateContext {
     }
 
     public byte[] getCertificateData() {
-        if(certificateData == null) {
-            try {
-                File file = new File(getCertificatePath());
-                certificateData = Files.readAllBytes(file.toPath());
-                return certificateData;
-            }catch(IOException err){
-                Logger.getLogger(CertificateContext.class.getName()).log(Level.WARNING, String.format("Error reading certificate file: %s", err.getMessage()));
-            }
-        }
         return certificateData;
     }
 

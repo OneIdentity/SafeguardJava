@@ -1022,6 +1022,83 @@ public final class Safeguard {
          *  @param thumbprint Thumbprint of the client certificate.
          *  @param apiVersion Target API version to use.
          *  @param ignoreSsl Ignore server certificate validation.
+         * 
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java
+         *  exception.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress, String thumbprint,
+                Integer apiVersion, Boolean ignoreSsl)
+                throws ObjectDisposedException, SafeguardForJavaException {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            boolean sslIgnore = false;
+            if (ignoreSsl != null) {
+                sslIgnore = ignoreSsl;
+            }
+            
+            if (Utils.isWindows()) {
+                if (!Utils.isSunMSCAPILoaded()) {
+                    throw new SafeguardForJavaException("Missing SunMSCAPI provider. The SunMSCAPI provider must be added as a security provider in $JAVA_HOME/jre/lib/security/java.security configuration file.");
+                }
+            }
+            else {
+                throw new SafeguardForJavaException("Not implemented. This function is only available on the Windows platform.");
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(
+                    new CertificateAuthenticator(networkAddress, thumbprint, version, ignoreSsl, null, null)));
+        }
+
+        /**
+         *  Get a persistent event listener using a certificate from the Windows 
+         *  certificate store. This is a Windows only API and requires that the
+         *  SunMSCAPI security provider is available in the Java environment.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param thumbprint Thumbprint of the client certificate.
+         *  @param apiVersion Target API version to use.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         * 
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java
+         *  exception.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress, String thumbprint,
+                HostnameVerifier validationCallback, Integer apiVersion)
+                throws ObjectDisposedException, SafeguardForJavaException {
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+            
+            if (Utils.isWindows()) {
+                if (!Utils.isSunMSCAPILoaded()) {
+                    throw new SafeguardForJavaException("Missing SunMSCAPI provider. The SunMSCAPI provider must be added as a security provider in $JAVA_HOME/jre/lib/security/java.security configuration file.");
+                }
+            }
+            else {
+                throw new SafeguardForJavaException("Not implemented. This function is only available on the Windows platform.");
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(
+                    new CertificateAuthenticator(networkAddress, thumbprint, version, false, validationCallback, null)));
+        }
+
+        /**
+         *  Get a persistent event listener using a certificate from the Windows 
+         *  certificate store. This is a Windows only API and requires that the
+         *  SunMSCAPI security provider is available in the Java environment.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param thumbprint Thumbprint of the client certificate.
+         *  @param apiVersion Target API version to use.
+         *  @param ignoreSsl Ignore server certificate validation.
          *  @param provider Safeguard authentication provider name (e.g. local).
          * 
          *  @return New persistent Safeguard event listener.
