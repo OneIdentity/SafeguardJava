@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <groupId>com.oneidentity.safeguard</groupId>
     <artifactId>safeguardjava</artifactId>
     <version>${revision}</version>
     <packaging>jar</packaging>
-    
+
     <name>safeguardjava</name>
     <description>One Identity Safeguard Web API Java SDK</description>
     <url>https://github.com/OneIdentity/SafeguardJava</url>
-      
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <revision>6.8.0-SNAPSHOT</revision>
@@ -20,7 +20,7 @@
         <signingcertpassword>secret</signingcertpassword>
         <gpgkeyname>keyname</gpgkeyname>
     </properties>
-    
+
     <licenses>
         <license>
             <name>Apache License, Version 2.0</name>
@@ -28,7 +28,7 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-      
+
     <developers>
         <developer>
             <name>Brad Nicholes</name>
@@ -37,24 +37,34 @@
             <organizationUrl>https://www.oneidentity.com</organizationUrl>
         </developer>
     </developers>
-        
+
     <dependencies>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>3.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.signalr</groupId>
+            <artifactId>signalr</artifactId>
+            <version>5.0.1</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.5</version>        
+            <version>4.5.5</version>
         </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
             <version>2.9.10.5</version>
             <type>jar</type>
-        </dependency>           
+        </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
             <version>1.7.25</version>
-        </dependency>        
+        </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
@@ -66,11 +76,11 @@
             <version>1.5.1</version>
         </dependency>
     </dependencies>
-    
+
 
     <build>
         <finalName>safeguardjava-${revision}</finalName>
-        
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -111,7 +121,7 @@
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
-            </plugin>  
+            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <executions>
@@ -130,7 +140,7 @@
                     <finalName>safeguardjava-${revision}-bundle</finalName>
                     <appendAssemblyId>false</appendAssemblyId>
                 </configuration>
-            </plugin>    
+            </plugin>
         </plugins>
     </build>
 
@@ -164,7 +174,7 @@
                                 </goals>
                             </execution>
                         </executions>
-                    </plugin>   
+                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
@@ -184,7 +194,7 @@
                                         <arg>--pinentry-mode</arg>
                                         <arg>loopback</arg>
                                     </gpgArguments>
-                                </configuration>                            
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -204,7 +214,7 @@
                                 <goals>
                                     <goal>verify</goal>
                                 </goals>
-                            </execution>                        
+                            </execution>
                         </executions>
                         <configuration>
                             <keystore>${signingcertpath}</keystore>
@@ -217,7 +227,7 @@
             </build>
         </profile>
     </profiles>
-    
+
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
@@ -234,5 +244,5 @@
         <developerConnection>scm:git:ssh://github.com:OneIdentity/SafeguardJava.git</developerConnection>
         <url>https://github.com/OneIdentity/SafeguardJava</url>
     </scm>
-  
+
 </project>

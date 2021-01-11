@@ -2,35 +2,17 @@ package com.oneidentity.safeguard.safeguardclient;
 
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
-import com.oneidentity.safeguard.safeguardjava.Safeguard;
-import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccount;
-import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
-import com.oneidentity.safeguard.safeguardjava.data.KeyFormat;
-import com.oneidentity.safeguard.safeguardjava.data.Method;
-import com.oneidentity.safeguard.safeguardjava.data.Service;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
-import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
-import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
-import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.List;
 import java.util.Scanner;
-//import javax.ws.rs.core.MultivaluedHashMap;
-//import javax.ws.rs.core.MultivaluedMap;
 
 public class SafeguardJavaClient {
 
@@ -96,9 +78,12 @@ public class SafeguardJavaClient {
                     eventListener = tests.safeguardEventListenerByKeystore();
                     break;
                 case 17:
-                    tests.safeguardTestEventListener(eventListener);
+                    eventListener = tests.safeguardEventListenerByThumbprint();
                     break;
                 case 18:
+                    tests.safeguardTestEventListener(eventListener);
+                    break;
+                case 19:
                     eventListener = tests.safeguardDisconnectEventListener(eventListener);
                     break;
                 default:
@@ -129,8 +114,9 @@ public class SafeguardJavaClient {
         System.out.println ("\t14. Event Listener by user/password");
         System.out.println ("\t15. Event Listener by certificate file");
         System.out.println ("\t16. Event Listener by keystore");
-        System.out.println ("\t17. Test Event Listener");
-        System.out.println ("\t18. Disconnect Event Listener");
+        System.out.println ("\t17. Event Listener by thumbprint");
+        System.out.println ("\t18. Test Event Listener");
+        System.out.println ("\t19. Disconnect Event Listener");
         
         System.out.println ("\t99. Exit");
         

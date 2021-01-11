@@ -4,16 +4,22 @@ import com.oneidentity.safeguard.safeguardjava.CertificateUtilities;
 import com.oneidentity.safeguard.safeguardjava.Utils;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.security.cert.X509Certificate;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class CertificateContext {
-    
+
     private String certificateAlias;
     private String certificatePath;
     private byte[] certificateData;
     private char[] certificatePassword;
     private String certificateThumbprint; //Windows Only
-    
+
     public CertificateContext(String certificateAlias, String certificatePath, byte[] certificateData, char[] certificatePassword) {
 
         this.certificateAlias = certificateAlias;
@@ -31,7 +37,7 @@ public class CertificateContext {
         this.certificatePassword = null;
         this.certificateThumbprint = thumbprint;
     }
-    
+
     private CertificateContext() {
     }
 
@@ -61,7 +67,7 @@ public class CertificateContext {
     public void setCertificateData(byte[] certificateData) {
         this.certificateData = certificateData;
     }
-    
+
     public char[] getCertificatePassword() {
         return certificatePassword;
     }
@@ -69,7 +75,7 @@ public class CertificateContext {
     public void setCertificatePassword(char[] certificatePassword) {
         this.certificatePassword = certificatePassword;
     }
-    
+
     public String getCertificateThumbprint() {
         return certificateThumbprint;
     }
@@ -86,7 +92,7 @@ public class CertificateContext {
         clone.setCertificateData(certificateData);
         clone.setCertificatePassword(certificatePassword == null ? null : certificatePassword.clone());
         clone.setCertificateThumbprint(certificateThumbprint);
-        
+
         return clone;
     }
 
@@ -95,7 +101,7 @@ public class CertificateContext {
     {
         if (certificateData != null)
             return "certificateData=[internal-data]";
-        
+
         String result = Utils.isNullOrEmpty(certificatePath) ? String.format("certificateAlias=%s", certificateAlias) : String.format("certificatePath=%s", certificatePath);
         return result;
     }

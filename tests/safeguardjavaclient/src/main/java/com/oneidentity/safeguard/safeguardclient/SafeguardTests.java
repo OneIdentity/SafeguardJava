@@ -417,6 +417,33 @@ public class SafeguardTests {
         return eventListener;
     }
     
+    ISafeguardEventListener safeguardEventListenerByThumbprint() {
+        ISafeguardA2AContext a2aContext = null;
+        
+        String address = readLine("SPP address: ", null);
+        String thumbprint = readLine("Thumbprint:", null);
+        boolean withCertValidator = readLine("With Certificate Validator(y/n): ", "n").equalsIgnoreCase("y");
+        boolean ignoreSsl = readLine("Ignore SSL(y/n): ", "y").equalsIgnoreCase("y");
+        
+        ISafeguardEventListener eventListener = null;
+        
+        try {
+            if (withCertValidator) {
+                eventListener = Safeguard.Event.getPersistentEventListener(address, thumbprint, new CertificateValidator(), null);
+            } else {
+                eventListener = Safeguard.Event.getPersistentEventListener(address, thumbprint, null, ignoreSsl);
+            }
+        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Event listener failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Event listener failed: " + ex.getMessage());
+        }
+        
+        if (eventListener != null)
+            System.out.println("\tSuccessfully create an event listener.");
+        return eventListener;
+    }
+
     public void safeguardTestEventListener(ISafeguardEventListener eventListener) {
         
         if (eventListener == null) {
