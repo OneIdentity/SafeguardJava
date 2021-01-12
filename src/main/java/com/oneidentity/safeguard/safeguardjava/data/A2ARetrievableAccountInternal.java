@@ -27,6 +27,8 @@ public class A2ARetrievableAccountInternal {
     private String assetDescription;
     @JsonProperty("AccountDescription")
     private String accountDescription;
+    @JsonProperty("NetworkAddress")
+    private String assetNetworkAddress;
 
     public A2ARetrievableAccountInternal() {
     }
@@ -109,5 +111,13 @@ public class A2ARetrievableAccountInternal {
 
     public void setAccountDescription(String accountDescription) {
         this.accountDescription = accountDescription;
+    }
+    
+    public String getAssetNetworkAddress() {
+        return assetNetworkAddress;
+    }
+
+    public void setAssetNetworkAddress(String assetNetworkAddress) {
+        this.assetNetworkAddress = assetNetworkAddress;
     }
 }
