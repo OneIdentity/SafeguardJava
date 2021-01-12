@@ -12,12 +12,12 @@ pool:
 
 # Maven Build Variables:
 variables:
-  version: '6.8.0.$(Build.BuildId)-SNAPSHOT'
+  version: '6.8.0.$(Build.BuildId)'
   targetDir: 'target'
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
   issuerKeyStorePath: 'settings/signingstore.jks'
   gpgKeyName: 'brad.nicholes@oneidentity.com'
-  isPrerelease: ${{ true }}
+  isPrerelease: ${{ false }}
   isReleaseBranch: $[ or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release-') ) ]
 
 steps:
