@@ -21,6 +21,8 @@ public class A2ARetrievableAccount {
     private int assetId;
     @JsonProperty("SystemName")
     private String assetName;
+    @JsonProperty("AssetNetworkAddress")
+    private String assetNetworkAddress;
     @JsonProperty("AssetDescription")
     private String assetDescription;
     @JsonProperty("AccountId")
@@ -82,6 +84,14 @@ public class A2ARetrievableAccount {
         this.assetName = assetName;
     }
 
+    public String getAssetNetworkAddress() {
+        return assetNetworkAddress;
+    }
+
+    public void setAssetNetworkAddress(String assetNetworkAddress) {
+        this.assetNetworkAddress = assetNetworkAddress;
+    }
+    
     public int getAccountId() {
         return accountId;
     }
