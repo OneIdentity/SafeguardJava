@@ -111,7 +111,7 @@ public class CertificateAuthenticator extends AuthenticatorBase
         CloseableHttpResponse response = null;
         OauthBody body = new OauthBody("client_credentials", providerScope);
         
-        response = rstsClient.execPOST("oauth2/token", null, null, body, clientCertificate);
+        response = rstsClient.execPOST("oauth2/token", null, null, null, body, clientCertificate);
             
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s", rstsClient.getBaseURL()));

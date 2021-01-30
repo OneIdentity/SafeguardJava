@@ -8,6 +8,7 @@ import com.oneidentity.safeguard.safeguardjava.event.SafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import java.time.Duration;
 import java.util.Map;
 
 /**
@@ -45,6 +46,7 @@ public interface ISafeguardConnection {
      *  @param body                 Request body to pass to the method.
      *  @param parameters           Additional parameters to add to the URL.
      *  @param additionalHeaders    Additional headers to add to the request.
+     *  @param timeout              Per-request timeout in milliseconds (null for default)
      *  @return                     Response body as a string.
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
@@ -52,7 +54,7 @@ public interface ISafeguardConnection {
      */  
     String invokeMethod(Service service, Method method, String relativeUrl,
             String body, Map<String, String> parameters,
-            Map<String, String> additionalHeaders)
+            Map<String, String> additionalHeaders, Integer timeout)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
 
     /**
@@ -65,6 +67,7 @@ public interface ISafeguardConnection {
      *  @param body                 Request body to pass to the method.
      *  @param parameters           Additional parameters to add to the URL.
      *  @param additionalHeaders    Additional headers to add to the request.
+     *  @param timeout              Per-request timeout in milliseconds (null for default)
      *  @return                     Response with status code, headers, and body as string.
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
@@ -72,7 +75,7 @@ public interface ISafeguardConnection {
      */  
     FullResponse invokeMethodFull(Service service, Method method, String relativeUrl,
             String body, Map<String, String> parameters,
-            Map<String, String> additionalHeaders)
+            Map<String, String> additionalHeaders, Integer timeout)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
 
     /*
@@ -86,6 +89,7 @@ public interface ISafeguardConnection {
      *  @param body                 Request body to pass to the method.
      *  @param parameters           Additional parameters to add to the URL.
      *  @param additionalHeaders    Additional headers to add to the request.
+     *  @param timeout              Per-request timeout in milliseconds (null for default)
      *  @returns                    Response body as a CSV string.
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
@@ -93,9 +97,15 @@ public interface ISafeguardConnection {
      */
     String invokeMethodCsv(Service service, Method method, String relativeUrl,
         String body, Map<String, String> parameters,
-        Map<String, String> additionalHeaders)
+        Map<String, String> additionalHeaders, Integer timeout)
         throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
         
+    /**
+     * Provides support for HTTP streaming requests
+     * @return IStreamingRequest
+     */
+    IStreamingRequest getStreamingRequest();
+
     /**
      *  Gets a Safeguard event listener. You will need to call the RegisterEventHandler()
      *  method to establish callbacks. Then, you just have to call Start().  Call Stop()

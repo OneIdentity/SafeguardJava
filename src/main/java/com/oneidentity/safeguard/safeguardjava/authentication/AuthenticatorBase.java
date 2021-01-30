@@ -111,7 +111,7 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
         headers.put(HttpHeaders.AUTHORIZATION, String.format("Bearer %s", new String(accessToken)));
         headers.put("X-TokenLifetimeRemaining", "");
 
-        CloseableHttpResponse response = coreClient.execGET("LoginMessage", null, headers);
+        CloseableHttpResponse response = coreClient.execGET("LoginMessage", null, headers, null);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", coreClient.getBaseURL()));
@@ -145,7 +145,7 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
 
         char[] rStsToken = getRstsTokenInternal();
         AccessTokenBody body = new AccessTokenBody(rStsToken);
-        CloseableHttpResponse response = coreClient.execPOST("Token/LoginResponse", null, null, body);
+        CloseableHttpResponse response = coreClient.execPOST("Token/LoginResponse", null, null, null, body);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", coreClient.getBaseURL()));
@@ -180,10 +180,10 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
             parameters.put("redirect_uri", "urn:InstalledApplication");
             parameters.put("loginRequestStep", "1");
 
-            response = rstsClient.execPOST("UserLogin/LoginController", parameters, headers, new JsonBody("RelayState="));
+            response = rstsClient.execPOST("UserLogin/LoginController", parameters, headers, null, new JsonBody("RelayState="));
                 
             if (response == null || (!Utils.isSuccessful(response.getStatusLine().getStatusCode())))
-                response = rstsClient.execGET("UserLogin/LoginController", parameters, headers);
+                response = rstsClient.execGET("UserLogin/LoginController", parameters, headers, null);
             
             if (response == null)
                 throw new SafeguardForJavaException("Unable to connect to RSTS to find identity provider scopes");

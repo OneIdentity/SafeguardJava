@@ -1,6 +1,7 @@
 package com.oneidentity.safeguard.safeguardclient;
 
 import static com.oneidentity.safeguard.safeguardclient.SafeguardJavaClient.readLine;
+import com.oneidentity.safeguard.safeguardjava.IProgressCallback;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
 import com.oneidentity.safeguard.safeguardjava.Safeguard;
@@ -15,6 +16,9 @@ import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 public class SafeguardTests {
@@ -183,15 +187,15 @@ public class SafeguardTests {
             int remaining = connection.getAccessTokenLifetimeRemaining();
             System.out.println(String.format("\tTime remaining: %d", remaining));
             
-            String response = connection.invokeMethod(Service.Core, Method.Get, "Users", null, null, null);
+            String response = connection.invokeMethod(Service.Core, Method.Get, "Users", null, null, null, null);
             System.out.println(String.format("\t\\Users response:"));
             System.out.println(response);
             
-            FullResponse fullResponse = connection.invokeMethodFull(Service.Core, Method.Get, "Users", null, null, null);
+            FullResponse fullResponse = connection.invokeMethodFull(Service.Core, Method.Get, "Users", null, null, null, null);
             System.out.println(String.format("\t\\Users full response:"));
             System.out.println(fullResponse.toString());
             
-            response = connection.invokeMethod(Service.Notification, Method.Get, "Status", null, null, null);
+            response = connection.invokeMethod(Service.Notification, Method.Get, "Status", null, null, null, null);
             System.out.println(String.format("\t\\Appliance status:"));
             System.out.println(response);
             
@@ -487,4 +491,62 @@ public class SafeguardTests {
         return null;
     }
 
+    public void safeguardTestBackupDownload(ISafeguardConnection connection) {
+        
+        if (connection == null) {
+            System.out.println(String.format("Safeguard not connected"));
+            return;
+        }
+
+        String backupId = readLine("Backup Id: ", null);
+        String backupFileName = readLine("Backup File Name: ", null);
+        boolean withProgress = readLine("With Progress Notification(y/n): ", "n").equalsIgnoreCase("y");
+        
+        if (backupId == null || backupFileName == null) {
+            System.out.println(String.format("Missing id or file name"));
+            return;
+        }
+        
+        try {
+            String filePath = Paths.get(".", backupFileName).toAbsolutePath().toString();
+            IProgressCallback progressCallback = withProgress ? new ProgressNotification() : null;
+            System.out.println(String.format("\tFile path: %s", filePath));
+            connection.getStreamingRequest().downloadStream(Service.Appliance, String.format("Backups/%s/Download", backupId), filePath, progressCallback, null, null);
+            System.out.println(String.format("\tDownloaded file: %s", backupFileName));
+        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test backup download failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Test backup download failed: " + ex.getMessage());
+        }
+    }
+
+    public void safeguardTestBackupUpload(ISafeguardConnection connection) {
+        
+        if (connection == null) {
+            System.out.println(String.format("Safeguard not connected"));
+            return;
+        }
+
+        String backupFileName = readLine("Backup File Name: ", null);
+        boolean withProgress = readLine("With Progress Notification(y/n): ", "n").equalsIgnoreCase("y");
+        
+        if (backupFileName == null) {
+            System.out.println(String.format("Missing id or file name"));
+            return;
+        }
+        
+        try {
+            Path filePath = Paths.get(".", backupFileName).toAbsolutePath();
+            IProgressCallback progressCallback = withProgress ? new ProgressNotification() : null;
+            byte[] fileContent = Files.readAllBytes(filePath);
+            System.out.println(String.format("\tFile path: %s", filePath.toAbsolutePath()));
+            connection.getStreamingRequest().uploadStream(Service.Appliance, "Backups/Upload", fileContent, progressCallback, null, null);
+            System.out.println(String.format("\tUploaded file: %s", backupFileName));
+        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test backup download failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Test backup download failed: " + ex.getMessage());
+        }
+    }
+    
 }

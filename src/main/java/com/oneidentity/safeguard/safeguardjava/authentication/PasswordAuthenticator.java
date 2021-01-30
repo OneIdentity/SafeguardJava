@@ -51,7 +51,7 @@ public class PasswordAuthenticator extends AuthenticatorBase
             providerScope = resolveProviderToScope(provider);
 
         OauthBody body = new OauthBody("password", username, password, providerScope);
-        CloseableHttpResponse response = rstsClient.execPOST("oauth2/token", null, null, body);
+        CloseableHttpResponse response = rstsClient.execPOST("oauth2/token", null, null, null, body);
 
         if (response == null)
             throw new SafeguardForJavaException(String.format("Unable to connect to RSTS service %s", rstsClient.getBaseURL()));

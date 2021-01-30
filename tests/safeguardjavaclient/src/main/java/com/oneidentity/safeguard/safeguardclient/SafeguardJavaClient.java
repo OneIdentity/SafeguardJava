@@ -86,6 +86,12 @@ public class SafeguardJavaClient {
                 case 19:
                     eventListener = tests.safeguardDisconnectEventListener(eventListener);
                     break;
+                case 20:
+                    tests.safeguardTestBackupDownload(connection);
+                    break;
+                case 21:
+                    tests.safeguardTestBackupUpload(connection);
+                    break;
                 default:
                     done = true;
                     break;
@@ -117,6 +123,8 @@ public class SafeguardJavaClient {
         System.out.println ("\t17. Event Listener by thumbprint");
         System.out.println ("\t18. Test Event Listener");
         System.out.println ("\t19. Disconnect Event Listener");
+        System.out.println ("\t20. Test Download Backup File");
+        System.out.println ("\t21. Test Upload Backup File");
         
         System.out.println ("\t99. Exit");
         
