@@ -32,7 +32,8 @@ class SafeguardConnection implements ISafeguardConnection {
     private final RestClient coreClient;
     private final RestClient applianceClient;
     private final RestClient notificationClient;
-
+    private final IStreamingRequest streamingRequest;
+  
     public SafeguardConnection(IAuthenticationMechanism authenticationMechanism) {
         this.authenticationMechanism = authenticationMechanism;
 
@@ -47,6 +48,8 @@ class SafeguardConnection implements ISafeguardConnection {
         String safeguardNotificationUrl = String.format("https://%s/service/notification/v%d",
                 this.authenticationMechanism.getNetworkAddress(), this.authenticationMechanism.getApiVersion());
         notificationClient = new RestClient(safeguardNotificationUrl, authenticationMechanism.isIgnoreSsl(), authenticationMechanism.getValidationCallback());
+        
+        streamingRequest = new StreamingRequest(this);
     }
 
     @Override
@@ -74,17 +77,17 @@ class SafeguardConnection implements ISafeguardConnection {
 
     @Override
     public String invokeMethod(Service service, Method method, String relativeUrl, String body,
-            Map<String, String> parameters, Map<String, String> additionalHeaders)
+            Map<String, String> parameters, Map<String, String> additionalHeaders, Integer timeout)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
         if (disposed) {
             throw new ObjectDisposedException("SafeguardConnection");
         }
-        return invokeMethodFull(service, method, relativeUrl, body, parameters, additionalHeaders).getBody();
+        return invokeMethodFull(service, method, relativeUrl, body, parameters, additionalHeaders, timeout).getBody();
     }
 
     @Override
     public FullResponse invokeMethodFull(Service service, Method method, String relativeUrl,
-            String body, Map<String, String> parameters, Map<String, String> additionalHeaders)
+            String body, Map<String, String> parameters, Map<String, String> additionalHeaders, Integer timeout)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
 
         if (disposed) {
@@ -101,25 +104,20 @@ class SafeguardConnection implements ISafeguardConnection {
         Map<String,String> headers = prepareHeaders(additionalHeaders, service);
         CloseableHttpResponse response = null;
 
-        String msg = String.format("Invoking method: %s %s", method.toString().toUpperCase(), client.getBaseURL() + "/" + relativeUrl);
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, msg);
-        msg = parameters == null ? "None" : parameters.keySet().stream().map(key -> key + "=" + parameters.get(key)).collect(Collectors.joining(", ", "{", "}"));
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Query parameters: {0}", msg);
-        msg = headers == null ? "None" : headers.keySet().stream().map(key -> key + "=" + headers.get(key)).collect(Collectors.joining(", ", "{", "}"));
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Additional headers: {0}", msg);
+        logRequestDetails(method, client.getBaseURL() + "/" + relativeUrl, parameters, additionalHeaders);
         
         switch (method) {
             case Get:
-                response = client.execGET(relativeUrl, parameters, headers);
+                response = client.execGET(relativeUrl, parameters, headers, timeout);
                 break;
             case Post:
-                response = client.execPOST(relativeUrl, parameters, headers, new JsonBody(body));
+                response = client.execPOST(relativeUrl, parameters, headers, timeout, new JsonBody(body));
                 break;
             case Put:
-                response = client.execPUT(relativeUrl, parameters, headers, new JsonBody(body));
+                response = client.execPUT(relativeUrl, parameters, headers, timeout, new JsonBody(body));
                 break;
             case Delete:
-                response = client.execDELETE(relativeUrl, parameters, headers);
+                response = client.execDELETE(relativeUrl, parameters, headers, timeout);
                 break;
         }
         
@@ -136,18 +134,14 @@ class SafeguardConnection implements ISafeguardConnection {
 
         FullResponse fullResponse = new FullResponse(response.getStatusLine().getStatusCode(), response.getAllHeaders(), reply);
         
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Reponse status code: {0}", fullResponse.getStatusCode());
-        msg = fullResponse.getHeaders() == null ? "None" : fullResponse.getHeaders().stream().map(header -> header.getName() + "=" + header.getValue()).collect(Collectors.joining(", ", "{", "}"));
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Response headers: {0}", msg);
-        msg = fullResponse.getBody() == null ? "None" : String.format("%d",fullResponse.getBody().length());
-        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Body size: {0}", msg);
+        logResponseDetails(fullResponse);
         
         return fullResponse;
     }
 
     @Override
     public String invokeMethodCsv(Service service, Method method, String relativeUrl, 
-            String body, Map<String, String> parameters, Map<String, String> additionalHeaders)
+            String body, Map<String, String> parameters, Map<String, String> additionalHeaders, Integer timeout)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
         
         if (disposed) {
@@ -158,7 +152,7 @@ class SafeguardConnection implements ISafeguardConnection {
         }
         additionalHeaders.put(HttpHeaders.ACCEPT, "text/csv");
         
-        return invokeMethodFull(service, method, relativeUrl, body, parameters, additionalHeaders).getBody();
+        return invokeMethodFull(service, method, relativeUrl, body, parameters, additionalHeaders, timeout).getBody();
     }
        
     @Override
@@ -194,7 +188,7 @@ class SafeguardConnection implements ISafeguardConnection {
         if (!authenticationMechanism.hasAccessToken())
             return;
         try {
-            this.invokeMethodFull(Service.Core, Method.Post, "Token/Logout", null, null, null);
+            this.invokeMethodFull(Service.Core, Method.Post, "Token/Logout", null, null, null, null);
             Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Successfully logged out");
         }
         catch (Exception ex) {
@@ -204,7 +198,26 @@ class SafeguardConnection implements ISafeguardConnection {
         Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Cleared access token");
     }
     
-    private RestClient getClientForService(Service service) throws SafeguardForJavaException {
+    static void logRequestDetails(Method method, String uri, Map<String, String> parameters, Map<String, String> headers)
+    {
+        String msg = String.format("Invoking method: %s %s", method.toString().toUpperCase(), uri);
+        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, msg);
+        msg = parameters == null ? "None" : parameters.keySet().stream().map(key -> key + "=" + parameters.get(key)).collect(Collectors.joining(", ", "{", "}"));
+        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Query parameters: {0}", msg);
+        msg = headers == null ? "None" : headers.keySet().stream().map(key -> key + "=" + headers.get(key)).collect(Collectors.joining(", ", "{", "}"));
+        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Additional headers: {0}", msg);
+    }
+
+    static void logResponseDetails(FullResponse fullResponse)
+    {
+        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Reponse status code: {0}", fullResponse.getStatusCode());
+        String msg = fullResponse.getHeaders() == null ? "None" : fullResponse.getHeaders().stream().map(header -> header.getName() + "=" + header.getValue()).collect(Collectors.joining(", ", "{", "}"));
+        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Response headers: {0}", msg);
+        msg = fullResponse.getBody() == null ? "None" : String.format("%d",fullResponse.getBody().length());
+        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Body size: {0}", msg);
+    }
+
+    RestClient getClientForService(Service service) throws SafeguardForJavaException {
         switch (service) {
             case Core:
                 return coreClient;
@@ -220,7 +233,7 @@ class SafeguardConnection implements ISafeguardConnection {
         }
     }
     
-    private Map<String,String> prepareHeaders(Map<String,String> additionalHeaders, Service service) 
+    Map<String,String> prepareHeaders(Map<String,String> additionalHeaders, Service service) 
             throws ObjectDisposedException {
         
         Map<String,String> headers = new HashMap<>();
@@ -235,6 +248,14 @@ class SafeguardConnection implements ISafeguardConnection {
         }
         return headers;
     }
+    
+    boolean isDisposed() {
+        return disposed;
+    }
+    
+    IAuthenticationMechanism getAuthenticationMechanism() {
+        return authenticationMechanism;
+    } 
 
     @Override
     public void dispose()
@@ -258,6 +279,11 @@ class SafeguardConnection implements ISafeguardConnection {
     public Object cloneObject() throws SafeguardForJavaException 
     {
         return new SafeguardConnection((IAuthenticationMechanism)authenticationMechanism.cloneObject());
+    }
+
+    @Override
+    public IStreamingRequest getStreamingRequest() {
+        return this.streamingRequest;
     }
 
 }

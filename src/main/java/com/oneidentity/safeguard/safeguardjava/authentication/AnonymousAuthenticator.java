@@ -22,7 +22,7 @@ public class AnonymousAuthenticator extends AuthenticatorBase {
         Map<String,String> headers = new HashMap<>();
         headers.put(HttpHeaders.ACCEPT, "application/json");
         headers.put(HttpHeaders.CONTENT_TYPE, "application/json");
-        CloseableHttpResponse response = notificationClient.execGET("Status", null, headers);
+        CloseableHttpResponse response = notificationClient.execGET("Status", null, headers, null);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to anonymously connect to web service %s", notificationClient.getBaseURL()));

@@ -93,7 +93,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         Map<String, String> parameters = new HashMap<>();
         
-        CloseableHttpResponse response = coreClient.execGET("A2ARegistrations", parameters, headers, clientCertificate);
+        CloseableHttpResponse response = coreClient.execGET("A2ARegistrations", parameters, headers, null, clientCertificate);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
@@ -111,7 +111,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
             int registrationId = registration.getId();
             
             response = coreClient.execGET(String.format("A2ARegistrations/%d/RetrievableAccounts", registrationId), 
-                    parameters, headers, clientCertificate);
+                    parameters, headers, null, clientCertificate);
             
             if (response == null) {
                 throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
@@ -164,7 +164,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("type", "Password");
 
-        CloseableHttpResponse response = a2AClient.execGET("Credentials", parameters, headers, clientCertificate);
+        CloseableHttpResponse response = a2AClient.execGET("Credentials", parameters, headers, null, clientCertificate);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
@@ -200,7 +200,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         parameters.put("type", "PrivateKey");
         parameters.put("keyFormat", keyFormat.name());
 
-        CloseableHttpResponse response = a2AClient.execGET("Credentials", parameters, headers, clientCertificate);
+        CloseableHttpResponse response = a2AClient.execGET("Credentials", parameters, headers, null, clientCertificate);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
@@ -308,7 +308,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         Map<String, String> parameters = new HashMap<>();
 
-        CloseableHttpResponse response = a2AClient.execPOST("AccessRequests", parameters, headers, accessRequest, clientCertificate);
+        CloseableHttpResponse response = a2AClient.execPOST("AccessRequests", parameters, headers, null, accessRequest, clientCertificate);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
