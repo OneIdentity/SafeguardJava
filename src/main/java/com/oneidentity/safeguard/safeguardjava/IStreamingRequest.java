@@ -22,6 +22,9 @@ public interface IStreamingRequest {
      * @param parameters        Additional parameters to add to the URL.
      * @param additionalHeaders Additional headers to add to the request.
      * @return                  Response body as a string.
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException
      */ 
     String uploadStream(Service service, String relativeUrl, byte[] stream, IProgressCallback progressCallback, Map<String, String> parameters, Map<String, String> additionalHeaders) throws SafeguardForJavaException, ArgumentException, ObjectDisposedException;
 
@@ -32,10 +35,12 @@ public interface IStreamingRequest {
      * @param service           Safeguard service to call.
      * @param relativeUrl       Relative URL of the service to use.
      * @param outputFilePath    Full path to the file where download will be written.
-     * @param body              Optional request body
      * @param progressCallback  Optionally report upload progress.
      * @param parameters        Additional parameters to add to the URL.
      * @param additionalHeaders Additional headers to add to the request.
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException
      */ 
     void downloadStream(Service service, String relativeUrl, String outputFilePath, IProgressCallback progressCallback, Map<String, String> parameters, Map<String, String> additionalHeaders) throws SafeguardForJavaException, ArgumentException, ObjectDisposedException;
 }

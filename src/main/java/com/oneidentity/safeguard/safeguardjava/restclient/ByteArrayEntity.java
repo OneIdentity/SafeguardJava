@@ -24,6 +24,7 @@ public class ByteArrayEntity extends org.apache.http.entity.ByteArrayEntity {
 
     /**
      * Progress: 0-100
+     * @return 
      */
     public int getProgress() {
         if (outstream == null) {
