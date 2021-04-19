@@ -12,7 +12,7 @@ pool:
 
 # Maven Build Variables:
 variables:
-  version: '6.9.0.$(Build.BuildId)-SNAPSHOT'
+  version: '6.10.0.$(Build.BuildId)-SNAPSHOT'
   targetDir: 'target'
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
   issuerKeyStorePath: 'settings/signingstore.jks'
