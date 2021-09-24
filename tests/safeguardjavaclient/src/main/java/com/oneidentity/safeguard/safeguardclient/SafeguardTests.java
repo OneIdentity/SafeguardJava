@@ -4,7 +4,9 @@ import static com.oneidentity.safeguard.safeguardclient.SafeguardJavaClient.read
 import com.oneidentity.safeguard.safeguardjava.IProgressCallback;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
+import com.oneidentity.safeguard.safeguardjava.ISafeguardSessionsConnection;
 import com.oneidentity.safeguard.safeguardjava.Safeguard;
+import com.oneidentity.safeguard.safeguardjava.SafeguardForPrivilegedSessions;
 import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccount;
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
@@ -546,6 +548,50 @@ public class SafeguardTests {
             System.out.println("\t[ERROR]Test backup download failed: " + ex.getMessage());
         } catch (Exception ex) {
             System.out.println("\t[ERROR]Test backup download failed: " + ex.getMessage());
+        }
+    }
+
+    ISafeguardSessionsConnection safeguardSessionsConnection() {
+        String address = readLine("SPP address: ", null);
+        String user = readLine("User:", null);
+        String password = readLine("Password: ", null);
+//        boolean withCertValidator = readLine("With Certificate Validator(y/n): ", "n").equalsIgnoreCase("y");
+        boolean ignoreSsl = readLine("Ignore SSL(y/n): ", "y").equalsIgnoreCase("y");
+        
+        ISafeguardSessionsConnection connection = null;
+        
+        try {
+//            if (withCertValidator) {
+//                connection = Safeguard.connect(address, provider, user, password.toCharArray(), new CertificateValidator(), null);
+//            } else {
+                connection = SafeguardForPrivilegedSessions.Connect(address, user, password.toCharArray(), true);
+//            }
+        } catch (SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Connection failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Connection failed: " + ex.getMessage());
+        }
+        
+        if (connection != null)
+            System.out.println("\tSuccessful connection.");
+        return connection;
+    }
+
+    void safeguardSessionsApi(ISafeguardSessionsConnection connection) {
+        if (connection == null) {
+            System.out.println(String.format("Safeguard sessions not connected"));
+            return;
+        }
+        
+        try {
+            FullResponse fullResponse = connection.InvokeMethodFull(Method.Get, "firmware", null);
+            System.out.println(String.format("\t\\Users full response:"));
+            System.out.println(fullResponse.getBody());
+            
+        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
         }
     }
     

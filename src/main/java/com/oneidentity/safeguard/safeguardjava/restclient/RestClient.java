@@ -20,8 +20,10 @@ import java.security.PrivateKey;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +41,9 @@ import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
 import org.apache.http.HttpHeaders;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.UsernamePasswordCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
@@ -47,14 +52,22 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.BasicCredentialsProvider;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.cookie.BasicClientCookie;
 
 public class RestClient {
 
     private CloseableHttpClient client = null;
+    private HttpClientBuilder builder = null;
+    private BasicCookieStore cookieStore = new BasicCookieStore();
+
     private String serverUrl = null;
     private boolean ignoreSsl = false;
     private HostnameVerifier validationCallback = null;
@@ -63,6 +76,22 @@ public class RestClient {
 
     public RestClient(String connectionAddr, boolean ignoreSsl, HostnameVerifier validationCallback) {
 
+        client = createClientBuilder(connectionAddr, ignoreSsl, validationCallback).build();
+    }
+
+    public RestClient(String connectionAddr, String userName, char[] password, boolean ignoreSsl, HostnameVerifier validationCallback) {
+        
+
+        HttpClientBuilder builder = createClientBuilder(connectionAddr, ignoreSsl, validationCallback);
+        CredentialsProvider provider = new BasicCredentialsProvider();
+        provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(userName, new String(password)));
+        
+        client = builder.setDefaultCredentialsProvider(provider).setDefaultCookieStore(cookieStore).disableCookieManagement().build();
+    }
+
+    private HttpClientBuilder createClientBuilder(String connectionAddr, boolean ignoreSsl, HostnameVerifier validationCallback) {
+
+        // Used to produce debug output
         if (false) {
             Handler handlerObj = new ConsoleHandler();
             handlerObj.setLevel(Level.ALL);
@@ -86,10 +115,10 @@ public class RestClient {
         }
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslsf).build();
         BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
-        client = HttpClients.custom().setSSLSocketFactory(sslsf).setConnectionManager(connectionManager).build();
-    
+        
+        return HttpClients.custom().setSSLSocketFactory(sslsf).setConnectionManager(connectionManager);
     }
-
+    
     private URI getBaseURI(String segments) {
         try {
             return new URI(serverUrl+"/"+segments);
@@ -103,6 +132,61 @@ public class RestClient {
         return serverUrl;
     }
 
+    private Map<String,String> parseKeyValue(String value) {
+        
+        HashMap<String,String> keyValues = new HashMap<String,String>();
+        String[] parts = value.split(";");
+        for (String p : parts) {
+            String[] kv = p.split("=");
+            if (kv.length == 1) {
+                keyValues.put(kv[0].trim(), "");
+            }
+            if (kv.length == 2) {
+                keyValues.put(kv[0].trim(), kv[1].trim());
+            }
+        }
+        
+        return keyValues;
+    }
+    
+    public void addSessionId(String cookieValue) {
+        if (cookieValue == null) {
+            Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, "Session cookie cannot be null");
+            return;
+        }
+        
+        try {
+            Map<String,String> keyValues = parseKeyValue(cookieValue);
+
+            String sessionId = keyValues.get("session_id");
+            if (sessionId != null) {
+                BasicClientCookie cookie = new BasicClientCookie("session_id", sessionId);
+
+                String expiryDate = keyValues.get("expires");
+                if (expiryDate != null) {
+                    SimpleDateFormat formatter = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss z");
+                    Date date = formatter.parse(expiryDate);
+                    cookie.setExpiryDate(date);
+                }
+
+                String path = keyValues.get("Path");
+                if (path != null) {
+                    cookie.setPath(path);
+                }
+
+                String secure = keyValues.get("Secure");
+                if (secure != null) {
+                    cookie.setSecure(true);
+                }
+
+                this.cookieStore.addCookie(cookie);
+            }
+        }
+        catch (Exception ex) {
+            Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, "Failed to set session cookie.", ex);
+        }
+    }
+    
     public CloseableHttpResponse execGET(String path, Map<String, String> queryParams, Map<String, String> headers, Integer timeout) {
 
         RequestBuilder rb = prepareRequest (RequestBuilder.get(getBaseURI(path)), queryParams, headers, timeout);

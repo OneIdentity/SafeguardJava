@@ -101,6 +101,21 @@ public interface ISafeguardConnection {
         throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
         
     /**
+     *  Join a Safeguard for Privileged Sessions and a Safeguard appliance. The Safeguard for
+     *  Privileged Sessions appliance needs to enable clustering and be a central search node.
+     *
+     *  @param spsConnection        A connection to the SafeguardForPrivilegedSessions appliance.
+     *  @param certificateChain     The PEM certificate chain of the Safeguard web api.
+     *  @param sppAddress           The address of the Safeguard appliance.
+     *  @returns                    Response with status code, headers, and body as string.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     *  @throws ArgumentException Invalid argument.
+     */
+    FullResponse JoinSps(ISafeguardSessionsConnection spsConnection, String certificateChain, String sppAddress)
+            throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
+        
+    /**
      * Provides support for HTTP streaming requests
      * @return IStreamingRequest
      */

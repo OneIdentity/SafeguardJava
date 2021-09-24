@@ -655,7 +655,7 @@ public final class Safeguard {
      *  @param apiVersion API version.
      *  @param ignoreSsl If set to <code>true</code> ignore ssl.
      * 
-     *  @return The connect.
+     *  @return Reusable Safeguard API connection.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
     public static ISafeguardConnection connect(String networkAddress, Integer apiVersion, Boolean ignoreSsl) 
@@ -682,7 +682,7 @@ public final class Safeguard {
      *  @param apiVersion API version.
      *  @param validationCallback Callback function to be executed during SSL certificate validation.
      * 
-     *  @return The connect.
+     *  @return Reusable Safeguard API connection.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
     public static ISafeguardConnection connect(String networkAddress, HostnameVerifier validationCallback, Integer apiVersion) 
@@ -697,6 +697,17 @@ public final class Safeguard {
         return new SafeguardConnection(new AnonymousAuthenticator(networkAddress, version, false, validationCallback));
     }
     
+    /**
+     *  Create a persistent connection to the Safeguard API that automatically renews expired access tokens.
+     * 
+     *  @param connection Connection to be made persistent.
+     *  @return Reusable persistent Safeguard API connection.
+     */ 
+    public static ISafeguardConnection Persist(ISafeguardConnection connection)
+    {
+        return new PersistentSafeguardConnection(connection);
+    }
+
     /**
      *  This static class provides access to Safeguard Event functionality with
      *  persistent event listeners. Persistent event listeners can handle longer
