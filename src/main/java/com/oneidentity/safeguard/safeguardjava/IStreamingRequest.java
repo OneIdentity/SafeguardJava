@@ -22,11 +22,13 @@ public interface IStreamingRequest {
      * @param parameters        Additional parameters to add to the URL.
      * @param additionalHeaders Additional headers to add to the request.
      * @return                  Response body as a string.
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException
+     * @throws ObjectDisposedException Object has already been disposed.
+     * @throws SafeguardForJavaException General Safeguard for Java exception.
+     * @throws ArgumentException Invalid argument.
      */ 
-    String uploadStream(Service service, String relativeUrl, byte[] stream, IProgressCallback progressCallback, Map<String, String> parameters, Map<String, String> additionalHeaders) throws SafeguardForJavaException, ArgumentException, ObjectDisposedException;
+    String uploadStream(Service service, String relativeUrl, byte[] stream, IProgressCallback progressCallback, 
+            Map<String, String> parameters, Map<String, String> additionalHeaders) 
+            throws SafeguardForJavaException, ArgumentException, ObjectDisposedException;
 
     /**
      * Call a Safeguard GET API providing an output file path to which streaming download data will
@@ -38,9 +40,11 @@ public interface IStreamingRequest {
      * @param progressCallback  Optionally report upload progress.
      * @param parameters        Additional parameters to add to the URL.
      * @param additionalHeaders Additional headers to add to the request.
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException
+     * @throws ObjectDisposedException Object has already been disposed.
+     * @throws SafeguardForJavaException General Safeguard for Java exception.
+     * @throws ArgumentException Invalid argument.
      */ 
-    void downloadStream(Service service, String relativeUrl, String outputFilePath, IProgressCallback progressCallback, Map<String, String> parameters, Map<String, String> additionalHeaders) throws SafeguardForJavaException, ArgumentException, ObjectDisposedException;
+    void downloadStream(Service service, String relativeUrl, String outputFilePath, IProgressCallback progressCallback, 
+            Map<String, String> parameters, Map<String, String> additionalHeaders) 
+            throws SafeguardForJavaException, ArgumentException, ObjectDisposedException;
 }
