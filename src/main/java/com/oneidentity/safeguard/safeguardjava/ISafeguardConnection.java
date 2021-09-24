@@ -90,7 +90,7 @@ public interface ISafeguardConnection {
      *  @param parameters           Additional parameters to add to the URL.
      *  @param additionalHeaders    Additional headers to add to the request.
      *  @param timeout              Per-request timeout in milliseconds (null for default)
-     *  @returns                    Response body as a CSV string.
+     *  @return                     Response body as a CSV string.
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      *  @throws ArgumentException Invalid argument.
@@ -107,7 +107,7 @@ public interface ISafeguardConnection {
      *  @param spsConnection        A connection to the SafeguardForPrivilegedSessions appliance.
      *  @param certificateChain     The PEM certificate chain of the Safeguard web api.
      *  @param sppAddress           The address of the Safeguard appliance.
-     *  @returns                    Response with status code, headers, and body as string.
+     *  @return                     Response with status code, headers, and body as string.
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      *  @throws ArgumentException Invalid argument.

@@ -22,10 +22,6 @@ public class ByteArrayEntity extends org.apache.http.entity.ByteArrayEntity {
         super.writeTo(this.outstream);
     }
 
-    /**
-     * Progress: 0-100
-     * @return 
-     */
     public int getProgress() {
         if (outstream == null) {
             return 0;

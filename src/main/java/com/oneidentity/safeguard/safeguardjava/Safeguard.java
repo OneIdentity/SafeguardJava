@@ -1372,7 +1372,7 @@ public final class Safeguard {
          *  @param ignoreSsl Ignore server certificate validation.
          * 
          *  @return Reusable Safeguard A2A context.
-         *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+         *  @throws SafeguardForJavaException General Safeguard for Java exception.
          */
         public static ISafeguardA2AContext getContext(String networkAddress, String thumbprint,
                 Integer apiVersion, Boolean ignoreSsl) throws SafeguardForJavaException {
@@ -1409,7 +1409,7 @@ public final class Safeguard {
          *  @param validationCallback Callback function to be executed during SSL certificate validation.
          * 
          *  @return Reusable Safeguard A2A context.
-         *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+         *  @throws SafeguardForJavaException General Safeguard for Java exception.
          */
         public static ISafeguardA2AContext getContext(String networkAddress, String thumbprint,
                 HostnameVerifier validationCallback, Integer apiVersion) throws SafeguardForJavaException {
@@ -1906,7 +1906,7 @@ public final class Safeguard {
              *  @return New persistent A2A event listener.
              *  @throws ObjectDisposedException Object has already been disposed.
              *  @throws ArgumentException Invalid argument.
-             *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+             *  @throws SafeguardForJavaException General Safeguard for Java exception.
              */
             public static ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys,
                     ISafeguardEventHandler handler, String networkAddress, String thumbprint,
@@ -1952,7 +1952,7 @@ public final class Safeguard {
              *  @return New persistent A2A event listener.
              *  @throws ObjectDisposedException Object has already been disposed.
              *  @throws ArgumentException Invalid argument.
-             *  @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+             *  @throws SafeguardForJavaException General Safeguard for Java exception.
              */
             public static ISafeguardEventListener getPersistentA2AEventListener(List<char[]> apiKeys,
                     ISafeguardEventHandler handler, String networkAddress, String thumbprint,
