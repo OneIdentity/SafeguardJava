@@ -1,5 +1,6 @@
 package com.oneidentity.safeguard.safeguardjava;
 
+import com.oneidentity.safeguard.safeguardjava.data.JoinRequest;
 import com.oneidentity.safeguard.safeguardjava.authentication.AnonymousAuthenticator;
 import com.oneidentity.safeguard.safeguardjava.authentication.CertificateAuthenticator;
 import com.oneidentity.safeguard.safeguardjava.authentication.IAuthenticationMechanism;
@@ -153,6 +154,26 @@ class SafeguardConnection implements ISafeguardConnection {
         additionalHeaders.put(HttpHeaders.ACCEPT, "text/csv");
         
         return invokeMethodFull(service, method, relativeUrl, body, parameters, additionalHeaders, timeout).getBody();
+    }
+    
+    @Override
+    public FullResponse JoinSps(ISafeguardSessionsConnection spsConnection, String certificateChain, String sppAddress) 
+            throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
+        
+        if (disposed)
+            throw new ObjectDisposedException("SafeguardConnection");
+
+        JoinRequest request = new JoinRequest();
+        request.setSpp(sppAddress);
+        request.setSpp_api_token(authenticationMechanism.getAccessToken());
+        request.setSpp_cert_chain(certificateChain);
+        
+        Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Sending join request.");
+        FullResponse joinResponse = spsConnection.InvokeMethodFull(Method.Post, "cluster/spp", request.toJson());
+        
+        logResponseDetails(joinResponse);
+
+        return joinResponse;
     }
        
     @Override

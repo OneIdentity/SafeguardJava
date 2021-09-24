@@ -2,6 +2,7 @@ package com.oneidentity.safeguard.safeguardclient;
 
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
+import com.oneidentity.safeguard.safeguardjava.ISafeguardSessionsConnection;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -19,6 +20,7 @@ public class SafeguardJavaClient {
     public static void main(String[] args) {
 
         ISafeguardConnection connection = null;
+        ISafeguardSessionsConnection sessionConnection = null;
         ISafeguardA2AContext a2aContext = null;
         ISafeguardEventListener eventListener = null;
         
@@ -92,6 +94,12 @@ public class SafeguardJavaClient {
                 case 21:
                     tests.safeguardTestBackupUpload(connection);
                     break;
+                case 22:
+                    sessionConnection = tests.safeguardSessionsConnection();
+                    break;
+                case 23:
+                    tests.safeguardSessionsApi(sessionConnection);
+                    break;
                 default:
                     done = true;
                     break;
@@ -125,6 +133,8 @@ public class SafeguardJavaClient {
         System.out.println ("\t19. Disconnect Event Listener");
         System.out.println ("\t20. Test Download Backup File");
         System.out.println ("\t21. Test Upload Backup File");
+        System.out.println ("\t22. Test SPS Connection");
+        System.out.println ("\t23. Test SPS API");
         
         System.out.println ("\t99. Exit");
         
