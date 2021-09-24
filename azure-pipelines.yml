@@ -12,7 +12,7 @@ pool:
 
 # Maven Build Variables:
 variables:
-  version: '6.10.0.$(Build.BuildId)-SNAPSHOT'
+  version: '6.11.0.$(Build.BuildId)-SNAPSHOT'
   targetDir: 'target'
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
   issuerKeyStorePath: 'settings/signingstore.jks'
@@ -69,7 +69,7 @@ steps:
     SIGNINGGKEY: $(GpgCodeSigningKey)
   displayName: 'Save signing key'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
-  
+
 - task: Bash@3
   inputs:
     targetType: 'inline'
@@ -79,7 +79,7 @@ steps:
       gpg --batch --import $(Build.BinariesDirectory)/signingkey.asc
   displayName: 'Import the signing key'
   condition: and(succeeded(), eq(variables.isReleaseBranch, true))
-  
+
 - task: Maven@3
   inputs:
     mavenPomFile: 'pom.xml'
@@ -121,7 +121,7 @@ steps:
     contents: '*.jar'
     targetFolder: $(Build.ArtifactStagingDirectory)
   displayName: 'Copy files to staging folder'
-  
+
 - task: CopyFiles@2
   inputs:
     sourceFolder: '$(Build.SourcesDirectory)/$(targetDir)'
