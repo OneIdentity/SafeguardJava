@@ -615,14 +615,37 @@ public class SafeguardTests {
             return;
         }
         
+        String address = readLine("SPP address(management service): ", null);
+        
         try {
-            FullResponse response = connection.invokeMethodFull(Service.Management, Method.Get, "ApplianceInformation", null, null, null, null);
+            ISafeguardConnection managementConnection = connection.GetManagementServiceConnection(address);
+            FullResponse response = managementConnection.invokeMethodFull(Service.Management, Method.Get, "ApplianceInformation", null, null, null, null);
             System.out.println(String.format("\t\\ApplianceInformation response:"));
             logResponseDetails(response);
         } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
             System.out.println("\t[ERROR]Test management connection failed: " + ex.getMessage());
         }
         
+    }
+    
+    public void safeguardTestAnonymousConnection(ISafeguardConnection connection) {
+        
+        if (connection == null) {
+            System.out.println(String.format("Safeguard not connected"));
+            return;
+        }
+        
+        try {
+            int remaining = connection.getAccessTokenLifetimeRemaining();
+            System.out.println(String.format("\tTime remaining: %d", remaining));
+            
+            FullResponse fullResponse = connection.invokeMethodFull(Service.Notification, Method.Get, "Status", null, null, null, null);
+            System.out.println(String.format("\t\\Appliance status:"));
+            logResponseDetails(fullResponse);
+            
+        } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+        }
     }
 
 }

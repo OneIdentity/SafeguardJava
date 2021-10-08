@@ -33,7 +33,6 @@ class SafeguardConnection implements ISafeguardConnection {
     private final RestClient coreClient;
     private final RestClient applianceClient;
     private final RestClient notificationClient;
-    private final RestClient managementClient;
     private final IStreamingRequest streamingRequest;
   
     public SafeguardConnection(IAuthenticationMechanism authenticationMechanism) {
@@ -50,10 +49,6 @@ class SafeguardConnection implements ISafeguardConnection {
         String safeguardNotificationUrl = String.format("https://%s/service/notification/v%d",
                 this.authenticationMechanism.getNetworkAddress(), this.authenticationMechanism.getApiVersion());
         notificationClient = new RestClient(safeguardNotificationUrl, authenticationMechanism.isIgnoreSsl(), authenticationMechanism.getValidationCallback());
-        
-        String safeguardManagementUrl = String.format("https://%s/service/management/v%d",
-                 this.authenticationMechanism.getNetworkAddress(), this.authenticationMechanism.getApiVersion());
-        managementClient = new RestClient(safeguardManagementUrl, authenticationMechanism.isIgnoreSsl(), authenticationMechanism.getValidationCallback());
         
         streamingRequest = new StreamingRequest(this);
     }
@@ -206,6 +201,11 @@ class SafeguardConnection implements ISafeguardConnection {
     }
 
     @Override
+    public ISafeguardConnection GetManagementServiceConnection(String networkAddress) {
+        return new SafeguardManagementServiceConnection(authenticationMechanism, networkAddress);
+    }
+     
+    @Override
     public void logOut() throws ObjectDisposedException {
         
         if (disposed)
@@ -243,7 +243,7 @@ class SafeguardConnection implements ISafeguardConnection {
         Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Body size: {0}", msg);
     }
 
-    RestClient getClientForService(Service service) throws SafeguardForJavaException {
+    protected RestClient getClientForService(Service service) throws SafeguardForJavaException {
         switch (service) {
             case Core:
                 return coreClient;
@@ -251,8 +251,6 @@ class SafeguardConnection implements ISafeguardConnection {
                 return applianceClient;
             case Notification:
                 return notificationClient;
-            case Management:
-                return managementClient;
             case A2A:
                 throw new SafeguardForJavaException(
                         "You must call the A2A service using the A2A specific method, Error: Unsupported operation");

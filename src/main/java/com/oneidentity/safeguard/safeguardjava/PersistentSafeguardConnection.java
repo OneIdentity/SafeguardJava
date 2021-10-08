@@ -72,6 +72,11 @@ class PersistentSafeguardConnection implements ISafeguardConnection {
     public SafeguardEventListener getEventListener() throws ObjectDisposedException, ArgumentException {
         return _connection.getEventListener();
     }
+    
+    @Override
+    public ISafeguardConnection GetManagementServiceConnection(String networkAddress) {
+        return _connection.GetManagementServiceConnection(networkAddress);
+    }    
 
     @Override
     public ISafeguardEventListener getPersistentEventListener() throws ObjectDisposedException, SafeguardForJavaException {
