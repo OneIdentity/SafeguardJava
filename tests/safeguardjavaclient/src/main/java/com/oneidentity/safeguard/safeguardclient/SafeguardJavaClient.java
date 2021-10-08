@@ -100,6 +100,9 @@ public class SafeguardJavaClient {
                 case 23:
                     tests.safeguardSessionsApi(sessionConnection);
                     break;
+                case 24:
+                    tests.safeguardTestManagementConnection(connection);
+                    break;
                 default:
                     done = true;
                     break;
@@ -135,6 +138,7 @@ public class SafeguardJavaClient {
         System.out.println ("\t21. Test Upload Backup File");
         System.out.println ("\t22. Test SPS Connection");
         System.out.println ("\t23. Test SPS API");
+        System.out.println ("\t24. Test Management Interface API");
         
         System.out.println ("\t99. Exit");
         

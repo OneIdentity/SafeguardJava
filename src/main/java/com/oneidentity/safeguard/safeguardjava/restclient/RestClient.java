@@ -260,7 +260,8 @@ public class RestClient {
         RequestBuilder rb = prepareRequest(RequestBuilder.put(getBaseURI(path)), queryParams, headers, timeout);
 
         try {
-            rb.setEntity(new StringEntity(requestEntity.toJson()));
+            String body = requestEntity.toJson();
+            rb.setEntity(new StringEntity(body == null ? "{}" : body));
             CloseableHttpResponse r = client.execute(rb.build());
             return r;
         } catch (Exception ex) {
@@ -273,7 +274,8 @@ public class RestClient {
         RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers, timeout);
 
         try {
-            rb.setEntity(new StringEntity(requestEntity.toJson()));
+            String body = requestEntity.toJson();
+            rb.setEntity(new StringEntity(body == null ? "{}" : body));
             CloseableHttpResponse r = client.execute(rb.build());
             return r;
         } catch (Exception ex) {
@@ -290,7 +292,8 @@ public class RestClient {
             RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers, timeout);
 
             try {
-                rb.setEntity(new StringEntity(requestEntity.toJson()));
+                String body = requestEntity.toJson();
+                rb.setEntity(new StringEntity(body == null ? "{}" : body));
                 CloseableHttpResponse r = certClient.execute(rb.build());
                 return r;
             } catch (IOException ex) {
