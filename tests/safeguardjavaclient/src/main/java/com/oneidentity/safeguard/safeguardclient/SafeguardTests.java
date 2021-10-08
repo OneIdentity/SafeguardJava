@@ -22,12 +22,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class SafeguardTests {
 
     public SafeguardTests() {
     }
     
+    private void logResponseDetails(FullResponse fullResponse)
+    {
+        System.out.println(String.format("\t\tReponse status code: %d", fullResponse.getStatusCode()));
+        String msg = fullResponse.getHeaders() == null ? "None" : fullResponse.getHeaders().stream().map(header -> header.getName() + "=" + header.getValue()).collect(Collectors.joining(", ", "{", "}"));
+        System.out.println(String.format("\t\tResponse headers: %s", msg));
+        msg = (fullResponse.getBody() == null) || (fullResponse.getBody().trim().length() == 0) ? "No-Content" : fullResponse.getBody();
+        System.out.println(String.format("\t\tBody: %s", msg));
+    }
+
     public ISafeguardConnection safeguardConnectByUserPassword() {
         
         String address = readLine("SPP address: ", null);
@@ -195,15 +205,21 @@ public class SafeguardTests {
             
             FullResponse fullResponse = connection.invokeMethodFull(Service.Core, Method.Get, "Users", null, null, null, null);
             System.out.println(String.format("\t\\Users full response:"));
-            System.out.println(fullResponse.toString());
+            logResponseDetails(fullResponse);
             
-            response = connection.invokeMethod(Service.Notification, Method.Get, "Status", null, null, null, null);
+            fullResponse = connection.invokeMethodFull(Service.Core, Method.Post, "Events/FireTestEvent", null, null, null, null);
+            System.out.println(String.format("\t\\FireTestEvent response:"));
+            logResponseDetails(fullResponse);
+            
+            fullResponse = connection.invokeMethodFull(Service.Notification, Method.Get, "Status", null, null, null, null);
             System.out.println(String.format("\t\\Appliance status:"));
-            System.out.println(response);
+            logResponseDetails(fullResponse);
             
-        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
-            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
-        } catch (Exception ex) {
+            fullResponse = connection.invokeMethodFull(Service.Appliance, Method.Get, "NetworkInterfaces", null, null, null, null);
+            System.out.println(String.format("\t\\NetworkInterfaces response:"));
+            logResponseDetails(fullResponse);
+
+        } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
             System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
         }
     }
@@ -586,13 +602,50 @@ public class SafeguardTests {
         try {
             FullResponse fullResponse = connection.InvokeMethodFull(Method.Get, "firmware", null);
             System.out.println(String.format("\t\\Users full response:"));
-            System.out.println(fullResponse.getBody());
+            logResponseDetails(fullResponse);
             
-        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
-            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
-        } catch (Exception ex) {
+        } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
             System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
         }
     }
+
+    void safeguardTestManagementConnection(ISafeguardConnection connection) {
+        if (connection == null) {
+            System.out.println(String.format("Safeguard not connected. This test requires an annonymous connection."));
+            return;
+        }
+        
+        String address = readLine("SPP address(management service): ", null);
+        
+        try {
+            ISafeguardConnection managementConnection = connection.GetManagementServiceConnection(address);
+            FullResponse response = managementConnection.invokeMethodFull(Service.Management, Method.Get, "ApplianceInformation", null, null, null, null);
+            System.out.println(String.format("\t\\ApplianceInformation response:"));
+            logResponseDetails(response);
+        } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test management connection failed: " + ex.getMessage());
+        }
+        
+    }
     
+    public void safeguardTestAnonymousConnection(ISafeguardConnection connection) {
+        
+        if (connection == null) {
+            System.out.println(String.format("Safeguard not connected"));
+            return;
+        }
+        
+        try {
+            int remaining = connection.getAccessTokenLifetimeRemaining();
+            System.out.println(String.format("\tTime remaining: %d", remaining));
+            
+            FullResponse fullResponse = connection.invokeMethodFull(Service.Notification, Method.Get, "Status", null, null, null, null);
+            System.out.println(String.format("\t\\Appliance status:"));
+            logResponseDetails(fullResponse);
+            
+        } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+        }
+    }
+
 }

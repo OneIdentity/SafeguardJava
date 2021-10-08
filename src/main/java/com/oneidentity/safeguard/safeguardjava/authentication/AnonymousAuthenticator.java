@@ -53,7 +53,7 @@ public class AnonymousAuthenticator extends AuthenticatorBase {
 
     @Override
     public boolean hasAccessToken() {
-        return true;
+        return false;
     }
     
     @Override

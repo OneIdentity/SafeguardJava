@@ -150,6 +150,17 @@ public interface ISafeguardConnection {
     ISafeguardEventListener getPersistentEventListener() throws ObjectDisposedException, SafeguardForJavaException;
 
     /**
+     *  Returns a Safeguard API connection tailored to work with the Safeguard management service
+     *  service. To invoke methods on the Management service, call this method first and use the
+     *  returned ISafeguardConnection. Applicable options such as SSL validation will be inherited
+     *  from the original ISafeguardConnection.
+     *
+     *  @param networkAddress   Network address.
+     *  @return Reusable Safeguard API connection.
+     */
+    ISafeguardConnection GetManagementServiceConnection(String networkAddress);    
+        
+    /**
      *  Call Safeguard API to invalidate current access token and clear its value from
      *  the connection.  In order to continue using the connection you will need to call
      *  RefreshAccessToken().

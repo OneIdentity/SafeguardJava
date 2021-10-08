@@ -201,6 +201,11 @@ class SafeguardConnection implements ISafeguardConnection {
     }
 
     @Override
+    public ISafeguardConnection GetManagementServiceConnection(String networkAddress) {
+        return new SafeguardManagementServiceConnection(authenticationMechanism, networkAddress);
+    }
+     
+    @Override
     public void logOut() throws ObjectDisposedException {
         
         if (disposed)
@@ -238,7 +243,7 @@ class SafeguardConnection implements ISafeguardConnection {
         Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "  Body size: {0}", msg);
     }
 
-    RestClient getClientForService(Service service) throws SafeguardForJavaException {
+    protected RestClient getClientForService(Service service) throws SafeguardForJavaException {
         switch (service) {
             case Core:
                 return coreClient;
