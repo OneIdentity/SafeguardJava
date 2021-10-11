@@ -354,7 +354,7 @@ public class BrokeredAccessRequest implements JsonObject
         return new StringBuffer("{")
                 .append(Utils.toJsonString("AccountId", this.AccountId, false))
                 .append(Utils.toJsonString("SystemId", this.AssetId, true))
-                .append(Utils.toJsonString("AccessRequestType", this.AccessType == null ? null : this.AccessType.name(), true))
+                .append(Utils.toJsonString("AccessRequestType", this.AccessType == null ? null : this.AccessType.toString(), true))
                 .append(Utils.toJsonString("IsEmergency", this.IsEmergency, true))
                 .append(Utils.toJsonString("ReasonCodeId", this.ReasonCodeId, true))
                 .append(Utils.toJsonString("ReasonComment", this.ReasonComment, true))
