@@ -9,6 +9,7 @@ import com.oneidentity.safeguard.safeguardjava.Safeguard;
 import com.oneidentity.safeguard.safeguardjava.SafeguardForPrivilegedSessions;
 import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccount;
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
+import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequestType;
 import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
 import com.oneidentity.safeguard.safeguardjava.data.KeyFormat;
 import com.oneidentity.safeguard.safeguardjava.data.Method;
@@ -310,40 +311,51 @@ public class SafeguardTests {
             return;
         }
         
-        boolean passwordRelease = readLine("Password or Private Key(p/k): ", "p").equalsIgnoreCase("p");
-        String apiKey = readLine("API Key: ", null);
-        
-        try {
-            if (passwordRelease) {
-                String password = new String(a2aContext.retrievePassword(apiKey.toCharArray()));
-                System.out.println(String.format("\tSuccessful password release"));
+        if (readLine("Test Credential Retrieval(y/n): ", "y").equalsIgnoreCase("y")) {
+            boolean passwordRelease = readLine("Password or Private Key(p/k): ", "p").equalsIgnoreCase("p");
+            String apiKey = readLine("API Key: ", null);
+
+            try {
+                if (passwordRelease) {
+                    String password = new String(a2aContext.retrievePassword(apiKey.toCharArray()));
+                    System.out.println(String.format("\tSuccessful password release"));
+                }
+                else {
+                    String key = new String(a2aContext.retrievePrivateKey(apiKey.toCharArray(), KeyFormat.OpenSsh));
+                    System.out.println(String.format("\tSuccessful private key release"));
+                }
+
+                List<A2ARetrievableAccount> registrations = a2aContext.getRetrievableAccounts();
+                System.out.println(String.format("\tRetrievable accounts:"));
+                for (A2ARetrievableAccount reg : registrations) {
+                    System.out.println(String.format("\t\t%d %s %s", reg.getAccountId(), reg.getAccountName(), reg.getAccountDescription()));
+                }
+            } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
+                System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
             }
-            else {
-                String key = new String(a2aContext.retrievePrivateKey(apiKey.toCharArray(), KeyFormat.OpenSsh));
-                System.out.println(String.format("\tSuccessful private key release"));
-            }
+        }
             
-            List<A2ARetrievableAccount> registrations = a2aContext.getRetrievableAccounts();
-            System.out.println(String.format("\tRetrievable accounts:"));
-            for (A2ARetrievableAccount reg : registrations) {
-                System.out.println(String.format("\t\t%d %s %s", reg.getAccountId(), reg.getAccountName(), reg.getAccountDescription()));
-            }
-            
+        if (readLine("Test Access Request Broker(y/n): ", "y").equalsIgnoreCase("y")) {
             String accountId = readLine("Account Id: ", null);
             String assetId = readLine("Asset Id:", null);
             String forUserId = readLine("For User Id:", null);
-            apiKey = readLine("Api Key: ", null);
+            String accessRequestType = readLine("Access Request Type((p)assword/(s)sh/(r)dp): ", "p");
+            String apiKey = readLine("Api Key: ", null);
             
-            BrokeredAccessRequest accessRequest = new BrokeredAccessRequest();
-            accessRequest.setAccountId(Integer.parseInt(accountId));
-            accessRequest.setForUserId(Integer.parseInt(forUserId));
-            accessRequest.setAssetId(Integer.parseInt(assetId));
-            a2aContext.brokerAccessRequest(apiKey.toCharArray(), accessRequest);
-            
-        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
-            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
-        } catch (Exception ex) {
-            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+            try {
+                BrokeredAccessRequest accessRequest = new BrokeredAccessRequest();
+                accessRequest.setAccountId(Integer.parseInt(accountId));
+                accessRequest.setForUserId(Integer.parseInt(forUserId));
+                accessRequest.setAssetId(Integer.parseInt(assetId));
+                accessRequest.setAccessType(accessRequestType.toLowerCase().equals("p") ? BrokeredAccessRequestType.Password 
+                        : accessRequestType.toLowerCase().equals("s") ? BrokeredAccessRequestType.Ssh 
+                            : BrokeredAccessRequestType.Rdp);
+                String result = a2aContext.brokerAccessRequest(apiKey.toCharArray(), accessRequest);
+
+                System.out.println(result);
+            } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException | NumberFormatException ex) {
+                System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+            }
         }
     }
 
