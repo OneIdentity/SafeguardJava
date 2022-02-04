@@ -42,4 +42,11 @@ public interface ISafeguardSessionsConnection {
     FullResponse InvokeMethodFull(Method method, String relativeUrl, String body)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
     
+    /**
+     * Provides support for HTTP streaming requests
+     * 
+     * @return returns ISpsStreamingRequest
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException
+     */
+    ISpsStreamingRequest getStream() throws ObjectDisposedException;
 }

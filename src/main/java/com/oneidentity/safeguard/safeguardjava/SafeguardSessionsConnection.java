@@ -15,131 +15,141 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.net.ssl.HostnameVerifier;
 import org.apache.http.Header;
-import org.apache.http.HeaderElement;
 import org.apache.http.client.methods.CloseableHttpResponse;
 
 /**
- *  This is the reusable connection interface that can be used to call SPS API.
+ * This is the reusable connection interface that can be used to call SPS API.
  */
 class SafeguardSessionsConnection implements ISafeguardSessionsConnection {
 
     private boolean disposed;
-    
-    private RestClient _client;
-    private Header _authCookie = null;
-    
-    public SafeguardSessionsConnection(String networkAddress, String username,
-            char[] password, boolean ignoreSsl, HostnameVerifier validationCallback) 
-            throws SafeguardForJavaException {
-        
-        String spsApiUrl = String.format("https://%s/api", networkAddress);
-        _client = new RestClient(spsApiUrl, username, password, ignoreSsl, validationCallback);
 
-        Map<String,String> headers = new HashMap<>();
+    private RestClient client;
+    private final Header authCookie = null;
+
+    public SafeguardSessionsConnection(String networkAddress, String username,
+            char[] password, boolean ignoreSsl, HostnameVerifier validationCallback)
+            throws SafeguardForJavaException {
+
+        String spsApiUrl = String.format("https://%s/api", networkAddress);
+        client = new RestClient(spsApiUrl, username, password, ignoreSsl, validationCallback);
+
+        Map<String, String> headers = new HashMap<>();
 
         Logger.getLogger(SafeguardSessionsConnection.class.getName()).log(Level.FINEST, "Starting authentication.");
-        logRequestDetails(Method.Get, _client.getBaseURL() + "/" + "authentication", null, null);
+        logRequestDetails(Method.Get, client.getBaseURL() + "/" + "authentication", null, null);
 
-        CloseableHttpResponse response = _client.execGET("authentication", null, null, null);
-        
+        CloseableHttpResponse response = client.execGET("authentication", null, null, null);
+
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to authenticate to SPS %s", networkAddress));
         }
 
         String reply = Utils.getResponse(response);
-        
+
         if (!Utils.isSuccessful(response.getStatusLine().getStatusCode())) {
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
                     + String.format("%d %s", response.getStatusLine().getStatusCode(), reply));
         }
-        
+
         Header authCookie = response.getFirstHeader("Set-Cookie");
         if (authCookie != null) {
-            _client.addSessionId(authCookie.getValue());
+            client.addSessionId(authCookie.getValue());
         }
-        
+
         Logger.getLogger(SafeguardSessionsConnection.class.getName()).log(Level.FINEST, String.format("Response content: $s", reply));
     }
 
     @Override
-    public String InvokeMethod(Method method, String relativeUrl, String body) 
+    public String InvokeMethod(Method method, String relativeUrl, String body)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
-        
+
         return InvokeMethodFull(method, relativeUrl, body).getBody();
     }
 
     /**
-     *  Call a SafeguardForPrivilegedSessions API method and get a detailed response with status code, headers,
-     *  and body. If there is a failure a SafeguardDotNetException will be thrown.
+     * Call a SafeguardForPrivilegedSessions API method and get a detailed
+     * response with status code, headers, and body. If there is a failure a
+     * SafeguardDotNetException will be thrown.
      *
-     *  @param method       HTTP method type to use.
-     *  @param relativeUrl  The url.
-     *  @param body         Request body to pass to the method.
-     * 
-     *  @return             Response with status code, headers, and body as string.
-     */ 
+     * @param method HTTP method type to use.
+     * @param relativeUrl The url.
+     * @param body Request body to pass to the method.
+     *
+     * @return Response with status code, headers, and body as string.
+     */
     @Override
     //TODO: This API should have an additionalHeaders parameter
     //TODO: This API should have an parameters parameter
     //TODO: This API should have an timeout parameter
-    public FullResponse InvokeMethodFull(Method method, String relativeUrl, String body) 
+    public FullResponse InvokeMethodFull(Method method, String relativeUrl, String body)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
-        
+
         if (disposed) {
             throw new ObjectDisposedException("SafeguardSessionsConnection");
         }
-        if (Utils.isNullOrEmpty(relativeUrl))
+        if (Utils.isNullOrEmpty(relativeUrl)) {
             throw new ArgumentException("Parameter relativeUrl may not be null or empty");
-        
+        }
+
         Logger.getLogger(SafeguardSessionsConnection.class.getName()).log(Level.FINEST, String.format("Invoking method on sps: $s", relativeUrl));
 
         CloseableHttpResponse response = null;
 
-        logRequestDetails(method, _client.getBaseURL() + "/" + relativeUrl, null, null);
-        
+        logRequestDetails(method, client.getBaseURL() + "/" + relativeUrl, null, null);
+
         switch (method) {
             case Get:
-                response = _client.execGET(relativeUrl, null, null, null);
+                response = client.execGET(relativeUrl, null, null, null);
                 break;
             case Post:
-                response = _client.execPOST(relativeUrl, null, null, null, new JsonBody(body));
+                response = client.execPOST(relativeUrl, null, null, null, new JsonBody(body));
                 break;
             case Put:
-                response = _client.execPUT(relativeUrl, null, null, null, new JsonBody(body));
+                response = client.execPUT(relativeUrl, null, null, null, new JsonBody(body));
                 break;
             case Delete:
-                response = _client.execDELETE(relativeUrl, null, null, null);
+                response = client.execDELETE(relativeUrl, null, null, null);
                 break;
         }
-        
+
         if (response == null) {
-            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", _client.getBaseURL()));
+            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", client.getBaseURL()));
         }
-        
+
         String reply = Utils.getResponse(response);
-        
+
         if (!Utils.isSuccessful(response.getStatusLine().getStatusCode())) {
             throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
                     + String.format("%d %s", response.getStatusLine().getStatusCode(), reply));
         }
 
         Logger.getLogger(SafeguardSessionsConnection.class.getName()).log(Level.FINEST, String.format("Invoking method finished: $s", reply));
-        
+
         FullResponse fullResponse = new FullResponse(response.getStatusLine().getStatusCode(), response.getAllHeaders(), reply);
-        
+
         logResponseDetails(fullResponse);
-        
+
         return fullResponse;
     }
-    
+
+    @Override
+    public ISpsStreamingRequest getStream() throws ObjectDisposedException {
+        if (disposed) {
+            throw new ObjectDisposedException("SafeguardSessionsConnection");
+        }
+
+        return (ISpsStreamingRequest) new SpsStreamingRequest(this.client);
+    }
+
     boolean isDisposed() {
         return disposed;
     }
 
-    public void dispose()
-    {
-        if (_client != null)
-            _client = null;
+    public void dispose() {
+        if (client != null) {
+            client = null;
+        }
         disposed = true;
     }
 
