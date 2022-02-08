@@ -612,7 +612,7 @@ public class SafeguardTests {
         }
         
         try {
-            FullResponse fullResponse = connection.InvokeMethodFull(Method.Get, "firmware", null);
+            FullResponse fullResponse = connection.InvokeMethodFull(Method.Get, "configuration/network/naming", null);
             System.out.println(String.format("\t\\Users full response:"));
             logResponseDetails(fullResponse);
             
@@ -621,6 +621,63 @@ public class SafeguardTests {
         }
     }
 
+    public void safeguardSessionsFileUpload(ISafeguardSessionsConnection connection) {
+        
+        if (connection == null) {
+            System.out.println(String.format("Safeguard not connected"));
+            return;
+        }
+
+        String patchFileName = readLine("SPS Firmware File Name: ", null);
+        
+        if (patchFileName == null) {
+            System.out.println(String.format("file name"));
+            return;
+        }
+        
+        try {
+            Path filePath = Paths.get(patchFileName).toAbsolutePath();
+            System.out.println(String.format("\tFile path: %s", filePath.toAbsolutePath()));
+            
+            connection.getStreamingRequest().uploadStream("upload/firmware", filePath.toString(), null, null);
+            System.out.println(String.format("\tUploaded file: %s", patchFileName));
+        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test SPS firmware upload failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Test SPS firmware upload failed: " + ex.getMessage());
+        }
+    }
+
+    public void safeguardSessionsStreamUpload(ISafeguardSessionsConnection connection) {
+        
+        if (connection == null) {
+            System.out.println(String.format("Safeguard not connected"));
+            return;
+        }
+
+        String patchFileName = readLine("SPS Firmware File Name: ", null);
+        boolean withProgress = readLine("With Progress Notification(y/n): ", "n").equalsIgnoreCase("y");
+        
+        if (patchFileName == null) {
+            System.out.println(String.format("file name"));
+            return;
+        }
+        
+        try {
+            Path filePath = Paths.get(patchFileName).toAbsolutePath();
+            IProgressCallback progressCallback = withProgress ? new ProgressNotification() : null;
+            byte[] fileContent = Files.readAllBytes(filePath);
+            System.out.println(String.format("\tFile path: %s", filePath.toAbsolutePath()));
+            
+            connection.getStreamingRequest().uploadStream("upload/firmware", fileContent, progressCallback, null, null);
+            System.out.println(String.format("\tUploaded file: %s", patchFileName));
+        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test SPS firmware upload failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Test SPS firmware upload failed: " + ex.getMessage());
+        }
+    }
+    
     void safeguardTestManagementConnection(ISafeguardConnection connection) {
         if (connection == null) {
             System.out.println(String.format("Safeguard not connected. This test requires an annonymous connection."));

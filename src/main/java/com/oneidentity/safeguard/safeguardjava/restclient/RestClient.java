@@ -5,13 +5,16 @@ import com.oneidentity.safeguard.safeguardjava.IProgressCallback;
 import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
 import com.oneidentity.safeguard.safeguardjava.data.JsonObject;
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -40,10 +43,12 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509ExtendedKeyManager;
 import javax.net.ssl.X509KeyManager;
 import javax.net.ssl.X509TrustManager;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.CredentialsProvider;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.RequestBuilder;
@@ -52,11 +57,13 @@ import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.cookie.Cookie;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.BasicHttpClientConnectionManager;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -69,6 +76,7 @@ public class RestClient {
     private BasicCookieStore cookieStore = new BasicCookieStore();
 
     private String serverUrl = null;
+    private String hostDomain = null;
     private boolean ignoreSsl = false;
     private HostnameVerifier validationCallback = null;
 
@@ -86,7 +94,12 @@ public class RestClient {
         CredentialsProvider provider = new BasicCredentialsProvider();
         provider.setCredentials(AuthScope.ANY, new UsernamePasswordCredentials(userName, new String(password)));
         
-        client = builder.setDefaultCredentialsProvider(provider).setDefaultCookieStore(cookieStore).disableCookieManagement().build();
+        RequestConfig customizedRequestConfig = RequestConfig.custom().setCookieSpec(CookieSpecs.STANDARD).build();
+        
+        client = builder.setDefaultCredentialsProvider(provider)
+                .setDefaultRequestConfig(customizedRequestConfig)
+                .setDefaultCookieStore(cookieStore)
+                .build();
     }
 
     private HttpClientBuilder createClientBuilder(String connectionAddr, boolean ignoreSsl, HostnameVerifier validationCallback) {
@@ -102,6 +115,13 @@ public class RestClient {
 
         this.ignoreSsl = ignoreSsl;
         this.serverUrl = connectionAddr;
+        
+        try {
+            URL aUrl = new URL(connectionAddr);
+            this.hostDomain = aUrl.getHost();
+        } catch (MalformedURLException ex) {
+            Logger.getLogger(RestClient.class.getName()).log(Level.SEVERE, "Invalid URL", ex);
+        }
 
         SSLConnectionSocketFactory sslsf = null; 
         if (ignoreSsl) {
@@ -174,6 +194,10 @@ public class RestClient {
                     cookie.setPath(path);
                 }
 
+                if (this.hostDomain != null) {
+                    cookie.setDomain(this.hostDomain);
+                }
+                
                 String secure = keyValues.get("Secure");
                 if (secure != null) {
                     cookie.setSecure(true);
@@ -345,6 +369,54 @@ public class RestClient {
         return null;
     }
 
+    public CloseableHttpResponse execPOSTFile(String path, Map<String, String> queryParams, Map<String, 
+            String> headers, Integer timeout, String fileName) {
+
+        File file = new File(fileName);
+        
+        HttpEntity data = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                .addBinaryBody("firmware", file, ContentType.MULTIPART_FORM_DATA, file.getName()).build();
+
+        if (headers == null || !headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
+            headers = headers == null ? new HashMap<String,String>() : headers;
+        }
+        RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers, timeout);
+
+        try {
+            rb.setEntity(data);
+            CloseableHttpResponse r = client.execute(rb.build());
+            return r;
+        } catch (IOException ex) {
+            return null;
+        }
+    }
+    
+    public CloseableHttpResponse execPOSTFile(String path, Map<String, String> queryParams, Map<String, String> headers, Integer timeout,
+            String fileName, CertificateContext certificateContext) {
+
+        CloseableHttpClient certClient = getClientWithCertificate(certificateContext);
+
+        if (certClient != null) {
+            File file = new File(fileName);
+            HttpEntity data = MultipartEntityBuilder.create().setMode(HttpMultipartMode.BROWSER_COMPATIBLE)
+                    .addBinaryBody("firmware", file, ContentType.MULTIPART_FORM_DATA, file.getName()).build();
+            
+            if (headers == null || !headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
+                headers = headers == null ? new HashMap<String,String>() : headers;
+            }
+            RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers, timeout);
+
+            try {
+                rb.setEntity(data);
+                CloseableHttpResponse r = client.execute(rb.build());
+                return r;
+            } catch (IOException ex) {
+                return null;
+            }
+        }
+        return null;
+    }
+    
     public CloseableHttpResponse execDELETE(String path, Map<String, String> queryParams, Map<String, String> headers, Integer timeout) {
 
         RequestBuilder rb = prepareRequest(RequestBuilder.delete(getBaseURI(path)), queryParams, headers, timeout);
@@ -416,7 +488,7 @@ public class RestClient {
             rb.addHeader(HttpHeaders.ACCEPT, "application/json");
         if (headers == null || !headers.containsKey(HttpHeaders.CONTENT_TYPE))
             rb.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
-
+        
         if (headers != null) {
             for (Map.Entry<String, String> entry : headers.entrySet()) {
                 rb.addHeader(entry.getKey(), entry.getValue());

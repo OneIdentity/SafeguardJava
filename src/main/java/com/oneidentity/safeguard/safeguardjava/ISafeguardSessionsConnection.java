@@ -48,5 +48,5 @@ public interface ISafeguardSessionsConnection {
      * @return returns ISpsStreamingRequest
      * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException
      */
-    ISpsStreamingRequest getStream() throws ObjectDisposedException;
+    ISpsStreamingRequest getStreamingRequest() throws ObjectDisposedException;
 }

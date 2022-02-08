@@ -134,12 +134,12 @@ class SafeguardSessionsConnection implements ISafeguardSessionsConnection {
     }
 
     @Override
-    public ISpsStreamingRequest getStream() throws ObjectDisposedException {
+    public ISpsStreamingRequest getStreamingRequest() throws ObjectDisposedException {
         if (disposed) {
             throw new ObjectDisposedException("SafeguardSessionsConnection");
         }
 
-        return (ISpsStreamingRequest) new SpsStreamingRequest(this.client);
+        return new SpsStreamingRequest(this.client);
     }
 
     boolean isDisposed() {
