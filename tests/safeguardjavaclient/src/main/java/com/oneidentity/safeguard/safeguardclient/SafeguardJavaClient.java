@@ -27,6 +27,16 @@ public class SafeguardJavaClient {
         boolean done = false;
         SafeguardTests tests = new SafeguardTests();
         
+        // Uncomment the lines below to enable console debug logging of the http requests
+        //System.setProperty("org.apache.commons.logging.Log","org.apache.commons.logging.impl.SimpleLog");
+        //System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
+        //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.wire", "DEBUG");        
+
+        //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.impl.conn", "DEBUG");
+        //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.impl.client", "DEBUG");
+        //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.client", "DEBUG");
+        //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http", "DEBUG");
+
         while (!done) {
             Integer selection = displayMenu();
             
@@ -101,9 +111,15 @@ public class SafeguardJavaClient {
                     tests.safeguardSessionsApi(sessionConnection);
                     break;
                 case 24:
-                    tests.safeguardTestManagementConnection(connection);
+                    tests.safeguardSessionsFileUpload(sessionConnection);
                     break;
                 case 25:
+                    tests.safeguardSessionsStreamUpload(sessionConnection);
+                    break;
+                case 26:
+                    tests.safeguardTestManagementConnection(connection);
+                    break;
+                case 27:
                     tests.safeguardTestAnonymousConnection(connection);
                     break;
                 default:
@@ -141,8 +157,10 @@ public class SafeguardJavaClient {
         System.out.println ("\t21. Test Upload Backup File");
         System.out.println ("\t22. Test SPS Connection");
         System.out.println ("\t23. Test SPS API");
-        System.out.println ("\t24. Test Management Interface API");
-        System.out.println ("\t25. Test Anonymous Connection");
+        System.out.println ("\t24. Test SPS Firmware Upload");
+        System.out.println ("\t25. Test Stream Upload");
+        System.out.println ("\t26. Test Management Interface API");
+        System.out.println ("\t27. Test Anonymous Connection");
         
         System.out.println ("\t99. Exit");
         
