@@ -37,95 +37,105 @@ public class SafeguardJavaClient {
         //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http.client", "DEBUG");
         //System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.http", "DEBUG");
 
-        while (!done) {
-            Integer selection = displayMenu();
-            
-            switch(selection) {
-                case 1:
-                    connection = tests.safeguardConnectByUserPassword();
-                    break;
-                case 2:
-                    connection = tests.safeguardConnectByThumbprint();
-                    break;
-                case 3:
-                    connection = tests.safeguardConnectByCertificate();
-                    break;
-                case 4:
-                    connection = tests.safeguardConnectByToken();
-                    break;
-                case 5:
-                    connection = tests.safeguardConnectAnonymous();
-                    break;
-                case 6:
-                    connection = tests.safeguardConnectByKeystore();
-                    break;
-                case 7:
-                    tests.safeguardTestConnection(connection);
-                    break;
-                case 8:
-                    connection = tests.safeguardDisconnect(connection);
-                    break;
-                case 9:
-                    a2aContext = tests.safeguardGetA2AContextByCertificate();
-                    break;
-                case 10:
-                    a2aContext = tests.safeguardGetA2AContextByKeystore();
-                    break;
-                case 11:
-                    a2aContext = tests.safeguardGetA2AContextByThumbprint();
-                    break;
-                case 12:
-                    tests.safeguardTestA2AContext(a2aContext);
-                    break;
-                case 13:
-                    a2aContext = tests.safeguardDisconnectA2AContext(a2aContext);
-                    break;
-                case 14:
-                    eventListener = tests.safeguardEventListenerByUserPassword();
-                    break;
-                case 15:
-                    eventListener = tests.safeguardEventListenerByCertificate();
-                    break;
-                case 16:
-                    eventListener = tests.safeguardEventListenerByKeystore();
-                    break;
-                case 17:
-                    eventListener = tests.safeguardEventListenerByThumbprint();
-                    break;
-                case 18:
-                    tests.safeguardTestEventListener(eventListener);
-                    break;
-                case 19:
-                    eventListener = tests.safeguardDisconnectEventListener(eventListener);
-                    break;
-                case 20:
-                    tests.safeguardTestBackupDownload(connection);
-                    break;
-                case 21:
-                    tests.safeguardTestBackupUpload(connection);
-                    break;
-                case 22:
-                    sessionConnection = tests.safeguardSessionsConnection();
-                    break;
-                case 23:
-                    tests.safeguardSessionsApi(sessionConnection);
-                    break;
-                case 24:
-                    tests.safeguardSessionsFileUpload(sessionConnection);
-                    break;
-                case 25:
-                    tests.safeguardSessionsStreamUpload(sessionConnection);
-                    break;
-                case 26:
-                    tests.safeguardTestManagementConnection(connection);
-                    break;
-                case 27:
-                    tests.safeguardTestAnonymousConnection(connection);
-                    break;
-                default:
-                    done = true;
-                    break;
+        try {
+            while (!done) {
+                Integer selection = displayMenu();
+
+                switch(selection) {
+                    case 1:
+                        connection = tests.safeguardConnectByUserPassword();
+                        break;
+                    case 2:
+                        connection = tests.safeguardConnectByThumbprint();
+                        break;
+                    case 3:
+                        connection = tests.safeguardConnectByCertificate();
+                        break;
+                    case 4:
+                        connection = tests.safeguardConnectByToken();
+                        break;
+                    case 5:
+                        connection = tests.safeguardConnectAnonymous();
+                        break;
+                    case 6:
+                        connection = tests.safeguardConnectByKeystore();
+                        break;
+                    case 7:
+                        tests.safeguardTestConnection(connection);
+                        break;
+                    case 8:
+                        connection = tests.safeguardDisconnect(connection);
+                        break;
+                    case 9:
+                        a2aContext = tests.safeguardGetA2AContextByCertificate();
+                        break;
+                    case 10:
+                        a2aContext = tests.safeguardGetA2AContextByKeystore();
+                        break;
+                    case 11:
+                        a2aContext = tests.safeguardGetA2AContextByThumbprint();
+                        break;
+                    case 12:
+                        tests.safeguardTestA2AContext(a2aContext);
+                        break;
+                    case 13:
+                        a2aContext = tests.safeguardDisconnectA2AContext(a2aContext);
+                        break;
+                    case 14:
+                        eventListener = tests.safeguardEventListenerByUserPassword();
+                        break;
+                    case 15:
+                        eventListener = tests.safeguardEventListenerByCertificate();
+                        break;
+                    case 16:
+                        eventListener = tests.safeguardEventListenerByKeystore();
+                        break;
+                    case 17:
+                        eventListener = tests.safeguardEventListenerByThumbprint();
+                        break;
+                    case 18:
+                        tests.safeguardTestEventListener(eventListener);
+                        break;
+                    case 19:
+                        eventListener = tests.safeguardDisconnectEventListener(eventListener);
+                        break;
+                    case 20:
+                        tests.safeguardTestBackupDownload(connection);
+                        break;
+                    case 21:
+                        tests.safeguardTestBackupUpload(connection);
+                        break;
+                    case 22:
+                        sessionConnection = tests.safeguardSessionsConnection();
+                        break;
+                    case 23:
+                        tests.safeguardSessionsApi(sessionConnection);
+                        break;
+                    case 24:
+                        tests.safeguardSessionsFileUpload(sessionConnection);
+                        break;
+                    case 25:
+                        tests.safeguardSessionsStreamUpload(sessionConnection);
+                        break;
+                    case 26:
+                        tests.safeguardSessionTestRecordingDownload(sessionConnection);
+                        break;
+                    case 27:
+                        tests.safeguardTestManagementConnection(connection);
+                        break;
+                    case 28:
+                        tests.safeguardTestAnonymousConnection(connection);
+                        break;
+                    default:
+                        done = true;
+                        break;
+                }
             }
+        } catch (Exception ex) {
+            System.out.println("Exception Type: " + ex.getClass().getCanonicalName());
+            System.out.println("/tMessage: " + ex.getMessage());
+            System.out.println("/tException Stack: ");
+            ex.printStackTrace();
         }
         
         System.out.println("All done.");
@@ -159,8 +169,9 @@ public class SafeguardJavaClient {
         System.out.println ("\t23. Test SPS API");
         System.out.println ("\t24. Test SPS Firmware Upload");
         System.out.println ("\t25. Test Stream Upload");
-        System.out.println ("\t26. Test Management Interface API");
-        System.out.println ("\t27. Test Anonymous Connection");
+        System.out.println ("\t26. Test Session Recording Download");
+        System.out.println ("\t27. Test Management Interface API");
+        System.out.println ("\t28. Test Anonymous Connection");
         
         System.out.println ("\t99. Exit");
         

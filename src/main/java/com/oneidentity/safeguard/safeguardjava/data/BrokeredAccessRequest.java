@@ -9,7 +9,8 @@ import java.util.Date;
  */
 public class BrokeredAccessRequest implements JsonObject
 {
-
+    private int version;
+    
     private BrokeredAccessRequestType AccessType;   // converted by AccessRequestTypeConverter
     private String ForUserName;
     private String ForUserIdentityProvider;         // renamed from ForProvider
@@ -30,6 +31,10 @@ public class BrokeredAccessRequest implements JsonObject
     private Long RequestedDurationHours;
     private Long RequestedDurationMinutes;
 
+
+    public void setVersion(int apiVersion) {
+        version = apiVersion;
+    }
     
     /**
      * Get the type of access request to create.
@@ -353,7 +358,7 @@ public class BrokeredAccessRequest implements JsonObject
     public String toJson() {
         return new StringBuffer("{")
                 .append(Utils.toJsonString("AccountId", this.AccountId, false))
-                .append(Utils.toJsonString("SystemId", this.AssetId, true))
+                .append(version == 3 ? Utils.toJsonString("SystemId", this.AssetId, true) : Utils.toJsonString("AssetId", this.AssetId, true))
                 .append(Utils.toJsonString("AccessRequestType", this.AccessType == null ? null : this.AccessType.toString(), true))
                 .append(Utils.toJsonString("IsEmergency", this.IsEmergency, true))
                 .append(Utils.toJsonString("ReasonCodeId", this.ReasonCodeId, true))

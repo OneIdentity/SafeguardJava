@@ -20,7 +20,7 @@ import javax.net.ssl.HostnameVerifier;
  */
 public final class Safeguard {
 
-    private static final int DEFAULTAPIVERSION = 3;
+    private static final int DEFAULTAPIVERSION = 4;
 
     private Safeguard() {
 

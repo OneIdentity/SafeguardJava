@@ -13,8 +13,12 @@ public class A2ARetrievableAccountInternal {
     private String apiKey;
     @JsonProperty("SystemId")
     private int systemId;
+    @JsonProperty("AssetId")
+    private int assetId;
     @JsonProperty("SystemName")
     private String systemName;
+    @JsonProperty("AssetName")
+    private String assetName;
     @JsonProperty("AccountId")
     private int accountId;
     @JsonProperty("AccountName")
@@ -24,6 +28,8 @@ public class A2ARetrievableAccountInternal {
     @JsonProperty("AccountType")
     private String accountType;
     @JsonProperty("SystemDescription")
+    private String systemDescription;
+    @JsonProperty("AssetDescription")
     private String assetDescription;
     @JsonProperty("AccountDescription")
     private String accountDescription;
@@ -49,20 +55,28 @@ public class A2ARetrievableAccountInternal {
         this.apiKey = apiKey;
     }
 
-    public int getSystemId() {
-        return systemId;
+    public int getAssetId() {
+        return assetId;
     }
 
     public void setSystemId(int systemId) {
-        this.systemId = systemId;
+        this.assetId = systemId;
+    }
+    
+    public void setAssetId(int assetId) {
+        this.assetId = assetId;
     }
 
-    public String getSystemName() {
-        return systemName;
+    public String getAssetName() {
+        return assetName;
     }
 
     public void setSystemName(String systemName) {
-        this.systemName = systemName;
+        this.assetName = systemName;
+    }
+    
+    public void setAssetName(String assetName) {
+        this.assetName = assetName;
     }
 
     public int getAccountId() {
@@ -101,6 +115,10 @@ public class A2ARetrievableAccountInternal {
         return assetDescription;
     }
 
+    public void setSystemDescription(String systemDescription) {
+        this.assetDescription = systemDescription;
+    }
+    
     public void setAssetDescription(String assetDescription) {
         this.assetDescription = assetDescription;
     }
