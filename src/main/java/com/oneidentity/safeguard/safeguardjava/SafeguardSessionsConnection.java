@@ -25,7 +25,6 @@ class SafeguardSessionsConnection implements ISafeguardSessionsConnection {
     private boolean disposed;
 
     private RestClient client;
-    private final Header authCookie = null;
 
     public SafeguardSessionsConnection(String networkAddress, String username,
             char[] password, boolean ignoreSsl, HostnameVerifier validationCallback)

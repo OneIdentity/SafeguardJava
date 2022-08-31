@@ -13,7 +13,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <revision>6.12.0-SNAPSHOT</revision>
+        <revision>7.0.0-SNAPSHOT</revision>
         <signingcertpath>./signingcert.pfx</signingcertpath>
         <signingcertaliasname>1</signingcertaliasname>
         <signingkeystorepassword>secret</signingkeystorepassword>
@@ -42,12 +42,12 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>4.9.1</version>
+            <version>4.10.0</version>
         </dependency>
         <dependency>
             <groupId>com.microsoft.signalr</groupId>
             <artifactId>signalr</artifactId>
-            <version>5.0.10</version>
+            <version>5.0.17</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -62,18 +62,18 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.12.5</version>
+            <version>2.12.7</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.32</version>
+            <version>1.7.36</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.8.8</version>
+            <version>2.8.9</version>
         </dependency>
     </dependencies>
 

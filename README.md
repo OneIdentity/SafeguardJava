@@ -14,6 +14,23 @@ Note that SafeguardJava 6.8.0 is no longer compatible with versions of Safeguard
 
 One Identity open source projects are supported through [One Identity GitHub issues](https://github.com/OneIdentity/SafeguardJava/issues) and the [One Identity Community](https://www.oneidentity.com/community/). This includes all scripts, plugins, SDKs, modules, code snippets or other solutions. For assistance with any One Identity GitHub project, please raise a new Issue on the [One Identity GitHub project](https://github.com/OneIdentity/SafeguardJava/issues) page. You may also visit the [One Identity Community](https://www.oneidentity.com/community/) to ask questions.  Requests for assistance made through official One Identity Support will be referred back to GitHub and the One Identity Community forums where those requests can benefit all users.
 
+## Default API Update
+
+SafeguardDotNet will use v4 API by default starting with version 7.0. It is
+possible to continue using the v3 API by passing in the apiVersion parameter
+when creating a connection or A2A context.
+
+Safeguard for Privileged Passwords 7.X hosts both the v3 and v4 APIs. New coding
+projects should target the v4 API, and existing projects can be migrated over time.
+Notification will be given to customers many releases in advance of any plans to
+remove the v3 API. There are currently no plans to remove the v3 API.
+
+```java
+// Use v3 instead of v4
+var connection = Safeguard.Connect("safeguard.sample.corp", "local", "Admin", password, 3, true);
+var a2aContext = Safeguard.A2A.GetContext("safeguard.sample.corp", thumbprint, 3, true);
+```
+
 ## Introduction
 
 All functionality in Safeguard is available via the Safeguard API. There is

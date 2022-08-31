@@ -1,6 +1,10 @@
 package com.oneidentity.safeguard.safeguardclient;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import static com.oneidentity.safeguard.safeguardclient.SafeguardJavaClient.readLine;
+import com.oneidentity.safeguard.safeguardclient.data.SessionRecordings;
 import com.oneidentity.safeguard.safeguardjava.IProgressCallback;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
@@ -328,7 +332,8 @@ public class SafeguardTests {
                 List<A2ARetrievableAccount> registrations = a2aContext.getRetrievableAccounts();
                 System.out.println(String.format("\tRetrievable accounts:"));
                 for (A2ARetrievableAccount reg : registrations) {
-                    System.out.println(String.format("\t\t%d %s %s", reg.getAccountId(), reg.getAccountName(), reg.getAccountDescription()));
+                    System.out.println(String.format("\t\tAssetId: %d AssetName: %s AccountId: %d AccountName: %s AccountDescription: %s", 
+                            reg.getAssetId(), reg.getAssetName(), reg.getAccountId(), reg.getAccountName(), reg.getAccountDescription()));
                 }
             } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
                 System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
@@ -580,7 +585,7 @@ public class SafeguardTests {
     }
 
     ISafeguardSessionsConnection safeguardSessionsConnection() {
-        String address = readLine("SPP address: ", null);
+        String address = readLine("SPS address: ", null);
         String user = readLine("User:", null);
         String password = readLine("Password: ", null);
 //        boolean withCertValidator = readLine("With Certificate Validator(y/n): ", "n").equalsIgnoreCase("y");
@@ -613,7 +618,7 @@ public class SafeguardTests {
         
         try {
             FullResponse fullResponse = connection.InvokeMethodFull(Method.Get, "configuration/network/naming", null);
-            System.out.println(String.format("\t\\Users full response:"));
+            System.out.println(String.format("\t\\Network Naming full response:"));
             logResponseDetails(fullResponse);
             
         } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
@@ -651,7 +656,7 @@ public class SafeguardTests {
     public void safeguardSessionsStreamUpload(ISafeguardSessionsConnection connection) {
         
         if (connection == null) {
-            System.out.println(String.format("Safeguard not connected"));
+            System.out.println(String.format("Safeguard Sessions not connected"));
             return;
         }
 
@@ -675,6 +680,68 @@ public class SafeguardTests {
             System.out.println("\t[ERROR]Test SPS firmware upload failed: " + ex.getMessage());
         } catch (Exception ex) {
             System.out.println("\t[ERROR]Test SPS firmware upload failed: " + ex.getMessage());
+        }
+    }
+
+    private String[] safeguardSessionsGetRecordings(ISafeguardSessionsConnection connection) {
+        try {
+            FullResponse fullResponse = connection.InvokeMethodFull(Method.Get, "audit/sessions", null);
+            System.out.println(String.format("\t\\Session Id's full response:"));
+            logResponseDetails(fullResponse);
+            
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            SessionRecordings sessionIds = mapper.readValue(fullResponse.getBody(), SessionRecordings.class);
+            return sessionIds.toArray();
+            
+        } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+        } catch (JsonProcessingException ex) {
+            System.out.println("JSON deserialization failed: " + ex.getMessage());
+        }
+        
+        return null;
+    }
+
+    public void safeguardSessionTestRecordingDownload(ISafeguardSessionsConnection connection) {
+        
+        if (connection == null) {
+            System.out.println(String.format("Safeguard not connected"));
+            return;
+        }
+
+        String[] sessions = safeguardSessionsGetRecordings(connection);
+        
+        if (sessions == null) {
+            System.out.println(String.format("Failed to get the session id's"));
+            return;
+        }
+        
+        for (int x = 0; x < sessions.length; x++) {
+            System.out.println(String.format("\t%d. %s", x, sessions[x]));
+        }
+
+        String s = readLine("Select session: ", "0");
+        int sessionSelection = Integer.parseInt(s);
+        if (sessionSelection < 0 || sessionSelection > sessions.length-1) {
+            System.out.println(String.format("Invalid session selection"));
+            return;
+        }
+                
+        String sessionId = sessions[sessionSelection];
+        String recordingFileName = sessionId + ".zat";
+        boolean withProgress = readLine("With Progress Notification(y/n): ", "n").equalsIgnoreCase("y");
+
+        String filePath = Paths.get(".", recordingFileName).toAbsolutePath().toString();
+        IProgressCallback progressCallback = withProgress ? new ProgressNotification() : null;
+        
+        try {
+            System.out.println(String.format("\tSession recording file path: %s", filePath));
+            connection.getStreamingRequest().downloadStream(String.format("audit/sessions/%s/audit_trail", sessionId), filePath, progressCallback, null, null);
+            System.out.println(String.format("\tDownloaded session recording file: %s", recordingFileName));
+        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test backup download failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Test backup download failed: " + ex.getMessage());
         }
     }
     

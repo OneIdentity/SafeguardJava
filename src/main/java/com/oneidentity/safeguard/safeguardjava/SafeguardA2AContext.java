@@ -131,8 +131,8 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
                 account.setDisabled(registration.isDisabled() || retrieval.isAccountDisabled());
                 account.setAccountId(retrieval.getAccountId());
                 account.setApiKey(retrieval.getApiKey().toCharArray());
-                account.setAssetId(retrieval.getSystemId());
-                account.setAssetName(retrieval.getSystemName());
+                account.setAssetId(retrieval.getAssetId());
+                account.setAssetName(retrieval.getAssetName());
                 account.setAssetNetworkAddress(retrieval.getAssetNetworkAddress());
                 account.setAssetDescription(retrieval.getAssetDescription());
                 account.setAccountId(retrieval.getAccountId());
@@ -301,6 +301,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         if (accessRequest.getAssetId() == null && accessRequest.getAssetName() == null) {
             throw new SafeguardForJavaException("You must specify an asset to create an access request for");
         }
+        accessRequest.setVersion(apiVersion);
 
         Map<String, String> headers = new HashMap<>();
         headers.put(HttpHeaders.ACCEPT, "application/json");
