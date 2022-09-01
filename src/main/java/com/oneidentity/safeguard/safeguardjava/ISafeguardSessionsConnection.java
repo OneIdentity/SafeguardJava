@@ -23,7 +23,7 @@ public interface ISafeguardSessionsConnection {
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      *  @throws ArgumentException Invalid argument.
      */  
-    String InvokeMethod(Method method, String relativeUrl, String body)
+    String invokeMethod(Method method, String relativeUrl, String body)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
 
     /**
@@ -39,7 +39,7 @@ public interface ISafeguardSessionsConnection {
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      *  @throws ArgumentException Invalid argument.
      */  
-    FullResponse InvokeMethodFull(Method method, String relativeUrl, String body)
+    FullResponse invokeMethodFull(Method method, String relativeUrl, String body)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
     
     /**

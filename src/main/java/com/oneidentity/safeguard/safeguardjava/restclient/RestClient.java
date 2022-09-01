@@ -4,6 +4,7 @@ import static com.oneidentity.safeguard.safeguardjava.CertificateUtilities.WINDO
 import com.oneidentity.safeguard.safeguardjava.IProgressCallback;
 import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
 import com.oneidentity.safeguard.safeguardjava.data.JsonObject;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,7 +73,6 @@ import org.apache.http.impl.cookie.BasicClientCookie;
 public class RestClient {
 
     private CloseableHttpClient client = null;
-    private HttpClientBuilder builder = null;
     private BasicCookieStore cookieStore = new BasicCookieStore();
 
     private String serverUrl = null;
@@ -154,7 +154,7 @@ public class RestClient {
 
     private Map<String,String> parseKeyValue(String value) {
         
-        HashMap<String,String> keyValues = new HashMap<String,String>();
+        HashMap<String,String> keyValues = new HashMap<>();
         String[] parts = value.split(";");
         for (String p : parts) {
             String[] kv = p.split("=");
@@ -244,7 +244,7 @@ public class RestClient {
             Integer timeout, IProgressCallback progressCallback) {
 
         if (headers == null || !headers.containsKey(HttpHeaders.ACCEPT)) {
-            headers = headers == null ? new HashMap<String,String>() : headers;
+            headers = headers == null ? new HashMap<>() : headers;
             headers.put(HttpHeaders.ACCEPT, "application/octet-stream");
         }
         RequestBuilder rb = prepareRequest(RequestBuilder.get(getBaseURI(path)), queryParams, headers, timeout);
@@ -264,7 +264,7 @@ public class RestClient {
         
         if (certClient != null) {
             if (headers == null || !headers.containsKey(HttpHeaders.ACCEPT)) {
-                headers = headers == null ? new HashMap<String,String>() : headers;
+                headers = headers == null ? new HashMap<>() : headers;
                 headers.put(HttpHeaders.ACCEPT, "application/octet-stream");
             }
             RequestBuilder rb = prepareRequest(RequestBuilder.get(getBaseURI(path)), queryParams, headers, timeout);
@@ -308,7 +308,7 @@ public class RestClient {
     }
 
     public CloseableHttpResponse execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, Integer timeout,
-            JsonObject requestEntity, CertificateContext certificateContext) {
+            JsonObject requestEntity, CertificateContext certificateContext) throws SafeguardForJavaException {
 
         CloseableHttpClient certClient = getClientWithCertificate(certificateContext);
 
@@ -332,7 +332,7 @@ public class RestClient {
             byte[] requestEntity, IProgressCallback progressCallback) {
 
         if (headers == null || !headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
-            headers = headers == null ? new HashMap<String,String>() : headers;
+            headers = headers == null ? new HashMap<>() : headers;
             headers.put(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
         }
         RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers, timeout);
@@ -353,7 +353,7 @@ public class RestClient {
 
         if (certClient != null) {
             if (headers == null || !headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
-                headers = headers == null ? new HashMap<String,String>() : headers;
+                headers = headers == null ? new HashMap<>() : headers;
                 headers.put(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
             }
             RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers, timeout);
@@ -378,7 +378,7 @@ public class RestClient {
                 .addBinaryBody("firmware", file, ContentType.MULTIPART_FORM_DATA, file.getName()).build();
 
         if (headers == null || !headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
-            headers = headers == null ? new HashMap<String,String>() : headers;
+            headers = headers == null ? new HashMap<>() : headers;
         }
         RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers, timeout);
 
@@ -402,7 +402,7 @@ public class RestClient {
                     .addBinaryBody("firmware", file, ContentType.MULTIPART_FORM_DATA, file.getName()).build();
             
             if (headers == null || !headers.containsKey(HttpHeaders.CONTENT_TYPE)) {
-                headers = headers == null ? new HashMap<String,String>() : headers;
+                headers = headers == null ? new HashMap<>() : headers;
             }
             RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers, timeout);
 
@@ -490,14 +490,14 @@ public class RestClient {
             rb.addHeader(HttpHeaders.CONTENT_TYPE, "application/json");
         
         if (headers != null) {
-            for (Map.Entry<String, String> entry : headers.entrySet()) {
+            headers.entrySet().forEach((entry) -> {
                 rb.addHeader(entry.getKey(), entry.getValue());
-            }
+            });
         }
         if (queryParams != null) {
-            for (Map.Entry<String, String> entry : queryParams.entrySet()) {
+            queryParams.entrySet().forEach((entry) -> {
                 rb.addParameter(entry.getKey(), entry.getValue());
-            }
+            });
         }
         if (timeout != null) {
             RequestConfig rconfig = RequestConfig.custom()

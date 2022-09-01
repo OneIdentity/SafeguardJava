@@ -19,19 +19,19 @@ class PersistentSafeguardConnection implements ISafeguardConnection {
         _connection = connection;
     }
 
+    @Override
     public IStreamingRequest getStreamingRequest() {
         return _connection.getStreamingRequest();
     }
 
     @Override
-    public void dispose()
-    {
+    public void dispose() {
         _connection.dispose();
     }
 
+    @Override
     public FullResponse JoinSps(ISafeguardSessionsConnection spsConnection, String certificateChain, String sppAddress) 
-            throws ObjectDisposedException, SafeguardForJavaException, ArgumentException
-    {
+            throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
         if (_connection.getAccessTokenLifetimeRemaining() <= 0)
             _connection.refreshAccessToken();
         return _connection.JoinSps(spsConnection, certificateChain, sppAddress);

@@ -169,7 +169,7 @@ class SafeguardConnection implements ISafeguardConnection {
         request.setSpp_cert_chain(certificateChain);
         
         Logger.getLogger(SafeguardConnection.class.getName()).log(Level.FINEST, "Sending join request.");
-        FullResponse joinResponse = spsConnection.InvokeMethodFull(Method.Post, "cluster/spp", request.toJson());
+        FullResponse joinResponse = spsConnection.invokeMethodFull(Method.Post, "cluster/spp", request.toJson());
         
         logResponseDetails(joinResponse);
 
