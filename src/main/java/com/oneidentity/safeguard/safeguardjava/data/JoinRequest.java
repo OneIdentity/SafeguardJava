@@ -1,6 +1,11 @@
 package com.oneidentity.safeguard.safeguardjava.data;
 
-import com.oneidentity.safeguard.safeguardjava.Utils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class JoinRequest implements JsonObject {
 
@@ -36,12 +41,14 @@ public class JoinRequest implements JsonObject {
     }
     
     @Override
-    public String toJson() {
-        return new StringBuffer("{")
-                .append(Utils.toJsonString("spp", this.spp, false))
-                .append(Utils.toJsonString("spp_api_token", this.spp_api_token.toString(), true))
-                .append(Utils.toJsonString("spp_cert_chain", this.spp_cert_chain, true))
-                .append("}").toString();
+    public String toJson() throws SafeguardForJavaException {
+        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
+        try {
+            return ow.writeValueAsString(this);
+        } catch (JsonProcessingException ex) {
+            Logger.getLogger(JoinRequest.class.getName()).log(Level.FINEST, null, ex);
+            throw new SafeguardForJavaException("Failed to convert request to json", ex);
+        }
     }
     
 }

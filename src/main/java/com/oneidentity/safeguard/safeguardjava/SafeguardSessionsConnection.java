@@ -60,10 +60,10 @@ class SafeguardSessionsConnection implements ISafeguardSessionsConnection {
     }
 
     @Override
-    public String InvokeMethod(Method method, String relativeUrl, String body)
+    public String invokeMethod(Method method, String relativeUrl, String body)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
 
-        return InvokeMethodFull(method, relativeUrl, body).getBody();
+        return invokeMethodFull(method, relativeUrl, body).getBody();
     }
 
     /**
@@ -81,7 +81,7 @@ class SafeguardSessionsConnection implements ISafeguardSessionsConnection {
     //TODO: This API should have an additionalHeaders parameter
     //TODO: This API should have an parameters parameter
     //TODO: This API should have an timeout parameter
-    public FullResponse InvokeMethodFull(Method method, String relativeUrl, String body)
+    public FullResponse invokeMethodFull(Method method, String relativeUrl, String body)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
 
         if (disposed) {

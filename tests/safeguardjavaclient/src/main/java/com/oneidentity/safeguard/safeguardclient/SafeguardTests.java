@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import static com.oneidentity.safeguard.safeguardclient.SafeguardJavaClient.readLine;
+import com.oneidentity.safeguard.safeguardclient.data.SafeguardAppliance;
+import com.oneidentity.safeguard.safeguardclient.data.SafeguardApplianceStatus;
+import com.oneidentity.safeguard.safeguardclient.data.SafeguardSslCertificate;
 import com.oneidentity.safeguard.safeguardclient.data.SessionRecordings;
 import com.oneidentity.safeguard.safeguardjava.IProgressCallback;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
@@ -617,7 +620,7 @@ public class SafeguardTests {
         }
         
         try {
-            FullResponse fullResponse = connection.InvokeMethodFull(Method.Get, "configuration/network/naming", null);
+            FullResponse fullResponse = connection.invokeMethodFull(Method.Get, "configuration/network/naming", null);
             System.out.println(String.format("\t\\Network Naming full response:"));
             logResponseDetails(fullResponse);
             
@@ -629,14 +632,14 @@ public class SafeguardTests {
     public void safeguardSessionsFileUpload(ISafeguardSessionsConnection connection) {
         
         if (connection == null) {
-            System.out.println(String.format("Safeguard not connected"));
+            System.out.println("Safeguard not connected");
             return;
         }
 
         String patchFileName = readLine("SPS Firmware File Name: ", null);
         
         if (patchFileName == null) {
-            System.out.println(String.format("file name"));
+            System.out.println("Missing file name");
             return;
         }
         
@@ -685,7 +688,7 @@ public class SafeguardTests {
 
     private String[] safeguardSessionsGetRecordings(ISafeguardSessionsConnection connection) {
         try {
-            FullResponse fullResponse = connection.InvokeMethodFull(Method.Get, "audit/sessions", null);
+            FullResponse fullResponse = connection.invokeMethodFull(Method.Get, "audit/sessions", null);
             System.out.println(String.format("\t\\Session Id's full response:"));
             logResponseDetails(fullResponse);
             
@@ -694,7 +697,7 @@ public class SafeguardTests {
             return sessionIds.toArray();
             
         } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
-            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+            System.out.println("\t[ERROR]Get session recordings failed: " + ex.getMessage());
         } catch (JsonProcessingException ex) {
             System.out.println("JSON deserialization failed: " + ex.getMessage());
         }
@@ -745,6 +748,64 @@ public class SafeguardTests {
         }
     }
     
+    public void safeguardTestJoinSps(ISafeguardConnection sppConnection, ISafeguardSessionsConnection spsConnection) {
+        if (sppConnection == null) {
+            System.out.println(String.format("Safeguard SPP not connected"));
+            return;
+        }
+        if (spsConnection == null) {
+            System.out.println(String.format("Safeguard SPS not connected"));
+            return;
+        }
+        
+        SafeguardSslCertificate[] sslCerts = null;
+        SafeguardApplianceStatus applianceStatus = null;
+        try {
+            FullResponse fullResponse = sppConnection.invokeMethodFull(Service.Core, Method.Get, "SslCertificates", null, null, null, null);
+            System.out.println(String.format("\t\\SslCertificates full response:"));
+            logResponseDetails(fullResponse);
+            
+            ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            sslCerts = mapper.readValue(fullResponse.getBody(), SafeguardSslCertificate[].class);
+
+            fullResponse = sppConnection.invokeMethodFull(Service.Appliance, Method.Get, "ApplianceStatus", null, null, null, null);
+            System.out.println(String.format("\t\\ApplianceStatus full response:"));
+            logResponseDetails(fullResponse);
+            
+            applianceStatus = mapper.readValue(fullResponse.getBody(), SafeguardApplianceStatus.class);
+
+        } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test Join Sps failed: " + ex.getMessage());
+        } catch (JsonProcessingException ex) {
+            System.out.println("JSON deserialization failed: " + ex.getMessage());
+        }
+
+        if (sslCerts == null || applianceStatus == null) {
+            System.out.println("Test Join Sps failed: failed to get the Safeguard appliance information");
+            return;
+        }
+        
+        String certChain = null;
+        String sppAddress = null;
+        for (SafeguardSslCertificate cert : sslCerts) {
+            for (SafeguardAppliance sa : cert.getAppliances()) {
+                if (sa.getId().equalsIgnoreCase(applianceStatus.getIdentity())) {
+                    for (String c : cert.getIssuerCertificates()) {
+                        certChain += " "+c.replaceAll("\\r", "");
+                    }
+                    certChain = certChain == null ? cert.getBase64CertificateData().replaceAll("\\r", "") : cert.getBase64CertificateData().replaceAll("\\r", "")+certChain;
+                    sppAddress = sa.getIpv4Address();
+                }
+            }
+        }
+        
+        try {
+            sppConnection.JoinSps(spsConnection, certChain, sppAddress);
+        } catch (ObjectDisposedException | SafeguardForJavaException | ArgumentException ex) {
+            System.out.println("\t[ERROR]Test Join Sps failed: " + ex.getMessage());
+        }
+    }
+
     void safeguardTestManagementConnection(ISafeguardConnection connection) {
         if (connection == null) {
             System.out.println(String.format("Safeguard not connected. This test requires an annonymous connection."));

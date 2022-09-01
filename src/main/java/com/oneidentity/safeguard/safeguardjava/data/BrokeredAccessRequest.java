@@ -2,7 +2,6 @@ package com.oneidentity.safeguard.safeguardjava.data;
 
 import com.oneidentity.safeguard.safeguardjava.Utils;
 import java.time.Instant;
-import java.util.Date;
 
 /**
  * This class is used to define a brokered access request.

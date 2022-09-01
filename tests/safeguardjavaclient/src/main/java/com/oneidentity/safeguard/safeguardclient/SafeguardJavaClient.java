@@ -121,9 +121,12 @@ public class SafeguardJavaClient {
                         tests.safeguardSessionTestRecordingDownload(sessionConnection);
                         break;
                     case 27:
-                        tests.safeguardTestManagementConnection(connection);
+                        tests.safeguardTestJoinSps(connection, sessionConnection);
                         break;
                     case 28:
+                        tests.safeguardTestManagementConnection(connection);
+                        break;
+                    case 29:
                         tests.safeguardTestAnonymousConnection(connection);
                         break;
                     default:
@@ -170,8 +173,9 @@ public class SafeguardJavaClient {
         System.out.println ("\t24. Test SPS Firmware Upload");
         System.out.println ("\t25. Test Stream Upload");
         System.out.println ("\t26. Test Session Recording Download");
-        System.out.println ("\t27. Test Management Interface API");
-        System.out.println ("\t28. Test Anonymous Connection");
+        System.out.println ("\t27. Test Join SPS");
+        System.out.println ("\t28. Test Management Interface API");
+        System.out.println ("\t29. Test Anonymous Connection");
         
         System.out.println ("\t99. Exit");
         

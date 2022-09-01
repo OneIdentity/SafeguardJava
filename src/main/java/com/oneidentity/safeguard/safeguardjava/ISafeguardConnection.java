@@ -8,7 +8,6 @@ import com.oneidentity.safeguard.safeguardjava.event.SafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
-import java.time.Duration;
 import java.util.Map;
 
 /**
