@@ -150,7 +150,7 @@ steps:
 
 - task: GitHubRelease@1
   inputs:
-    gitHubConnection: 'github.ReleaseServiceAccount'
+    gitHubConnection: 'PangaeaBuild-GitHub'
     repositoryName: 'OneIdentity/SafeguardJava'
     action: 'create'
     target: '$(Build.SourceVersion)'
