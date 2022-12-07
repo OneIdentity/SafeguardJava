@@ -17,7 +17,7 @@ variables:
   codeSigningCertFileName: 'OneIdentityCodeSigning.pfx'
   issuerKeyStorePath: 'settings/signingstore.jks'
   gpgKeyName: 'brad.nicholes@oneidentity.com'
-  isPrerelease: ${{ true }}
+  isPrerelease: ${{ false }}
   isReleaseBranch: $[ or( eq(variables['Build.SourceBranch'], 'refs/heads/master'), startsWith(variables['Build.SourceBranch'], 'refs/heads/release-') ) ]
 
 steps:
