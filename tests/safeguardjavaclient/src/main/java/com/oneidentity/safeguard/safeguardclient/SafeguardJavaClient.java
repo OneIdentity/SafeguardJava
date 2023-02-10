@@ -100,33 +100,36 @@ public class SafeguardJavaClient {
                         eventListener = tests.safeguardDisconnectEventListener(eventListener);
                         break;
                     case 20:
-                        tests.safeguardTestBackupDownload(connection);
+                        tests.safeguardListBackups(connection);
                         break;
                     case 21:
-                        tests.safeguardTestBackupUpload(connection);
+                        tests.safeguardTestBackupDownload(connection);
                         break;
                     case 22:
-                        sessionConnection = tests.safeguardSessionsConnection();
+                        tests.safeguardTestBackupUpload(connection);
                         break;
                     case 23:
-                        tests.safeguardSessionsApi(sessionConnection);
+                        sessionConnection = tests.safeguardSessionsConnection();
                         break;
                     case 24:
-                        tests.safeguardSessionsFileUpload(sessionConnection);
+                        tests.safeguardSessionsApi(sessionConnection);
                         break;
                     case 25:
-                        tests.safeguardSessionsStreamUpload(sessionConnection);
+                        tests.safeguardSessionsFileUpload(sessionConnection);
                         break;
                     case 26:
-                        tests.safeguardSessionTestRecordingDownload(sessionConnection);
+                        tests.safeguardSessionsStreamUpload(sessionConnection);
                         break;
                     case 27:
-                        tests.safeguardTestJoinSps(connection, sessionConnection);
+                        tests.safeguardSessionTestRecordingDownload(sessionConnection);
                         break;
                     case 28:
-                        tests.safeguardTestManagementConnection(connection);
+                        tests.safeguardTestJoinSps(connection, sessionConnection);
                         break;
                     case 29:
+                        tests.safeguardTestManagementConnection(connection);
+                        break;
+                    case 30:
                         tests.safeguardTestAnonymousConnection(connection);
                         break;
                     default:
@@ -166,16 +169,17 @@ public class SafeguardJavaClient {
         System.out.println ("\t17. Event Listener by thumbprint");
         System.out.println ("\t18. Test Event Listener");
         System.out.println ("\t19. Disconnect Event Listener");
-        System.out.println ("\t20. Test Download Backup File");
-        System.out.println ("\t21. Test Upload Backup File");
-        System.out.println ("\t22. Test SPS Connection");
-        System.out.println ("\t23. Test SPS API");
-        System.out.println ("\t24. Test SPS Firmware Upload");
-        System.out.println ("\t25. Test Stream Upload");
-        System.out.println ("\t26. Test Session Recording Download");
-        System.out.println ("\t27. Test Join SPS");
-        System.out.println ("\t28. Test Management Interface API");
-        System.out.println ("\t29. Test Anonymous Connection");
+        System.out.println ("\t20. Test List Backups");
+        System.out.println ("\t21. Test Download Backup File");
+        System.out.println ("\t22. Test Upload Backup File");
+        System.out.println ("\t23. Test SPS Connection");
+        System.out.println ("\t24. Test SPS API");
+        System.out.println ("\t25. Test SPS Firmware Upload");
+        System.out.println ("\t26. Test Stream Upload");
+        System.out.println ("\t27. Test Session Recording Download");
+        System.out.println ("\t28. Test Join SPS");
+        System.out.println ("\t29. Test Management Interface API");
+        System.out.println ("\t30. Test Anonymous Connection");
         
         System.out.println ("\t99. Exit");
         

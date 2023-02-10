@@ -1,6 +1,7 @@
 package com.oneidentity.safeguard.safeguardjava;
 
 import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccount;
+import com.oneidentity.safeguard.safeguardjava.data.ApiKeySecret;
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.data.KeyFormat;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
@@ -24,7 +25,7 @@ public interface ISafeguardA2AContext
      *  @throws ObjectDisposedException Object has already been disposed.
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */ 
-    List<A2ARetrievableAccount> getRetrievableAccounts()  throws ObjectDisposedException, SafeguardForJavaException;
+    List<IA2ARetrievableAccount> getRetrievableAccounts()  throws ObjectDisposedException, SafeguardForJavaException;
         
     /**
      *  Retrieves a password using Safeguard A2A.
@@ -49,6 +50,17 @@ public interface ISafeguardA2AContext
      */ 
     char[] retrievePrivateKey(char[] apiKey, KeyFormat keyFormat) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
 
+    /**
+     *  Retrieves an API key secret using Safeguard A2A.
+     * 
+     *  @param apiKey   API key corresponding to the configured account.
+     *  @return         A list of API key secrets.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     *  @throws ArgumentException Invalid argument.
+     */ 
+    List<IApiKeySecret> retrieveApiKeySecret(char[] apiKey) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException;
+        
     /**
      *  Gets an A2A event listener. The handler passed in will be registered for the AssetAccountPasswordUpdated
      *   event, which is the only one supported in A2A. You just have to call Start(). The event listener returned
@@ -117,7 +129,7 @@ public interface ISafeguardA2AContext
      *  @throws SafeguardForJavaException General Safeguard for Java exception.
      *  @throws ArgumentException Invalid argument
      */
-    String brokerAccessRequest(char[] apiKey, BrokeredAccessRequest accessRequest) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
+    String brokerAccessRequest(char[] apiKey, IBrokeredAccessRequest accessRequest) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
     
     /**
      *  Dispose of an object

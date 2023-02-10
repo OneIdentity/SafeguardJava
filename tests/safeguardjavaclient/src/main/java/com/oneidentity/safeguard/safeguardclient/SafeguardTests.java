@@ -3,18 +3,22 @@ package com.oneidentity.safeguard.safeguardclient;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import static com.oneidentity.safeguard.safeguardclient.SafeguardJavaClient.readLine;
 import com.oneidentity.safeguard.safeguardclient.data.SafeguardAppliance;
 import com.oneidentity.safeguard.safeguardclient.data.SafeguardApplianceStatus;
+import com.oneidentity.safeguard.safeguardclient.data.SafeguardBackup;
 import com.oneidentity.safeguard.safeguardclient.data.SafeguardSslCertificate;
 import com.oneidentity.safeguard.safeguardclient.data.SessionRecordings;
+import com.oneidentity.safeguard.safeguardjava.IA2ARetrievableAccount;
+import com.oneidentity.safeguard.safeguardjava.IApiKeySecret;
+import com.oneidentity.safeguard.safeguardjava.IBrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.IProgressCallback;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardSessionsConnection;
 import com.oneidentity.safeguard.safeguardjava.Safeguard;
 import com.oneidentity.safeguard.safeguardjava.SafeguardForPrivilegedSessions;
-import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccount;
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequestType;
 import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
@@ -314,27 +318,43 @@ public class SafeguardTests {
     public void safeguardTestA2AContext(ISafeguardA2AContext a2aContext) {
         
         if (a2aContext == null) {
-            System.out.println(String.format("Missing Safeguard A2A context"));
+            System.out.println(String.format("Missing Safeguard A2A context."));
             return;
         }
         
         if (readLine("Test Credential Retrieval(y/n): ", "y").equalsIgnoreCase("y")) {
-            boolean passwordRelease = readLine("Password or Private Key(p/k): ", "p").equalsIgnoreCase("p");
+            String typeOfRelease = readLine("Password, Private Key or API Key Secret (p/k/a): ", "p");
             String apiKey = readLine("API Key: ", null);
 
             try {
-                if (passwordRelease) {
+                if (typeOfRelease.equalsIgnoreCase("p")) {
                     String password = new String(a2aContext.retrievePassword(apiKey.toCharArray()));
                     System.out.println(String.format("\tSuccessful password release"));
                 }
-                else {
+                else if (typeOfRelease.equalsIgnoreCase("k")) {
                     String key = new String(a2aContext.retrievePrivateKey(apiKey.toCharArray(), KeyFormat.OpenSsh));
                     System.out.println(String.format("\tSuccessful private key release"));
                 }
+                else if (typeOfRelease.equalsIgnoreCase("a")) {
+                    List<IApiKeySecret> apiKeySecrets = a2aContext.retrieveApiKeySecret(apiKey.toCharArray());
+                    if (!apiKeySecrets.isEmpty()) {
+                        for (IApiKeySecret key : apiKeySecrets) {
+                            System.out.println(String.format("\tKey Id: %d  Key Name: %s", key.getId(), key.getName()));
+                        }
+                        System.out.println(String.format("\tSuccessful api key secret release"));
+                    }
+                    else {
+                        System.out.println(String.format("\tNo api key secrets found"));
+                    }
+                }
+                else {
+                    System.out.println(String.format("Invalid credential release type."));
+                    return;
+                }
 
-                List<A2ARetrievableAccount> registrations = a2aContext.getRetrievableAccounts();
+                List<IA2ARetrievableAccount> registrations = a2aContext.getRetrievableAccounts();
                 System.out.println(String.format("\tRetrievable accounts:"));
-                for (A2ARetrievableAccount reg : registrations) {
+                for (IA2ARetrievableAccount reg : registrations) {
                     System.out.println(String.format("\t\tAssetId: %d AssetName: %s AccountId: %d AccountName: %s AccountDescription: %s", 
                             reg.getAssetId(), reg.getAssetName(), reg.getAccountId(), reg.getAccountName(), reg.getAccountDescription()));
                 }
@@ -351,7 +371,7 @@ public class SafeguardTests {
             String apiKey = readLine("Api Key: ", null);
             
             try {
-                BrokeredAccessRequest accessRequest = new BrokeredAccessRequest();
+                IBrokeredAccessRequest accessRequest = new BrokeredAccessRequest();
                 accessRequest.setAccountId(Integer.parseInt(accountId));
                 accessRequest.setForUserId(Integer.parseInt(forUserId));
                 accessRequest.setAssetId(Integer.parseInt(assetId));
@@ -558,6 +578,27 @@ public class SafeguardTests {
         }
     }
 
+    public void safeguardListBackups(ISafeguardConnection connection) {
+        
+        if (connection == null) {
+            System.out.println(String.format("Safeguard not connected"));
+            return;
+        }
+
+        try {
+            String response = connection.invokeMethod(Service.Appliance, Method.Get, "Backups", null, null, null, null);
+            
+            SafeguardBackup[] backups = new Gson().fromJson(response, SafeguardBackup[].class);
+
+            System.out.println(String.format("\t\\Backups response:"));
+            for (SafeguardBackup backup : backups) {
+                System.out.println(String.format("Id: %s - File Name: %s", backup.getId(), backup.getFilename()));
+            }
+        } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+        }
+    }
+    
     public void safeguardTestBackupUpload(ISafeguardConnection connection) {
         
         if (connection == null) {
