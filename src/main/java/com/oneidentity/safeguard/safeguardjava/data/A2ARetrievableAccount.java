@@ -2,13 +2,14 @@ package com.oneidentity.safeguard.safeguardjava.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.oneidentity.safeguard.safeguardjava.IA2ARetrievableAccount;
 import java.util.Arrays;
 
 /**
  * This class is used to get the retrievable accounts for an A2A registration.
  */
 @JsonIgnoreProperties
-public class A2ARetrievableAccount {
+public class A2ARetrievableAccount implements IA2ARetrievableAccount {
     private boolean disposed;
 
     private String applicationName;
@@ -36,6 +37,7 @@ public class A2ARetrievableAccount {
     @JsonProperty("AccountDescription")
     private String accountDescription;
 
+    @Override
     public String getApplicationName() {
         return applicationName;
     }
@@ -44,6 +46,7 @@ public class A2ARetrievableAccount {
         this.applicationName = applicationName;
     }
 
+    @Override
     public String getDescription() {
         return description;
     }
@@ -52,6 +55,7 @@ public class A2ARetrievableAccount {
         this.description = description;
     }
 
+    @Override
     public boolean isDisabled() {
         return disabled;
     }
@@ -60,6 +64,7 @@ public class A2ARetrievableAccount {
         this.disabled = disabled;
     }
 
+    @Override
     public char[] getApiKey() {
         return apiKey;
     }
@@ -68,6 +73,7 @@ public class A2ARetrievableAccount {
         this.apiKey = apiKey;
     }
 
+    @Override
     public int getAssetId() {
         return assetId;
     }
@@ -76,6 +82,7 @@ public class A2ARetrievableAccount {
         this.assetId = assetId;
     }
 
+    @Override
     public String getAssetName() {
         return assetName;
     }
@@ -84,6 +91,7 @@ public class A2ARetrievableAccount {
         this.assetName = assetName;
     }
 
+    @Override
     public String getAssetNetworkAddress() {
         return assetNetworkAddress;
     }
@@ -92,6 +100,7 @@ public class A2ARetrievableAccount {
         this.assetNetworkAddress = assetNetworkAddress;
     }
     
+    @Override
     public int getAccountId() {
         return accountId;
     }
@@ -100,6 +109,7 @@ public class A2ARetrievableAccount {
         this.accountId = accountId;
     }
 
+    @Override
     public String getAccountName() {
         return accountName;
     }
@@ -108,6 +118,7 @@ public class A2ARetrievableAccount {
         this.accountName = accountName;
     }
 
+    @Override
     public String getDomainName() {
         return domainName;
     }
@@ -116,6 +127,7 @@ public class A2ARetrievableAccount {
         this.domainName = domainName;
     }
 
+    @Override
     public String getAccountType() {
         return accountType;
     }
@@ -124,6 +136,7 @@ public class A2ARetrievableAccount {
         this.accountType = accountType;
     }
     
+    @Override
     public String getAssetDescription() {
         return assetDescription;
     }
@@ -132,6 +145,7 @@ public class A2ARetrievableAccount {
         this.assetDescription = assetDescription;
     }
 
+    @Override
     public String getAccountDescription() {
         return accountDescription;
     }

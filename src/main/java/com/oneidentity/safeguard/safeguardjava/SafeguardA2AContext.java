@@ -5,6 +5,8 @@ import com.google.gson.Gson;
 import com.oneidentity.safeguard.safeguardjava.data.A2ARegistration;
 import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccount;
 import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccountInternal;
+import com.oneidentity.safeguard.safeguardjava.data.ApiKeySecret;
+import com.oneidentity.safeguard.safeguardjava.data.ApiKeySecretInternal;
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
 import com.oneidentity.safeguard.safeguardjava.data.KeyFormat;
@@ -80,13 +82,13 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
     }
 
     @Override
-    public List<A2ARetrievableAccount> getRetrievableAccounts()  throws ObjectDisposedException, SafeguardForJavaException {
+    public List<IA2ARetrievableAccount> getRetrievableAccounts()  throws ObjectDisposedException, SafeguardForJavaException {
         
         if (disposed) {
             throw new ObjectDisposedException("SafeguardA2AContext");
         }
 
-        List<A2ARetrievableAccount> list = new ArrayList<>();
+        List<IA2ARetrievableAccount> list = new ArrayList<>();
 
         Map<String, String> headers = new HashMap<>();
         headers.put(HttpHeaders.ACCEPT, "application/json");
@@ -219,6 +221,52 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
     }
 
     @Override
+    public List<IApiKeySecret> retrieveApiKeySecret(char[] apiKey) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
+        if (disposed) {
+            throw new ObjectDisposedException("SafeguardA2AContext");
+        }
+        
+        if (apiKey == null)
+            throw new ArgumentException("The apiKey parameter may not be null.");
+
+        List<IApiKeySecret> list = new ArrayList<>();
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HttpHeaders.AUTHORIZATION, String.format("A2A %s", new String(apiKey)));
+
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("type", "ApiKey");
+
+        CloseableHttpResponse response = a2AClient.execGET("Credentials", parameters, headers, null, clientCertificate);
+
+        if (response == null) {
+            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
+        }
+
+        String reply = Utils.getResponse(response);
+        if (!Utils.isSuccessful(response.getStatusLine().getStatusCode())) {
+            throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
+                    + String.format("%s %s", response.getStatusLine().getStatusCode(), reply));
+        }
+        
+        List<ApiKeySecretInternal> apiKeySecretsInternal = parseApiKeySecretResponse(reply);
+        
+        for (ApiKeySecretInternal apiKeySecretInternal : apiKeySecretsInternal) {
+            ApiKeySecret apiKeySecret = new ApiKeySecret();
+            apiKeySecret.setId(apiKeySecretInternal.getId());
+            apiKeySecret.setName(apiKeySecretInternal.getName());
+            apiKeySecret.setDescription(apiKeySecretInternal.getDescription());
+            apiKeySecret.setClientId(apiKeySecretInternal.getClientId());
+            apiKeySecret.setClientSecret(apiKeySecretInternal.getClientSecret().toCharArray());
+            apiKeySecret.setClientSecretId(apiKeySecretInternal.getClientSecretId());
+            
+            list.add(apiKeySecret);
+        }
+
+        return list;
+    }
+    
+    @Override
     public ISafeguardEventListener getA2AEventListener(char[] apiKey, ISafeguardEventHandler handler)
             throws ObjectDisposedException, ArgumentException {
         
@@ -283,7 +331,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
     }
     
     @Override
-    public String brokerAccessRequest(char[] apiKey, BrokeredAccessRequest accessRequest)
+    public String brokerAccessRequest(char[] apiKey, IBrokeredAccessRequest accessRequest)
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
 
         if (disposed) {
@@ -301,7 +349,9 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         if (accessRequest.getAssetId() == null && accessRequest.getAssetName() == null) {
             throw new SafeguardForJavaException("You must specify an asset to create an access request for");
         }
-        accessRequest.setVersion(apiVersion);
+        
+        BrokeredAccessRequest brokeredAccessRequest = (BrokeredAccessRequest)accessRequest;
+        brokeredAccessRequest.setVersion(apiVersion);
 
         Map<String, String> headers = new HashMap<>();
         headers.put(HttpHeaders.ACCEPT, "application/json");
@@ -309,7 +359,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         Map<String, String> parameters = new HashMap<>();
 
-        CloseableHttpResponse response = a2AClient.execPOST("AccessRequests", parameters, headers, null, accessRequest, clientCertificate);
+        CloseableHttpResponse response = a2AClient.execPOST("AccessRequests", parameters, headers, null, brokeredAccessRequest, clientCertificate);
 
         if (response == null) {
             throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
@@ -374,4 +424,18 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         return null;
     }
 
+    private List<ApiKeySecretInternal> parseApiKeySecretResponse(String response) {
+        
+        ObjectMapper mapper = new ObjectMapper();
+        
+        try {
+            ApiKeySecretInternal[] apiKeySecrets = mapper.readValue(response, ApiKeySecretInternal[].class);
+            return Arrays.asList(apiKeySecrets);
+        } catch (IOException ex) {
+            Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return null;
+    }
+    
 }

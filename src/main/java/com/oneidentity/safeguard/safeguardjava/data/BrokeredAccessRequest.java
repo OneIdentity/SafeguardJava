@@ -1,12 +1,13 @@
 package com.oneidentity.safeguard.safeguardjava.data;
 
+import com.oneidentity.safeguard.safeguardjava.IBrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.Utils;
 import java.time.Instant;
 
 /**
  * This class is used to define a brokered access request.
  */
-public class BrokeredAccessRequest implements JsonObject
+public class BrokeredAccessRequest implements JsonObject, IBrokeredAccessRequest
 {
     private int version;
     

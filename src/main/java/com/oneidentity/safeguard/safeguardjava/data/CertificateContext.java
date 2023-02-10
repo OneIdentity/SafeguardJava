@@ -3,14 +3,8 @@ package com.oneidentity.safeguard.safeguardjava.data;
 import com.oneidentity.safeguard.safeguardjava.CertificateUtilities;
 import com.oneidentity.safeguard.safeguardjava.Utils;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
-import java.security.cert.X509Certificate;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class CertificateContext {
 
