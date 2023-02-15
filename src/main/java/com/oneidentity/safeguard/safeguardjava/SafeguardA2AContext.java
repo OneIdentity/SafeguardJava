@@ -132,7 +132,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
                 account.setDescription(registration.getDescription());
                 account.setDisabled(registration.isDisabled() || retrieval.isAccountDisabled());
                 account.setAccountId(retrieval.getAccountId());
-                account.setApiKey(retrieval.getApiKey().toCharArray());
+                account.setApiKey(retrieval.getApiKey() == null ? null : retrieval.getApiKey().toCharArray());
                 account.setAssetId(retrieval.getAssetId());
                 account.setAssetName(retrieval.getAssetName());
                 account.setAssetNetworkAddress(retrieval.getAssetNetworkAddress());
