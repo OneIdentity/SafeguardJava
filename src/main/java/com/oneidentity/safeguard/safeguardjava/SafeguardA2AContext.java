@@ -281,6 +281,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
                 clientCertificate, apiKey, ignoreSsl, validationCallback);
         eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
         eventListener.registerEventHandler("AssetAccountSshKeyUpdated", handler);
+        eventListener.registerEventHandler("AccountApiKeySecretUpdated", handler);
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
     }
@@ -300,6 +301,7 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
                 clientCertificate, apiKeys, ignoreSsl, validationCallback);
         eventListener.registerEventHandler("AssetAccountPasswordUpdated", handler);
         eventListener.registerEventHandler("AssetAccountSshKeyUpdated", handler);
+        eventListener.registerEventHandler("AccountApiKeySecretUpdated", handler);
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Event listener successfully created for Safeguard A2A context.");
         return eventListener;
     }

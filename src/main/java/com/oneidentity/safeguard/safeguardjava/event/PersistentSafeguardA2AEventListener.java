@@ -35,6 +35,7 @@ public class PersistentSafeguardA2AEventListener extends PersistentSafeguardEven
         this.apiKeys = null;
         registerEventHandler("AssetAccountPasswordUpdated", handler);
         registerEventHandler("AssetAccountSshKeyUpdated", handler);
+        registerEventHandler("AccountApiKeySecretUpdated", handler);
         Logger.getLogger(PersistentSafeguardA2AEventListener.class.getName()).log(Level.FINEST, "Persistent A2A event listener successfully created.");
     }
 
@@ -54,6 +55,7 @@ public class PersistentSafeguardA2AEventListener extends PersistentSafeguardEven
         }
         registerEventHandler("AssetAccountPasswordUpdated", handler);
         registerEventHandler("AssetAccountSshKeyUpdated", handler);
+        registerEventHandler("AccountApiKeySecretUpdated", handler);
         Logger.getLogger(PersistentSafeguardA2AEventListener.class.getName()).log(Level.FINEST, "Persistent A2A event listener successfully created.");
     }
     
