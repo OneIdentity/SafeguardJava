@@ -134,17 +134,17 @@ public class SafeguardTests {
         ISafeguardConnection connection = null;
         
         String address = readLine("SPP address: ", null);
-        String token = readLine("Token:", "local");
+        String token = readLine("Token:", null);
         boolean withCertValidator = readLine("With Certificate Validator(y/n): ", "n").equalsIgnoreCase("y");
         boolean ignoreSsl = readLine("Ignore SSL(y/n): ", "y").equalsIgnoreCase("y");
         
         try {
             if (withCertValidator) {
-                connection = Safeguard.connect(address, token, new CertificateValidator(), null);
+                connection = Safeguard.connect(address, token.toCharArray(), new CertificateValidator(), null);
             } else {
-                connection = Safeguard.connect(address, token, null, ignoreSsl);
+                connection = Safeguard.connect(address, token.toCharArray(), null, ignoreSsl);
             }
-        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+        } catch (ArgumentException ex) {
             System.out.println("\t[ERROR]Connection failed: " + ex.getMessage());
         } catch (Exception ex) {
             System.out.println("\t[ERROR]Connection failed: " + ex.getMessage());
@@ -513,7 +513,7 @@ public class SafeguardTests {
             return;
         }
         
-        String e = readLine("Comma delimited events: ", "UserCreated,UserDeleted");
+        String e = readLine("Comma delimited events: ", "UserCreated,UserDeleted,TestConnectionFailed,TestConnectionStarted,TestConnectionSucceeded");
         
         try {
             String[] events = e.split(",");
