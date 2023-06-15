@@ -11,7 +11,7 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardEventListenerDisconnectedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
-import io.reactivex.Single;
+import io.reactivex.rxjava3.core.Single;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
