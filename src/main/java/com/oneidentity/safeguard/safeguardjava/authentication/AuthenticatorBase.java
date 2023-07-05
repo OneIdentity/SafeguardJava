@@ -173,7 +173,7 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
             headers.clear();
             headers.put(HttpHeaders.ACCEPT, "application/json");
         
-            response = coreClient.execPOST("AuthenticationProviders", null, headers, null, null);
+            response = coreClient.execGET("AuthenticationProviders", null, headers, null, null);
             
             if (response == null)
                 throw new SafeguardForJavaException("Unable to connect to RSTS to find identity provider scopes");
