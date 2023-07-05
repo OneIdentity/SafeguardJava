@@ -169,21 +169,11 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
         {
             CloseableHttpResponse response;
             Map<String,String> headers = new HashMap<>();
-            Map<String,String> parameters = new HashMap<>();
             
             headers.clear();
-            parameters.clear();
-
             headers.put(HttpHeaders.ACCEPT, "application/json");
-            headers.put(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded");
-            parameters.put("response_type", "token");
-            parameters.put("redirect_uri", "urn:InstalledApplication");
-            parameters.put("loginRequestStep", "1");
-
-            response = rstsClient.execPOST("UserLogin/LoginController", parameters, headers, null, new JsonBody("RelayState="));
-                
-            if (response == null || (!Utils.isSuccessful(response.getStatusLine().getStatusCode())))
-                response = rstsClient.execGET("UserLogin/LoginController", parameters, headers, null);
+        
+            response = coreClient.execPOST("AuthenticationProviders", null, headers, null, null);
             
             if (response == null)
                 throw new SafeguardForJavaException("Unable to connect to RSTS to find identity provider scopes");
@@ -204,7 +194,7 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
             //    - This allows the caller to specify the provider Id rather than the full RSTSProviderId.
             //    - Such a broad check could provide some issues with false matching, however since this
             //      was in the original code, this check has been left in place.
-            Provider scope = getMatchingScope(provider, knownScopes);
+            String scope = getMatchingScope(provider, knownScopes);
 
             if (scope == null)
             {
@@ -212,12 +202,12 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
                 knownScopes.forEach((p) -> {
                     if (s.length() > 0)
                         s.append(", ");
-                    s.append(p.DisplayName + ", " + p.Id);
+                    s.append(p.Name + ", " + p.RstsProviderId);
                 });
                 throw new SafeguardForJavaException(String.format("Unable to find scope matching '%s' in [%s]", provider, s.toString()));
             }
             
-            return String.format("rsts:sts:primaryproviderid:%s", scope.Id);
+            return scope;
         }
         catch (SafeguardForJavaException ex) {
             throw ex;
@@ -252,35 +242,29 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
     }
     
     private class Provider {
-        private String Id;
-        private String DisplayName;
+        private String RstsProviderId;
+        private String Name;
+        private String RstsProviderScope;
 
-        public Provider(String Id, String DisplayName) {
-            this.Id = Id;
-            this.DisplayName = DisplayName;
-        }
-
-        public String getId() {
-            return Id;
-        }
-
-        public String getDisplayName() {
-            return DisplayName;
+        public Provider(String RstsProviderId, String Name, String RstsProviderScope) {
+            this.RstsProviderId = RstsProviderId;
+            this.Name = Name;
+            this.RstsProviderScope = RstsProviderScope;
         }
     }
+    
     private List<Provider> parseLoginResponse(String response) {
         
         List<Provider> providers = new ArrayList<>();
         ObjectMapper mapper = new ObjectMapper();
         
         try {
-            JsonNode jsonNodeRoot = mapper.readTree(response);
-            JsonNode jsonNodeProviders = jsonNodeRoot.get("Providers");
+            JsonNode jsonNodeProviders = mapper.readTree(response);
             Iterator<JsonNode> iter = jsonNodeProviders.elements();
             
             while(iter.hasNext()){
 		JsonNode providerNode=iter.next();
-                Provider p = new Provider(getJsonValue(providerNode, "Id"), getJsonValue(providerNode, "DisplayName"));
+                Provider p = new Provider(getJsonValue(providerNode, "RstsProviderId"), getJsonValue(providerNode, "Name"), getJsonValue(providerNode, "RstsProviderScope"));
 		providers.add(p);
             }            
         } catch (IOException ex) {
@@ -290,10 +274,10 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
         return providers;
     }
     
-    private Provider getMatchingScope(String provider, List<Provider> providers) {
+    private String getMatchingScope(String provider, List<Provider> providers) {
         for (Provider s : providers) {
-            if (s.DisplayName.equalsIgnoreCase(provider) || s.Id.equalsIgnoreCase(provider))
-                return s;
+            if (s.Name.equalsIgnoreCase(provider) || s.RstsProviderId.equalsIgnoreCase(provider))
+                return s.RstsProviderScope;
         }
         return null;
     }
@@ -304,5 +288,4 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
         }
         return null;
     }
-
 }
