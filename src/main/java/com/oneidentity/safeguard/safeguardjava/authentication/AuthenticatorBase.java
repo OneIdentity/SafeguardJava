@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneidentity.safeguard.safeguardjava.Utils;
 import com.oneidentity.safeguard.safeguardjava.data.AccessTokenBody;
-import com.oneidentity.safeguard.safeguardjava.data.JsonBody;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
 import com.oneidentity.safeguard.safeguardjava.restclient.RestClient;
@@ -173,8 +172,8 @@ abstract class AuthenticatorBase implements IAuthenticationMechanism {
             headers.clear();
             headers.put(HttpHeaders.ACCEPT, "application/json");
         
-            response = coreClient.execGET("AuthenticationProviders", null, headers, null, null);
-            
+            response = coreClient.execGET("AuthenticationProviders", null, headers, null);
+                        
             if (response == null)
                 throw new SafeguardForJavaException("Unable to connect to RSTS to find identity provider scopes");
             
