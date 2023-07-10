@@ -30,10 +30,18 @@ import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class SafeguardTests {
@@ -315,6 +323,21 @@ public class SafeguardTests {
         return a2aContext;
     }
     
+    private byte[] readAllBytes(InputStream in) throws IOException {
+        ByteArrayOutputStream baos= new ByteArrayOutputStream();
+        byte[] buf = new byte[1024];
+        for (int read=0; read != -1; read = in.read(buf)) { baos.write(buf, 0, read); }
+            return baos.toByteArray();
+    }
+    
+    private String formatPEM(String resource) throws IOException {
+        InputStream in = new ByteArrayInputStream(resource.getBytes());
+        String pem = new String(readAllBytes(in), StandardCharsets.ISO_8859_1);
+        Pattern parse = Pattern.compile("(?m)(?s)^---*BEGIN.*---*$(.*)^---*END.*---*$.*");
+        String encoded = parse.matcher(pem).replaceFirst("$1");
+        return encoded.replace("\r", "").replace("\n", "");
+    }
+    
     public void safeguardTestA2AContext(ISafeguardA2AContext a2aContext) {
         
         if (a2aContext == null) {
@@ -351,19 +374,65 @@ public class SafeguardTests {
                     System.out.println(String.format("Invalid credential release type."));
                     return;
                 }
+            } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
+                System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+            }
+        }
 
+        if (readLine("Test Setting Credential(y/n): ", "y").equalsIgnoreCase("y")) {
+            String typeOfRelease = readLine("Password, Private Key (p/k): ", "p");
+            String apiKey = readLine("API Key: ", null);
+
+            try {
+                if (typeOfRelease.equalsIgnoreCase("p")) {
+                    String newPassword = readLine("New Password: ", "");
+                    a2aContext.SetPassword(apiKey.toCharArray(), newPassword.toCharArray());
+                    
+                    String password = new String(a2aContext.retrievePassword(apiKey.toCharArray()));
+                    if (password.compareTo(newPassword) == 0)
+                        System.out.println(String.format("\tSuccessfully set password"));
+                    else 
+                        System.out.println(String.format("\tFailed to set password"));
+                }
+                else if (typeOfRelease.equalsIgnoreCase("k")) {
+                    String privateKeyPath = readLine("Private Key File Path: ", "");
+                    String privateKeyPassword = readLine("Private Key Password: ", "");
+                    Path filePath = Paths.get(privateKeyPath).toAbsolutePath();
+                    String privateKey = new String(Files.readAllBytes(filePath));
+
+                    a2aContext.SetPrivateKey(apiKey.toCharArray(), privateKey.toCharArray(), privateKeyPassword.toCharArray(), KeyFormat.OpenSsh);
+                    
+                    String key = new String(a2aContext.retrievePrivateKey(apiKey.toCharArray(), KeyFormat.OpenSsh));
+                    
+                    String privkey1 = formatPEM(privateKey);
+                    String privkey2 = formatPEM(key);
+                    
+                    if (privkey1.compareTo(privkey2) == 0)
+                        System.out.println(String.format("\tSuccessful private key release"));
+                    else 
+                        System.out.println(String.format("\tFailed to set private key"));
+                }
+                else {
+                    System.out.println(String.format("Invalid credential release type."));
+                    return;
+                }
+            } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException | IOException ex) {
+                System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+            }
+        }
+        
+        if (readLine("Test Access Request Broker(y/n): ", "y").equalsIgnoreCase("y")) {
+            try {
                 List<IA2ARetrievableAccount> registrations = a2aContext.getRetrievableAccounts();
                 System.out.println(String.format("\tRetrievable accounts:"));
                 for (IA2ARetrievableAccount reg : registrations) {
                     System.out.println(String.format("\t\tAssetId: %d AssetName: %s AccountId: %d AccountName: %s AccountDescription: %s", 
                             reg.getAssetId(), reg.getAssetName(), reg.getAccountId(), reg.getAccountName(), reg.getAccountDescription()));
                 }
-            } catch (ArgumentException | ObjectDisposedException | SafeguardForJavaException ex) {
-                System.out.println("\t[ERROR]Test connection failed: " + ex.getMessage());
+            } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+                System.out.println("\t[ERROR]Failed to get the retrievable accounts: " + ex.getMessage());
             }
-        }
             
-        if (readLine("Test Access Request Broker(y/n): ", "y").equalsIgnoreCase("y")) {
             String accountId = readLine("Account Id: ", null);
             String assetId = readLine("Asset Id:", null);
             String forUserId = readLine("For User Id:", null);

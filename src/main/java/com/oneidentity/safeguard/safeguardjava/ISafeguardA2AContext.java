@@ -1,8 +1,5 @@
 package com.oneidentity.safeguard.safeguardjava;
 
-import com.oneidentity.safeguard.safeguardjava.data.A2ARetrievableAccount;
-import com.oneidentity.safeguard.safeguardjava.data.ApiKeySecret;
-import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.data.KeyFormat;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
@@ -39,6 +36,15 @@ public interface ISafeguardA2AContext
     char[] retrievePassword(char[] apiKey) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
 
     /**
+     * Sets a password using Safeguard A2A.
+     *
+     * @param apiKey     API key corresponding to the configured account.
+     * @param password   Password to set.
+     * @return
+    */ 
+    void SetPassword(char[] apiKey, char[] password) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
+        
+    /**
      *  Retrieves an SSH private key using Safeguard A2A.
      *
      *  @param apiKey    API key corresponding to the configured account.
@@ -60,6 +66,17 @@ public interface ISafeguardA2AContext
      *  @throws ArgumentException Invalid argument.
      */ 
     List<IApiKeySecret> retrieveApiKeySecret(char[] apiKey) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException;
+        
+    /**
+     * Sets an SSH private key using Safeguard A2A.
+     *
+     * @param apiKey        API key corresponding to the configured account.
+     * @param privateKey    Private key to set.
+     * @param password      Password associated with the private key.
+     * @param keyFormat     Format to use when returning private key.
+     * @return              
+     */ 
+    void SetPrivateKey(char[] apiKey, char[] privateKey, char[] password, KeyFormat keyFormat) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException;
         
     /**
      *  Gets an A2A event listener. The handler passed in will be registered for the AssetAccountPasswordUpdated
