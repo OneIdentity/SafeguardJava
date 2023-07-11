@@ -201,9 +201,10 @@ public class CertificateValidator implements HostnameVerifier {
 
 Building SafeguardJava requires Java JDK 8 or greater and Maven 3.0.5 or greater.  The following dependency should be added to your POM file:
 
-        <dependency>
-            <groupId>com.oneidentity.safeguard</groupId>
-            <artifactId>safeguardjava</artifactId>
-            <version>2.10.0</version>
-        </dependency>
-
+```xml
+<dependency>
+    <groupId>com.oneidentity.safeguard</groupId>
+    <artifactId>safeguardjava</artifactId>
+    <version>7.3.0</version>
+</dependency>
+```
