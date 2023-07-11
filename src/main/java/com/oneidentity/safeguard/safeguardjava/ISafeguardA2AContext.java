@@ -40,7 +40,9 @@ public interface ISafeguardA2AContext
      *
      * @param apiKey     API key corresponding to the configured account.
      * @param password   Password to set.
-     * @return
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException
     */ 
     void SetPassword(char[] apiKey, char[] password) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
         
@@ -73,8 +75,10 @@ public interface ISafeguardA2AContext
      * @param apiKey        API key corresponding to the configured account.
      * @param privateKey    Private key to set.
      * @param password      Password associated with the private key.
-     * @param keyFormat     Format to use when returning private key.
-     * @return              
+     * @param keyFormat     Format to use when returning private key.              
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException              
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException              
+     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException              
      */ 
     void SetPrivateKey(char[] apiKey, char[] privateKey, char[] password, KeyFormat keyFormat) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException;
         
