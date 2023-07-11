@@ -9,7 +9,9 @@ import com.oneidentity.safeguard.safeguardjava.data.ApiKeySecret;
 import com.oneidentity.safeguard.safeguardjava.data.ApiKeySecretInternal;
 import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequest;
 import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
+import com.oneidentity.safeguard.safeguardjava.data.JsonBody;
 import com.oneidentity.safeguard.safeguardjava.data.KeyFormat;
+import com.oneidentity.safeguard.safeguardjava.data.SshKey;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.event.SafeguardEventListener;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
@@ -182,7 +184,42 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Successfully retrieved A2A password.");
         return password;
     }
-    
+
+    @Override
+    public void SetPassword(char[] apiKey, char[] password) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
+        if (disposed) {
+            throw new ObjectDisposedException("SafeguardA2AContext");
+        }
+        
+        if (apiKey == null) {
+            throw new ArgumentException("The apiKey parameter may not be null");
+        }
+        
+        if (password == null) {
+            throw new ArgumentException("The password parameter may not be null");
+        }
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HttpHeaders.AUTHORIZATION, String.format("A2A %s", new String(apiKey)));
+
+        Map<String, String> parameters = new HashMap<>();
+
+        CloseableHttpResponse response = a2AClient.execPUT("Credentials/Password", parameters, headers, null, 
+                new JsonBody("\""+new String(password)+"\""), clientCertificate);
+        
+        if (response == null) {
+            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
+        }
+
+        String reply = Utils.getResponse(response);
+        if (!Utils.isSuccessful(response.getStatusLine().getStatusCode())) {
+            throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
+                    + String.format("%s %s", response.getStatusLine().getStatusCode(), reply));
+        }
+        
+        Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Successfully set A2A password.");
+    }
+
     @Override
     public char[] retrievePrivateKey(char[] apiKey, KeyFormat keyFormat) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
         if (disposed) {
@@ -220,6 +257,54 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
         return privateKey;
     }
 
+    @Override
+    public void SetPrivateKey(char[] apiKey, char[] privateKey, char[] password, KeyFormat keyFormat) 
+            throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
+        
+        if (disposed) {
+            throw new ObjectDisposedException("SafeguardA2AContext");
+        }
+
+        if (keyFormat == null)
+            keyFormat = KeyFormat.OpenSsh;
+
+        if (apiKey == null)
+            throw new ArgumentException("The apiKey parameter may not be null.");
+        
+        if (privateKey == null)
+            throw new ArgumentException("The privateKey parameter may not be null");
+        
+        if (password == null)
+            throw new ArgumentException("The password parameter may not be null");
+
+        SshKey sshKey = new SshKey();
+        sshKey.setPassphrase(new String(password));
+        sshKey.setPrivateKey(new String(privateKey));
+        
+        String body = new Gson().toJson(sshKey);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put(HttpHeaders.AUTHORIZATION, String.format("A2A %s", new String(apiKey)));
+
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("keyFormat", keyFormat.name());
+
+        CloseableHttpResponse response = a2AClient.execPUT("Credentials/SshKey", parameters, headers, null, new JsonBody(body), clientCertificate);
+        
+        if (response == null) {
+            throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));
+        }
+        
+        String reply = Utils.getResponse(response);
+        if (!Utils.isSuccessful(response.getStatusLine().getStatusCode())) {
+            throw new SafeguardForJavaException("Error returned from Safeguard API, Error: "
+                    + String.format("%s %s", response.getStatusLine().getStatusCode(), reply));
+        }
+        
+        Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Successfully set A2A private key.");
+        return;
+    }
+    
     @Override
     public List<IApiKeySecret> retrieveApiKeySecret(char[] apiKey) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
         if (disposed) {
@@ -439,5 +524,4 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
         return null;
     }
-    
 }

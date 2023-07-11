@@ -293,6 +293,25 @@ public class RestClient {
         }
     }
 
+    public CloseableHttpResponse execPUT(String path, Map<String, String> queryParams, Map<String, String> headers, Integer timeout, 
+            JsonObject requestEntity, CertificateContext certificateContext) {
+        CloseableHttpClient certClient = getClientWithCertificate(certificateContext);
+
+        if (certClient != null) {
+            RequestBuilder rb = prepareRequest(RequestBuilder.put(getBaseURI(path)), queryParams, headers, timeout);
+
+            try {
+                String body = requestEntity.toJson();
+                rb.setEntity(new StringEntity(body == null ? "{}" : body));
+                CloseableHttpResponse r = certClient.execute(rb.build());
+                return r;
+            } catch (Exception ex) {
+                return null;
+            }
+        }
+        return null;
+    }
+    
     public CloseableHttpResponse execPOST(String path, Map<String, String> queryParams, Map<String, String> headers, Integer timeout, JsonObject requestEntity) {
 
         RequestBuilder rb = prepareRequest(RequestBuilder.post(getBaseURI(path)), queryParams, headers, timeout);
