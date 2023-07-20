@@ -43,10 +43,10 @@ public interface ISafeguardSessionsConnection {
             throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
     
     /**
-     * Provides support for HTTP streaming requests
+     *  Provides support for HTTP streaming requests
      * 
-     * @return returns ISpsStreamingRequest
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException
+     *  @return returns ISpsStreamingRequest
+     *  @throws ObjectDisposedException Object has already been disposed.
      */
     ISpsStreamingRequest getStreamingRequest() throws ObjectDisposedException;
 }
