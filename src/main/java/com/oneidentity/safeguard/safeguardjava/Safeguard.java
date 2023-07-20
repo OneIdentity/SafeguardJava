@@ -1887,6 +1887,8 @@ public final class Safeguard {
             }
             
             /**
+             *  NOT SUPPORTED
+             * 
              *  Get a persistent A2A event listener. The handler passed in 
              *  will be registered for the AssetAccountPasswordUpdated event, 
              *  which is the only one supported in A2A. Uses a client 
@@ -1913,6 +1915,9 @@ public final class Safeguard {
                     HostnameVerifier validationCallback, Integer apiVersion)
                     throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
                 
+                throw new SafeguardForJavaException("Not supported. This function is not available for Java.");
+                    
+                /*
                 int version = DEFAULTAPIVERSION;
                 if (apiVersion != null) {
                     version = apiVersion;
@@ -1930,9 +1935,12 @@ public final class Safeguard {
                 return new PersistentSafeguardA2AEventListener(
                         new SafeguardA2AContext(networkAddress, version, false, 
                                 thumbprint, validationCallback), apiKeys, handler);
+                */
             }
             
             /**
+             *  NOT SUPPORTED
+             * 
              *  Get a persistent A2A event listener. The handler passed in 
              *  will be registered for the AssetAccountPasswordUpdated event, 
              *  which is the only one supported in A2A. Uses a client 
@@ -1959,6 +1967,9 @@ public final class Safeguard {
                     Integer apiVersion, Boolean ignoreSsl)
                     throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
                 
+                throw new SafeguardForJavaException("Not supported. This function is not available for Java.");
+                
+                /*
                 int version = DEFAULTAPIVERSION;
                 if (apiVersion != null) {
                     version = apiVersion;
@@ -1981,6 +1992,7 @@ public final class Safeguard {
                 return new PersistentSafeguardA2AEventListener(
                         new SafeguardA2AContext(networkAddress, version, ignoreSsl, 
                                 thumbprint, null), apiKeys, handler);
+                */
             }
             
             /**

@@ -12,6 +12,7 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
 
     private SafeguardEventListener eventListener;
     private final EventHandlerRegistry eventHandlerRegistry = new EventHandlerRegistry();
+    private ISafeguardEventListenerStateCallback eventListenerStateCallback;
 
     private Thread reconnectThread = null;
     boolean isCancellationRequested = false;
@@ -28,6 +29,12 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
         this.eventHandlerRegistry.registerEventHandler(eventName, handler);
     }
 
+    @Override
+    public void SetEventListenerStateCallback(ISafeguardEventListenerStateCallback eventListenerStateCallback)
+    {
+        this.eventListenerStateCallback = eventListenerStateCallback;
+    }
+    
     protected abstract SafeguardEventListener reconnectEventListener() throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
 
     class PersistentReconnectAndStartHandler implements IDisconnectHandler {
@@ -56,6 +63,7 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
                                 "Attempting to connect and start internal event listener.");
                         eventListener = reconnectEventListener();
                         eventListener.setEventHandlerRegistry(eventHandlerRegistry);
+                        eventListener.SetEventListenerStateCallback(eventListenerStateCallback);
                         eventListener.start();
                         eventListener.setDisconnectHandler(new PersistentReconnectAndStartHandler());
                         break;
@@ -67,6 +75,7 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
                         try {
                             Thread.sleep(5000);
                         } catch (InterruptedException ex1) {
+                            isCancellationRequested = true;
                         }
                     }
                 }
@@ -78,11 +87,10 @@ public abstract class PersistentSafeguardEventListenerBase implements ISafeguard
             this.reconnectThread.start();
             this.reconnectThread.join();
         } catch (InterruptedException ex1) {
+            isCancellationRequested = true;
         }
         
-        if (isCancellationRequested)
-            this.reconnectThread = null;
-        
+        this.reconnectThread = null;
     }
 
     @Override

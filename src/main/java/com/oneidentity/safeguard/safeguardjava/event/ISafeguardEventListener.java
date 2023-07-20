@@ -23,6 +23,14 @@ public interface ISafeguardEventListener
     void registerEventHandler(String eventName, ISafeguardEventHandler handler) throws ObjectDisposedException;
 
     /**
+     * Set an event listener callback that will be called each time the connection
+     * state changes of the event listener.
+     *
+     * @param eventListenerStateCallback Callback method.
+     */ 
+    void SetEventListenerStateCallback(ISafeguardEventListenerStateCallback eventListenerStateCallback);
+        
+    /**
      * Start listening for Safeguard events in a background thread.
      * @throws ObjectDisposedException Object has already been disposed
      * @throws SafeguardForJavaException General Safeguard for Java exception

@@ -7,6 +7,7 @@ import com.microsoft.signalr.HubConnectionBuilder;
 import com.microsoft.signalr.Action1;
 import com.microsoft.signalr.OnClosedCallback;
 import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
+import com.oneidentity.safeguard.safeguardjava.data.SafeguardEventListenerState;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardEventListenerDisconnectedException;
@@ -14,6 +15,7 @@ import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaExcept
 import io.reactivex.rxjava3.core.Single;
 
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
@@ -57,6 +59,7 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
 
     private EventHandlerRegistry eventHandlerRegistry;
     private IDisconnectHandler disconnectHandler;
+    private ISafeguardEventListenerStateCallback eventListenerStateCallback;
 
     private HubConnection signalrConnection = null;
     private static final String NOTIFICATION_HUB = "signalr";
@@ -107,8 +110,8 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         this.clientCertificate = new CertificateContext(certificateAlias, clientCertificatePath, null, certificatePassword);
         this.apiKeys = new ArrayList<>();
         for (char[] key : apiKeys)
-            apiKeys.add(key.clone());
-        if (apiKeys.isEmpty())
+            this.apiKeys.add(key.clone());
+        if (this.apiKeys.isEmpty())
             throw new ArgumentException("The apiKeys parameter must include at least one item");
     }
 
@@ -122,8 +125,8 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         this.clientCertificate = clientCertificate.cloneObject();
         this.apiKeys = new ArrayList<>();
         for (char[] key : apiKeys)
-            apiKeys.add(key.clone());
-        if (apiKeys.isEmpty())
+            this.apiKeys.add(key.clone());
+        if (this.apiKeys.isEmpty())
             throw new ArgumentException("The apiKeys parameter must include at least one item");
     }
 
@@ -148,6 +151,12 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
             throw new ObjectDisposedException("SafeguardEventListener");
         }
         eventHandlerRegistry.registerEventHandler(eventName, handler);
+    }
+    
+    @Override
+    public void SetEventListenerStateCallback(ISafeguardEventListenerStateCallback eventListenerStateCallback)
+    {
+        this.eventListenerStateCallback = eventListenerStateCallback;
     }
 
     @Override
@@ -185,6 +194,7 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         // Start the connection
         try{
             signalrConnection.start().blockingAwait();
+            CallEventListenerStateCallback(SafeguardEventListenerState.Connected);
         }
         catch(Exception error) {
             throw new SafeguardForJavaException(String.format("Failed to start signalr connection: %s", error.getMessage()), error);
@@ -252,7 +262,21 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
             return;
         }
         Logger.getLogger(EventHandlerRegistry.class.getName()).log(Level.WARNING, "SignalR disconnect detected, calling handler...");
+        CallEventListenerStateCallback(SafeguardEventListenerState.Disconnected);
         disconnectHandler.func();
+    }
+    
+    private void CallEventListenerStateCallback(SafeguardEventListenerState newState)
+    {
+        if (eventListenerStateCallback != null) {
+            try {
+                eventListenerStateCallback.onEventListenerStateChange(newState);
+            }
+            catch(Exception e)
+            {
+                // Just in case the user's callback function throws an exception.
+            }
+        }
     }
 
     private void cleanupConnection() {
@@ -306,11 +330,15 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         }
 
         KeyManager[] km = null;
-        if(clientCertificate != null){
+        if(clientCertificate != null && 
+                (clientCertificate.getCertificateData() != null || clientCertificate.getCertificatePath() != null)){
+            
             // If we have a client certificate, set it into the KeyStore/KeyManager
             try{
                 KeyStore keyStore = KeyStore.getInstance("PKCS12");
-                InputStream inputStream = new ByteArrayInputStream(clientCertificate.getCertificateData());
+                InputStream inputStream = clientCertificate.getCertificatePath() != null ? new FileInputStream(clientCertificate.getCertificatePath()) 
+                            : new ByteArrayInputStream(clientCertificate.getCertificateData());
+
                 keyStore.load(inputStream, clientCertificate.getCertificatePassword());
 
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
