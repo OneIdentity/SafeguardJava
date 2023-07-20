@@ -24,6 +24,7 @@ import com.oneidentity.safeguard.safeguardjava.data.BrokeredAccessRequestType;
 import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
 import com.oneidentity.safeguard.safeguardjava.data.KeyFormat;
 import com.oneidentity.safeguard.safeguardjava.data.Method;
+import com.oneidentity.safeguard.safeguardjava.data.SafeguardEventListenerState;
 import com.oneidentity.safeguard.safeguardjava.data.Service;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventHandler;
 import com.oneidentity.safeguard.safeguardjava.event.ISafeguardEventListener;
@@ -38,9 +39,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -260,6 +260,12 @@ public class SafeguardTests {
         boolean withCertValidator = readLine("With Certificate Validator(y/n): ", "n").equalsIgnoreCase("y");
         boolean ignoreSsl = readLine("Ignore SSL(y/n): ", "y").equalsIgnoreCase("y");
         
+        return safeguardGetA2AContextByCertificate(address, certificatePath, password, withCertValidator, ignoreSsl);
+    }
+    
+    private ISafeguardA2AContext safeguardGetA2AContextByCertificate(String address, String certificatePath, String password, boolean withCertValidator, boolean ignoreSsl) {
+        ISafeguardA2AContext a2aContext = null;
+        
         try {
             if (withCertValidator) {
                 a2aContext = Safeguard.A2A.getContext(address, certificatePath, password.toCharArray(), new CertificateValidator(), null);
@@ -300,13 +306,18 @@ public class SafeguardTests {
         return a2aContext;
     }
 
-    ISafeguardA2AContext safeguardGetA2AContextByThumbprint() {
-        ISafeguardA2AContext a2aContext = null;
+    public ISafeguardA2AContext safeguardGetA2AContextByThumbprint() {
         
         String address = readLine("SPP address: ", null);
         String thumbprint = readLine("Thumbprint:", null);
         boolean withCertValidator = readLine("With Certificate Validator(y/n): ", "y").equalsIgnoreCase("y");
         boolean ignoreSsl = readLine("Ignore SSL(y/n): ", "y").equalsIgnoreCase("y");
+
+        return safeguardGetA2AContextByThumbprint(address, thumbprint, withCertValidator, ignoreSsl);
+    }
+    
+    private ISafeguardA2AContext safeguardGetA2AContextByThumbprint(String address, String thumbprint, boolean withCertValidator, boolean ignoreSsl) {
+        ISafeguardA2AContext a2aContext = null;
         
         try {
             if (withCertValidator) {
@@ -462,6 +473,95 @@ public class SafeguardTests {
         }
         return null;
     }
+
+    private List<char[]> ReadAllApiKeys(ISafeguardA2AContext context) throws ObjectDisposedException, SafeguardForJavaException
+    {
+        List<char[]> apiKeys = new ArrayList<char[]>();
+        List<IA2ARetrievableAccount> retrievableAccounts = context.getRetrievableAccounts();
+        for (IA2ARetrievableAccount account : retrievableAccounts)
+        {
+            System.out.println(account.toString());
+            apiKeys.add(account.getApiKey());
+        }
+
+        return apiKeys;
+    }
+    
+    public ISafeguardEventListener safeguardA2AEventListenerByCertificate() {
+        
+        String address = readLine("SPP address: ", null);
+        String certificatePath = readLine("Certificate Path:", null);
+        String password = readLine("Password: ", null);
+        boolean withCertValidator = readLine("With Certificate Validator(y/n): ", "n").equalsIgnoreCase("y");
+        boolean ignoreSsl = readLine("Ignore SSL(y/n): ", "y").equalsIgnoreCase("y");
+
+        ISafeguardA2AContext a2aContext = safeguardGetA2AContextByCertificate(address, certificatePath, password, withCertValidator, ignoreSsl);
+
+        ISafeguardEventListener eventListener = null;
+        
+        try {
+            List<char[]> apiKeys = ReadAllApiKeys(a2aContext);
+            ISafeguardEventHandler a2aHandler = 
+                    (String eventName, String eventBody) -> {
+                        System.out.println(String.format("\tEvent body for %s event", eventName));
+                        System.out.println(String.format("\t\t%s", eventBody));
+                    };
+
+            if (withCertValidator) {
+                eventListener = Safeguard.A2A.Event.getPersistentA2AEventListener(apiKeys, a2aHandler, address, 
+                        certificatePath, password.toCharArray(), new CertificateValidator(), null);
+            } else {
+                eventListener = Safeguard.A2A.Event.getPersistentA2AEventListener(apiKeys, a2aHandler, address, 
+                        certificatePath, password.toCharArray(), null, ignoreSsl);
+            }
+        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Event listener failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Event listener failed: " + ex.getMessage());
+        }
+        
+        if (eventListener != null)
+            System.out.println("\tSuccessfully create an event listener.");
+        return eventListener;
+    }
+    
+    public ISafeguardEventListener safeguardA2AEventListenerByThumbprint() {
+        
+        String address = readLine("SPP address: ", null);
+        String thumbprint = readLine("Thumbprint:", null);
+        boolean withCertValidator = readLine("With Certificate Validator(y/n): ", "n").equalsIgnoreCase("y");
+        boolean ignoreSsl = readLine("Ignore SSL(y/n): ", "y").equalsIgnoreCase("y");
+
+
+        ISafeguardA2AContext a2aContext = safeguardGetA2AContextByThumbprint(address, thumbprint, withCertValidator, ignoreSsl);
+
+        ISafeguardEventListener eventListener = null;
+        
+        try {
+            List<char[]> apiKeys = ReadAllApiKeys(a2aContext);
+            ISafeguardEventHandler a2aHandler = 
+                    (String eventName, String eventBody) -> {
+                        System.out.println(String.format("\tEvent body for %s event", eventName));
+                        System.out.println(String.format("\t\t%s", eventBody));
+                    };
+
+            if (withCertValidator) {
+                eventListener = Safeguard.A2A.Event.getPersistentA2AEventListener(apiKeys, a2aHandler, address, 
+                        thumbprint, new CertificateValidator(), null);
+            } else {
+                eventListener = Safeguard.A2A.Event.getPersistentA2AEventListener(apiKeys, a2aHandler, address, 
+                        thumbprint, null, ignoreSsl);
+            }
+        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Event listener failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Event listener failed: " + ex.getMessage());
+        }
+        
+        if (eventListener != null)
+            System.out.println("\tSuccessfully create an event listener.");
+        return eventListener;
+    }
     
     public ISafeguardEventListener safeguardEventListenerByUserPassword() {
         
@@ -494,7 +594,6 @@ public class SafeguardTests {
     public ISafeguardEventListener safeguardEventListenerByCertificate() {
         
         String address = readLine("SPP address: ", null);
-        String provider = readLine("Provider:", null);
         String certificatePath = readLine("Certificate Path:", null);
         String password = readLine("Password: ", null);
         boolean withCertValidator = readLine("With Certificate Validator(y/n): ", "n").equalsIgnoreCase("y");
@@ -504,9 +603,9 @@ public class SafeguardTests {
         
         try {
             if (withCertValidator) {
-                eventListener = Safeguard.Event.getPersistentEventListener(address, certificatePath, password.toCharArray(), new CertificateValidator(), provider, null);
+                eventListener = Safeguard.Event.getPersistentEventListener(address, certificatePath, password.toCharArray(), new CertificateValidator(), null);
             } else {
-                eventListener = Safeguard.Event.getPersistentEventListener(address, certificatePath, password.toCharArray(), provider, null, ignoreSsl);
+                eventListener = Safeguard.Event.getPersistentEventListener(address, certificatePath, password.toCharArray(), null, ignoreSsl);
             }
         } catch (ObjectDisposedException | SafeguardForJavaException ex) {
             System.out.println("\t[ERROR]Event listener failed: " + ex.getMessage());
@@ -599,6 +698,30 @@ public class SafeguardTests {
                     }
                 });
             }
+            
+            System.out.print("\tStarting the event listener");
+            eventListener.start();
+            readLine("Press enter to stop...", null);
+            eventListener.stop();
+        } catch (ObjectDisposedException | SafeguardForJavaException ex) {
+            System.out.println("\t[ERROR]Test event listener failed: " + ex.getMessage());
+        } catch (Exception ex) {
+            System.out.println("\t[ERROR]Test event listener failed: " + ex.getMessage());
+        }
+    }
+
+    public void safeguardTestA2AEventListener(ISafeguardEventListener eventListener) {
+        
+        if (eventListener == null) {
+            System.out.println(String.format("\t[ERROR]Missing event listener"));
+            return;
+        }
+        
+        try {
+
+            eventListener.SetEventListenerStateCallback((SafeguardEventListenerState eventListenerState) -> {
+                System.out.println(String.format("\tGot a SignalR connection state change: %s", eventListenerState.toString()));
+            });
             
             System.out.print("\tStarting the event listener");
             eventListener.start();
