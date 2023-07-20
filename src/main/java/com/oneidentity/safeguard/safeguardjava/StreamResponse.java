@@ -20,9 +20,10 @@ public class StreamResponse {
     private Long contentLength = 0L;
 
     /**
-     * Get the response stream object
+     *  Get the response stream object
      *
-     * @return The HTTP response body content as an inputstream
+     *  @return The HTTP response body content as an InputStream
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
      */
     public InputStream getStream() throws SafeguardForJavaException
     {

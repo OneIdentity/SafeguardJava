@@ -36,13 +36,13 @@ public interface ISafeguardA2AContext
     char[] retrievePassword(char[] apiKey) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
 
     /**
-     * Sets a password using Safeguard A2A.
+     *  Sets a password using Safeguard A2A.
      *
-     * @param apiKey     API key corresponding to the configured account.
-     * @param password   Password to set.
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException
+     *  @param apiKey     API key corresponding to the configured account.
+     *  @param password   Password to set.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     *  @throws ArgumentException Invalid argument.
     */ 
     void SetPassword(char[] apiKey, char[] password) throws ObjectDisposedException, SafeguardForJavaException, ArgumentException;
         
@@ -70,15 +70,15 @@ public interface ISafeguardA2AContext
     List<IApiKeySecret> retrieveApiKeySecret(char[] apiKey) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException;
         
     /**
-     * Sets an SSH private key using Safeguard A2A.
+     *  Sets an SSH private key using Safeguard A2A.
      *
-     * @param apiKey        API key corresponding to the configured account.
-     * @param privateKey    Private key to set.
-     * @param password      Password associated with the private key.
-     * @param keyFormat     Format to use when returning private key.              
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException              
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException              
-     * @throws com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException              
+     *  @param apiKey        API key corresponding to the configured account.
+     *  @param privateKey    Private key to set.
+     *  @param password      Password associated with the private key.
+     *  @param keyFormat     Format to use when returning private key.              
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     *  @throws ArgumentException Invalid argument.
      */ 
     void SetPrivateKey(char[] apiKey, char[] privateKey, char[] password, KeyFormat keyFormat) throws ObjectDisposedException, ArgumentException, SafeguardForJavaException;
         
