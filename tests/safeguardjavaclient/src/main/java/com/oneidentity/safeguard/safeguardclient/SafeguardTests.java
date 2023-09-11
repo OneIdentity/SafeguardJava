@@ -216,6 +216,9 @@ public class SafeguardTests {
         }
         
         try {
+            char[] token = connection.getAccessToken();
+            System.out.println(String.format("\tAccess Token: %s", new String(token)));
+            
             int remaining = connection.getAccessTokenLifetimeRemaining();
             System.out.println(String.format("\tTime remaining: %d", remaining));
             

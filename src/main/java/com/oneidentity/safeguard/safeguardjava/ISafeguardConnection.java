@@ -169,9 +169,17 @@ public interface ISafeguardConnection {
     void logOut() throws ObjectDisposedException;
     
     /**
+     *  Returns a character array of the current access token which the caller can pass to other Safeguard
+     *  methods, such as adding cluster members. 
+     *
+     *  @return The current access token.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     */ 
+    char[] getAccessToken() throws ObjectDisposedException;
+        
+    /**
      *  Disposes of the connection.
      *  
      */  
     void dispose();
-    
 }

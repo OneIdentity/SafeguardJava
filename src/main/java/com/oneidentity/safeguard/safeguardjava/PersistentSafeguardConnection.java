@@ -84,8 +84,12 @@ class PersistentSafeguardConnection implements ISafeguardConnection {
     }
 
     @Override
+    public char[] getAccessToken() throws ObjectDisposedException {
+        return _connection.getAccessToken();
+    }
+
+    @Override
     public void logOut() throws ObjectDisposedException {
         _connection.logOut();
     }
-
 }
