@@ -180,7 +180,8 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
                     + String.format("%s %s", response.getStatusLine().getStatusCode(), reply));
         }
 
-        char[] password = reply.replaceAll("\"", "").toCharArray();
+        char[] password = (new Gson().fromJson(reply, String.class)).toCharArray();
+
         Logger.getLogger(SafeguardA2AContext.class.getName()).log(Level.INFO, "Successfully retrieved A2A password.");
         return password;
     }
