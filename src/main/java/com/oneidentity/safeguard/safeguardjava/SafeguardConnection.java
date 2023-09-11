@@ -312,4 +312,9 @@ class SafeguardConnection implements ISafeguardConnection {
         return this.streamingRequest;
     }
 
+    @Override
+    public char[] getAccessToken() throws ObjectDisposedException {
+        return authenticationMechanism.getAccessToken();
+    }
+
 }
