@@ -86,7 +86,7 @@ steps:
     mavenOptions: '-Xmx3072m'
     Options: '-X -Drevision=$(version)'
     javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.8'
+    jdkVersionOption: '11'
     jdkArchitectureOption: 'x64'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
@@ -100,7 +100,7 @@ steps:
     mavenOptions: '-Xmx3072m'
     Options: '-X --settings $(Build.SourcesDirectory)/settings/settings.xml -P release -D sonatypeusername=$(SonatypeUserToken) -D sonatypepassword=$(SonatypeRepositoryPassword) -D revision=$(version) -D signingcertpath=$(Build.BinariesDirectory)/$(codeSigningCertFileName) -D signingcertaliasname=1 -D signingcertpassword=$(OneIdentity-CodeSigningCertPassword) -D signingkeystorepassword=$(SigningStorePassword) -D gpgkeyname=$(gpgKeyName)'
     javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.8'
+    jdkVersionOption: '11'
     jdkArchitectureOption: 'x64'
     publishJUnitResults: true
     testResultsFiles: '**/surefire-reports/TEST-*.xml'
