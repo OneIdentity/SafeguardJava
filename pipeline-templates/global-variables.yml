@@ -2,7 +2,7 @@ variables:
   - name: semanticVersion
     value: '8.2.0'
   - name: isPrerelease
-    value: 'true'
+    value: 'false'
   - name: versionSuffix
     ${{ if eq(variables.isPrerelease, 'true') }}:
       value: '-SNAPSHOT'
