@@ -50,6 +50,27 @@ specified passwords can be retrieved with a single method call without
 requiring access request workflow approvals. Safeguard A2A is protected by
 API keys and IP restrictions in addition to client certificate authentication.
 
+### A2A Retrievable Accounts
+
+You can list accounts available for A2A credential retrieval, and optionally
+filter them using a SCIM-style filter string (Safeguard v2.8+):
+
+```Java
+ISafeguardA2AContext a2aContext = Safeguard.A2A.getContext("safeguard.sample.corp", "C:\\client.pfx", password, null, true);
+
+// List all retrievable accounts
+List<IA2ARetrievableAccount> accounts = a2aContext.getRetrievableAccounts();
+
+// Filter by account name (server-side SCIM filter)
+List<IA2ARetrievableAccount> filtered = a2aContext.getRetrievableAccounts("AccountName eq 'myServiceAccount'");
+
+// Use the API key from a retrievable account to fetch the password
+char[] apiKey = accounts.get(0).getApiKey();
+char[] password = a2aContext.retrievePassword(apiKey);
+
+a2aContext.dispose();
+```
+
 SafeguardJava includes an SDK for listening to Safeguard's powerful, real-time
 event notification system. Safeguard provides role-based event notifications
 via SignalR to subscribed clients. If a Safeguard user is an Asset Administrator

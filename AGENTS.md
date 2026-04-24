@@ -224,6 +224,7 @@ pwsh -File Invoke-SafeguardTests.ps1 -ListSuites
 
 | Suite | Tests | What it covers |
 |---|---|---|
+| A2ARetrievableAccounts | 6 | A2A retrievable account listing and SCIM filter support (requires test certs) |
 | AccessTokenAuth | 5 | Pre-obtained access token authentication |
 | AnonymousAccess | 3 | Unauthenticated Notification service access |
 | ApiInvocation | 12 | GET/POST/PUT/DELETE, filters, ordering, full responses |
@@ -278,6 +279,12 @@ echo '<password>' | java -jar $jar -a <appliance> -u admin -p -x --download-stre
 
 # Streaming upload
 echo '<password>' | java -jar $jar -a <appliance> -u admin -p -x --upload-stream Appliance/Backups/Upload --upload-file backup.sgb
+
+# A2A — list all retrievable accounts (certificate auth)
+echo '<cert-password>' | java -jar $jar -a <appliance> -c <pfx-file> -p -x --retrievable-accounts
+
+# A2A — list retrievable accounts with SCIM filter
+echo '<cert-password>' | java -jar $jar -a <appliance> -c <pfx-file> -p -x --retrievable-accounts --filter "AccountName eq 'myaccount'"
 ```
 
 ### Module-to-suite mapping
@@ -297,7 +304,7 @@ When you change a specific SDK module, run the relevant suite(s) rather than the
 | `SafeguardForPrivilegedSessions.java` | SpsIntegration (requires SPS appliance) |
 | `*Streaming*` classes | Streaming |
 | `event/` classes | (no automated suite yet — test manually) |
-| `SafeguardA2AContext.java` | (no automated suite yet — requires A2A app setup) |
+| `SafeguardA2AContext.java` | A2ARetrievableAccounts (requires test certs) |
 
 ### Fixing test failures
 
@@ -663,6 +670,7 @@ Create `TestFramework/Suites/Suite-YourFeature.ps1` returning a hashtable:
 | Function | Purpose |
 |---|---|
 | `Invoke-SgJSafeguardApi` | Call Safeguard API via the test tool. Supports `-Service`, `-Method`, `-RelativeUrl`, `-Body`, `-Full`, `-Anonymous`, `-Pkce`, `-Username`, `-Password`, `-AccessToken` |
+| `Invoke-SgJSafeguardA2a` | List A2A retrievable accounts via certificate auth. Supports `-CertificateFile`, `-CertificatePassword`, `-Filter`, `-ParseJson` |
 | `Invoke-SgJTokenCommand` | Token operations: `GetToken`, `TokenLifetime`, `RefreshToken`, `Logout` |
 | `Test-SgJAssert` | Assert that a script block returns `$true` |
 | `Test-SgJAssertThrows` | Assert that a script block throws an error |

@@ -15,6 +15,8 @@
         $accountName = "${prefix}_A2aAccount"
         $assetName = "${prefix}_A2aAsset"
         $regName = "${prefix}_A2aReg"
+        $adminUser = "${prefix}_A2aAdmin"
+        $adminPassword = "Test1234A2aAdmin!@#"
 
         # Compute thumbprints
         Write-Host "    Computing certificate thumbprints..." -ForegroundColor DarkGray
@@ -34,10 +36,30 @@
         Remove-SgJStaleTestObject -Context $Context -Collection "AssetAccounts" -Name $accountName
         Remove-SgJStaleTestObject -Context $Context -Collection "Assets" -Name $assetName
         Remove-SgJStaleTestObject -Context $Context -Collection "Users" -Name "${prefix}_A2aCertUser"
+        Remove-SgJStaleTestObject -Context $Context -Collection "Users" -Name $adminUser
         Remove-SgJStaleTestCert -Context $Context -Thumbprint $caThumbprint
         Remove-SgJStaleTestCert -Context $Context -Thumbprint $rootThumbprint
 
-        # 1. Check and save current A2A service state for restore in cleanup
+        # 1. Create admin user with AssetAdmin role for privileged operations
+        Write-Host "    Creating admin user '$adminUser'..." -ForegroundColor DarkGray
+        $admin = Invoke-SgJSafeguardApi -Context $Context -Service Core -Method Post `
+            -RelativeUrl "Users" -Body @{
+                PrimaryAuthenticationProvider = @{ Id = -1 }
+                Name = $adminUser
+                AdminRoles = @('GlobalAdmin','Auditor','AssetAdmin','ApplianceAdmin','PolicyAdmin','UserAdmin','HelpdeskAdmin','OperationsAdmin')
+            }
+        $Context.SuiteData["AdminUserId"] = $admin.Id
+        $Context.SuiteData["AdminUser"] = $adminUser
+        $Context.SuiteData["AdminPassword"] = $adminPassword
+        Register-SgJTestCleanup -Description "Delete A2A admin user" -Action {
+            param($Ctx)
+            Remove-SgJSafeguardTestObject -Context $Ctx `
+                -RelativeUrl "Users/$($Ctx.SuiteData['AdminUserId'])"
+        }
+        Invoke-SgJSafeguardApi -Context $Context -Service Core -Method Put `
+            -RelativeUrl "Users/$($admin.Id)/Password" -Body "'$adminPassword'" -ParseJson $false
+
+        # 2. Check and save current A2A service state for restore in cleanup
         Write-Host "    Checking A2A service state..." -ForegroundColor DarkGray
         try {
             $a2aStatus = Invoke-SgJSafeguardApi -Context $Context -Service Appliance -Method Get `
@@ -48,37 +70,42 @@
             $Context.SuiteData["A2aWasEnabled"] = $false
         }
 
-        # 2. Upload Root CA as trusted certificate
+        # 3. Upload Root CA as trusted certificate
         Write-Host "    Uploading Root CA..." -ForegroundColor DarkGray
         $rootCertData = [string](Get-Content -Raw $Context.RootCert)
         $rootCert = Invoke-SgJSafeguardApi -Context $Context -Service Core -Method Post `
             -RelativeUrl "TrustedCertificates" `
+            -Username $adminUser -Password $adminPassword `
             -Body @{ Base64CertificateData = $rootCertData }
         $Context.SuiteData["RootCertId"] = $rootCert.Id
         Register-SgJTestCleanup -Description "Delete Root CA trust" -Action {
             param($Ctx)
             Remove-SgJSafeguardTestObject -Context $Ctx `
-                -RelativeUrl "TrustedCertificates/$($Ctx.SuiteData['RootCertId'])"
+                -RelativeUrl "TrustedCertificates/$($Ctx.SuiteData['RootCertId'])" `
+                -Username $Ctx.SuiteData['AdminUser'] -Password $Ctx.SuiteData['AdminPassword']
         }
 
-        # 3. Upload Intermediate CA as trusted certificate
+        # 4. Upload Intermediate CA as trusted certificate
         Write-Host "    Uploading Intermediate CA..." -ForegroundColor DarkGray
         $caCertData = [string](Get-Content -Raw $Context.CaCert)
         $caCert = Invoke-SgJSafeguardApi -Context $Context -Service Core -Method Post `
             -RelativeUrl "TrustedCertificates" `
+            -Username $adminUser -Password $adminPassword `
             -Body @{ Base64CertificateData = $caCertData }
         $Context.SuiteData["CaCertId"] = $caCert.Id
         Register-SgJTestCleanup -Description "Delete Intermediate CA trust" -Action {
             param($Ctx)
             Remove-SgJSafeguardTestObject -Context $Ctx `
-                -RelativeUrl "TrustedCertificates/$($Ctx.SuiteData['CaCertId'])"
+                -RelativeUrl "TrustedCertificates/$($Ctx.SuiteData['CaCertId'])" `
+                -Username $Ctx.SuiteData['AdminUser'] -Password $Ctx.SuiteData['AdminPassword']
         }
 
-        # 4. Create certificate user mapped to user cert thumbprint
+        # 5. Create certificate user mapped to user cert thumbprint
         Write-Host "    Creating certificate user..." -ForegroundColor DarkGray
         $certUser = "${prefix}_A2aCertUser"
         $cUser = Invoke-SgJSafeguardApi -Context $Context -Service Core -Method Post `
             -RelativeUrl "Users" `
+            -Username $adminUser -Password $adminPassword `
             -Body @{
                 PrimaryAuthenticationProvider = @{
                     Id = -2
@@ -90,13 +117,15 @@
         Register-SgJTestCleanup -Description "Delete A2A certificate user" -Action {
             param($Ctx)
             Remove-SgJSafeguardTestObject -Context $Ctx `
-                -RelativeUrl "Users/$($Ctx.SuiteData['CertUserId'])"
+                -RelativeUrl "Users/$($Ctx.SuiteData['CertUserId'])" `
+                -Username $Ctx.SuiteData['AdminUser'] -Password $Ctx.SuiteData['AdminPassword']
         }
 
-        # 5. Create test asset
+        # 6. Create test asset
         Write-Host "    Creating asset '$assetName'..." -ForegroundColor DarkGray
         $asset = Invoke-SgJSafeguardApi -Context $Context -Service Core -Method Post `
             -RelativeUrl "Assets" `
+            -Username $adminUser -Password $adminPassword `
             -Body @{
                 Name = $assetName
                 Description = "Test asset for A2A retrievable accounts"
@@ -108,13 +137,15 @@
         Register-SgJTestCleanup -Description "Delete test asset" -Action {
             param($Ctx)
             Remove-SgJSafeguardTestObject -Context $Ctx `
-                -RelativeUrl "Assets/$($Ctx.SuiteData['AssetId'])"
+                -RelativeUrl "Assets/$($Ctx.SuiteData['AssetId'])" `
+                -Username $Ctx.SuiteData['AdminUser'] -Password $Ctx.SuiteData['AdminPassword']
         }
 
-        # 6. Create asset account
+        # 7. Create asset account
         Write-Host "    Creating account '$accountName'..." -ForegroundColor DarkGray
         $account = Invoke-SgJSafeguardApi -Context $Context -Service Core -Method Post `
             -RelativeUrl "AssetAccounts" `
+            -Username $adminUser -Password $adminPassword `
             -Body @{
                 Name = $accountName
                 Asset = @{ Id = $asset.Id }
@@ -123,19 +154,22 @@
         Register-SgJTestCleanup -Description "Delete asset account" -Action {
             param($Ctx)
             Remove-SgJSafeguardTestObject -Context $Ctx `
-                -RelativeUrl "AssetAccounts/$($Ctx.SuiteData['AccountId'])"
+                -RelativeUrl "AssetAccounts/$($Ctx.SuiteData['AccountId'])" `
+                -Username $Ctx.SuiteData['AdminUser'] -Password $Ctx.SuiteData['AdminPassword']
         }
 
-        # 7. Set account password
+        # 8. Set account password
         Write-Host "    Setting account password..." -ForegroundColor DarkGray
         Invoke-SgJSafeguardApi -Context $Context -Service Core -Method Put `
             -RelativeUrl "AssetAccounts/$($account.Id)/Password" `
+            -Username $adminUser -Password $adminPassword `
             -Body "'TestA2aPassword123!'" -ParseJson $false
 
-        # 8. Create A2A registration linked to certificate user
+        # 9. Create A2A registration linked to certificate user
         Write-Host "    Creating A2A registration '$regName'..." -ForegroundColor DarkGray
         $a2aReg = Invoke-SgJSafeguardApi -Context $Context -Service Core -Method Post `
             -RelativeUrl "A2ARegistrations" `
+            -Username $adminUser -Password $adminPassword `
             -Body @{
                 AppName = $regName
                 VisibleToCertificateUsers = $true
@@ -147,17 +181,19 @@
         Register-SgJTestCleanup -Description "Delete A2A registration" -Action {
             param($Ctx)
             Remove-SgJSafeguardTestObject -Context $Ctx `
-                -RelativeUrl "A2ARegistrations/$($Ctx.SuiteData['A2aRegId'])"
+                -RelativeUrl "A2ARegistrations/$($Ctx.SuiteData['A2aRegId'])" `
+                -Username $Ctx.SuiteData['AdminUser'] -Password $Ctx.SuiteData['AdminPassword']
         }
 
-        # 9. Add retrievable account to A2A registration
+        # 10. Add retrievable account to A2A registration
         Write-Host "    Adding retrievable account to A2A registration..." -ForegroundColor DarkGray
         $retrievable = Invoke-SgJSafeguardApi -Context $Context -Service Core -Method Post `
             -RelativeUrl "A2ARegistrations/$($a2aReg.Id)/RetrievableAccounts" `
+            -Username $adminUser -Password $adminPassword `
             -Body @{ AccountId = $account.Id }
         $Context.SuiteData["ApiKey"] = $retrievable.ApiKey
 
-        # 10. Enable A2A service
+        # 11. Enable A2A service
         Write-Host "    Enabling A2A service..." -ForegroundColor DarkGray
         Invoke-SgJSafeguardApi -Context $Context -Service Appliance -Method Post `
             -RelativeUrl "A2AService/Enable" -ParseJson $false
