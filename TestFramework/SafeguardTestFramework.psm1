@@ -516,6 +516,53 @@ function Invoke-SgJSafeguardSessions {
     return Invoke-SgJSafeguardTool -Arguments $toolArgs -StdinLine $Context.SpsPassword -ParseJson $ParseJson
 }
 
+function Invoke-SgJSafeguardA2a {
+    <#
+    .SYNOPSIS
+        Convenience wrapper for calling A2A operations via SafeguardJavaTool.
+    .DESCRIPTION
+        Creates an A2A context using a client certificate and retrieves retrievable accounts,
+        optionally applying a server-side SCIM filter.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [PSCustomObject]$Context,
+
+        [Parameter(Mandatory)]
+        [string]$CertificateFile,
+
+        [Parameter()]
+        [string]$CertificatePassword,
+
+        [Parameter()]
+        [switch]$RetrievableAccounts,
+
+        [Parameter()]
+        [string]$Filter,
+
+        [Parameter()]
+        [bool]$ParseJson = $true
+    )
+
+    if (-not $Context) { $Context = Get-SgJTestContext }
+
+    $toolArgs = "-a $($Context.Appliance) -x --retrievable-accounts -c `"$CertificateFile`""
+
+    if ($CertificatePassword) {
+        $toolArgs += " -p"
+    }
+
+    if ($Filter) {
+        $toolArgs += " --filter `"$Filter`""
+    }
+
+    Write-Verbose "Invoke-SgJSafeguardA2a: $toolArgs"
+
+    $stdinLine = if ($CertificatePassword) { $CertificatePassword } else { $null }
+    return Invoke-SgJSafeguardTool -Arguments $toolArgs -StdinLine $stdinLine -ParseJson $ParseJson
+}
+
 function Test-SgJSpsConfigured {
     <#
     .SYNOPSIS
