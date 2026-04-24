@@ -67,8 +67,8 @@ public class SafeguardJavaClient {
                 return;
             }
 
-            if (opts.retrievableAccounts) {
-                handleRetrievableAccounts(opts);
+            if (opts.retrievableAccounts || opts.retrievePassword || opts.setPassword) {
+                handleA2aOperation(opts);
                 System.exit(0);
                 return;
             }
@@ -178,35 +178,55 @@ public class SafeguardJavaClient {
         }
     }
 
-    private static void handleRetrievableAccounts(ToolOptions opts) throws Exception {
-        char[] password = null;
+    private static void handleA2aOperation(ToolOptions opts) throws Exception {
+        Scanner stdinScanner = new Scanner(System.in);
+
+        char[] certPassword = null;
         if (opts.readPassword) {
             System.err.print("Password: ");
-            password = new Scanner(System.in).nextLine().toCharArray();
+            certPassword = stdinScanner.nextLine().toCharArray();
         }
 
         ISafeguardA2AContext a2aContext;
         if (opts.certificateFile != null) {
             System.err.println("Creating A2A context for " + opts.appliance + " with certificate file " + opts.certificateFile);
-            a2aContext = Safeguard.A2A.getContext(opts.appliance, opts.certificateFile, password, null, opts.insecure);
+            a2aContext = Safeguard.A2A.getContext(opts.appliance, opts.certificateFile, certPassword, null, opts.insecure);
         } else if (opts.thumbprint != null) {
             System.err.println("Creating A2A context for " + opts.appliance + " with thumbprint " + opts.thumbprint);
             a2aContext = Safeguard.A2A.getContext(opts.appliance, opts.thumbprint, null, opts.insecure);
         } else {
             throw new IllegalArgumentException(
-                    "--retrievable-accounts requires a certificate (-c or -t).");
+                    "A2A operations require a certificate (-c or -t).");
         }
 
         try {
-            List<IA2ARetrievableAccount> accounts;
-            if (opts.filter != null && opts.filter.length() > 0) {
-                System.err.println("Retrieving accounts with filter: " + opts.filter);
-                accounts = a2aContext.getRetrievableAccounts(opts.filter);
-            } else {
-                System.err.println("Retrieving all accounts");
-                accounts = a2aContext.getRetrievableAccounts();
+            if (opts.retrievableAccounts) {
+                List<IA2ARetrievableAccount> accounts;
+                if (opts.filter != null && opts.filter.length() > 0) {
+                    System.err.println("Retrieving accounts with filter: " + opts.filter);
+                    accounts = a2aContext.getRetrievableAccounts(opts.filter);
+                } else {
+                    System.err.println("Retrieving all accounts");
+                    accounts = a2aContext.getRetrievableAccounts();
+                }
+                System.out.println(mapper.writeValueAsString(accounts));
+            } else if (opts.retrievePassword) {
+                if (opts.apiKey == null || opts.apiKey.length() == 0) {
+                    throw new IllegalArgumentException("--retrieve-password requires --api-key");
+                }
+                System.err.println("Retrieving password via A2A");
+                char[] password = a2aContext.retrievePassword(opts.apiKey.toCharArray());
+                System.out.println(new String(password));
+            } else if (opts.setPassword) {
+                if (opts.apiKey == null || opts.apiKey.length() == 0) {
+                    throw new IllegalArgumentException("--set-password requires --api-key");
+                }
+                System.err.print("New password: ");
+                char[] newPassword = stdinScanner.nextLine().toCharArray();
+                System.err.println("Setting password via A2A");
+                a2aContext.SetPassword(opts.apiKey.toCharArray(), newPassword);
+                System.out.println("OK");
             }
-            System.out.println(mapper.writeValueAsString(accounts));
         } finally {
             a2aContext.dispose();
         }

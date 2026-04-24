@@ -519,10 +519,11 @@ function Invoke-SgJSafeguardSessions {
 function Invoke-SgJSafeguardA2a {
     <#
     .SYNOPSIS
-        Convenience wrapper for listing A2A retrievable accounts via SafeguardJavaTool.
+        Convenience wrapper for A2A operations via SafeguardJavaTool.
     .DESCRIPTION
-        Creates an A2A context using a client certificate and retrieves retrievable accounts,
-        optionally applying a server-side SCIM filter.
+        Creates an A2A context using a client certificate and performs one of:
+        listing retrievable accounts (with optional SCIM filter), retrieving
+        a password, or setting a password.
     #>
     [CmdletBinding()]
     param(
@@ -539,25 +540,62 @@ function Invoke-SgJSafeguardA2a {
         [string]$Filter,
 
         [Parameter()]
+        [string]$ApiKey,
+
+        [Parameter()]
+        [switch]$RetrievePassword,
+
+        [Parameter()]
+        [switch]$SetPassword,
+
+        [Parameter()]
+        [string]$NewPassword,
+
+        [Parameter()]
         [bool]$ParseJson = $true
     )
 
     if (-not $Context) { $Context = Get-SgJTestContext }
 
-    $toolArgs = "-a $($Context.Appliance) -x --retrievable-accounts -c `"$CertificateFile`""
+    $stdinLines = @()
 
-    if ($CertificatePassword) {
-        $toolArgs += " -p"
+    if ($RetrievePassword) {
+        if (-not $ApiKey) { throw "Invoke-SgJSafeguardA2a: -ApiKey is required for -RetrievePassword" }
+        $toolArgs = "-a $($Context.Appliance) -x --retrieve-password --api-key `"$ApiKey`" -c `"$CertificateFile`""
+        if ($CertificatePassword) {
+            $toolArgs += " -p"
+            $stdinLines += $CertificatePassword
+        }
+        Write-Verbose "Invoke-SgJSafeguardA2a: retrieve-password"
+        $stdinLine = if ($stdinLines.Count -gt 0) { $stdinLines -join "`n" } else { $null }
+        return Invoke-SgJSafeguardTool -Arguments $toolArgs -StdinLine $stdinLine -ParseJson $false
     }
-
-    if ($Filter) {
-        $toolArgs += " --filter `"$Filter`""
+    elseif ($SetPassword) {
+        if (-not $ApiKey) { throw "Invoke-SgJSafeguardA2a: -ApiKey is required for -SetPassword" }
+        if (-not $NewPassword) { throw "Invoke-SgJSafeguardA2a: -NewPassword is required for -SetPassword" }
+        $toolArgs = "-a $($Context.Appliance) -x --set-password --api-key `"$ApiKey`" -c `"$CertificateFile`""
+        if ($CertificatePassword) {
+            $toolArgs += " -p"
+            $stdinLines += $CertificatePassword
+        }
+        $stdinLines += $NewPassword
+        Write-Verbose "Invoke-SgJSafeguardA2a: set-password"
+        $stdinLine = $stdinLines -join "`n"
+        return Invoke-SgJSafeguardTool -Arguments $toolArgs -StdinLine $stdinLine -ParseJson $false
     }
-
-    Write-Verbose "Invoke-SgJSafeguardA2a: $toolArgs"
-
-    $stdinLine = if ($CertificatePassword) { $CertificatePassword } else { $null }
-    return Invoke-SgJSafeguardTool -Arguments $toolArgs -StdinLine $stdinLine -ParseJson $ParseJson
+    else {
+        $toolArgs = "-a $($Context.Appliance) -x --retrievable-accounts -c `"$CertificateFile`""
+        if ($CertificatePassword) {
+            $toolArgs += " -p"
+            $stdinLines += $CertificatePassword
+        }
+        if ($Filter) {
+            $toolArgs += " --filter `"$Filter`""
+        }
+        Write-Verbose "Invoke-SgJSafeguardA2a: retrievable-accounts"
+        $stdinLine = if ($stdinLines.Count -gt 0) { $stdinLines -join "`n" } else { $null }
+        return Invoke-SgJSafeguardTool -Arguments $toolArgs -StdinLine $stdinLine -ParseJson $ParseJson
+    }
 }
 
 function Test-SgJSpsConfigured {

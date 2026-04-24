@@ -164,6 +164,7 @@
             -RelativeUrl "AssetAccounts/$($account.Id)/Password" `
             -Username $adminUser -Password $adminPassword `
             -Body "'TestA2aPassword123!'" -ParseJson $false
+        $Context.SuiteData["AccountPassword"] = "TestA2aPassword123!"
 
         # 9. Create A2A registration linked to certificate user
         Write-Host "    Creating A2A registration '$regName'..." -ForegroundColor DarkGray
@@ -224,11 +225,16 @@
             Test-SgJSkip "Filter with no matches returns empty list" "Test certificates not found"
             Test-SgJSkip "Invalid filter property gives useful error" "Test certificates not found"
             Test-SgJSkip "Malformed filter expression gives useful error" "Test certificates not found"
+            Test-SgJSkip "A2A retrieve password via PFX" "Test certificates not found"
+            Test-SgJSkip "A2A set password via PFX and verify" "Test certificates not found"
+            Test-SgJSkip "A2A retrieve password with bad API key fails" "Test certificates not found"
             return
         }
 
         $accountName = $Context.SuiteData["AccountName"]
         $accountId = $Context.SuiteData["AccountId"]
+        $apiKey = $Context.SuiteData["ApiKey"]
+        $originalPassword = $Context.SuiteData["AccountPassword"]
 
         # --- Unfiltered listing ---
 
@@ -298,6 +304,44 @@
                           $_.Exception.Message -match "error" -or
                           $_.Exception.Message -match "BadRequest" -or
                           $_.Exception.Message -match "400")
+            }
+            $threw
+        }
+
+        # --- Credential retrieval ---
+
+        Test-SgJAssert "A2A retrieve password via PFX" {
+            $result = Invoke-SgJSafeguardA2a -Context $Context `
+                -CertificateFile $Context.UserPfx -CertificatePassword "a" `
+                -ApiKey $apiKey -RetrievePassword
+            $result.Trim() -eq $originalPassword
+        }
+
+        Test-SgJAssert "A2A set password via PFX and verify" {
+            $updatedPassword = "UpdatedA2aPass456!@#"
+            Invoke-SgJSafeguardA2a -Context $Context `
+                -CertificateFile $Context.UserPfx -CertificatePassword "a" `
+                -ApiKey $apiKey -SetPassword -NewPassword $updatedPassword
+            $retrieved = Invoke-SgJSafeguardA2a -Context $Context `
+                -CertificateFile $Context.UserPfx -CertificatePassword "a" `
+                -ApiKey $apiKey -RetrievePassword
+            $retrieved.Trim() -eq $updatedPassword
+        }
+
+        Test-SgJAssert "A2A retrieve password with bad API key fails" {
+            $threw = $false
+            try {
+                Invoke-SgJSafeguardA2a -Context $Context `
+                    -CertificateFile $Context.UserPfx -CertificatePassword "a" `
+                    -ApiKey "00000000-0000-0000-0000-000000000000" -RetrievePassword
+            }
+            catch {
+                $threw = ($_.Exception.Message -match "404" -or
+                          $_.Exception.Message -match "NotFound" -or
+                          $_.Exception.Message -match "not found" -or
+                          $_.Exception.Message -match "403" -or
+                          $_.Exception.Message -match "Forbidden" -or
+                          $_.Exception.Message -match "Error")
             }
             $threw
         }
