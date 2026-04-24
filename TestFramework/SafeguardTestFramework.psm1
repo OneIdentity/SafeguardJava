@@ -519,7 +519,7 @@ function Invoke-SgJSafeguardSessions {
 function Invoke-SgJSafeguardA2a {
     <#
     .SYNOPSIS
-        Convenience wrapper for calling A2A operations via SafeguardJavaTool.
+        Convenience wrapper for listing A2A retrievable accounts via SafeguardJavaTool.
     .DESCRIPTION
         Creates an A2A context using a client certificate and retrieves retrievable accounts,
         optionally applying a server-side SCIM filter.
@@ -534,9 +534,6 @@ function Invoke-SgJSafeguardA2a {
 
         [Parameter()]
         [string]$CertificatePassword,
-
-        [Parameter()]
-        [switch]$RetrievableAccounts,
 
         [Parameter()]
         [string]$Filter,
