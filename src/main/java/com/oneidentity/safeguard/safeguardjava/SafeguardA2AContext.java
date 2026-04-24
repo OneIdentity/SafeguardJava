@@ -86,6 +86,11 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
     @Override
     public List<IA2ARetrievableAccount> getRetrievableAccounts()  throws ObjectDisposedException, SafeguardForJavaException {
+        return getRetrievableAccounts(null);
+    }
+
+    @Override
+    public List<IA2ARetrievableAccount> getRetrievableAccounts(String filter)  throws ObjectDisposedException, SafeguardForJavaException {
 
         if (disposed) {
             throw new ObjectDisposedException("SafeguardA2AContext");
@@ -115,8 +120,13 @@ public class SafeguardA2AContext implements ISafeguardA2AContext {
 
             int registrationId = registration.getId();
 
+            Map<String, String> accountParameters = new HashMap<>();
+            if (filter != null && filter.length() > 0) {
+                accountParameters.put("filter", filter);
+            }
+
             response = coreClient.execGET(String.format("A2ARegistrations/%d/RetrievableAccounts", registrationId),
-                    parameters, headers, null, clientCertificate);
+                    accountParameters, headers, null, clientCertificate);
 
             if (response == null) {
                 throw new SafeguardForJavaException(String.format("Unable to connect to web service %s", a2AClient.getBaseURL()));

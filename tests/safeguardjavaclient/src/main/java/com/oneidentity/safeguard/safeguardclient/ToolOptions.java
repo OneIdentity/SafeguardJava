@@ -103,6 +103,26 @@ public class ToolOptions {
         description = "File path for streaming upload (POST) or download (GET)")
     String file;
 
+    @Option(names = {"--retrievable-accounts"}, defaultValue = "false",
+        description = "List A2A retrievable accounts (requires -c or -t for certificate)")
+    boolean retrievableAccounts;
+
+    @Option(names = {"--filter"},
+        description = "SCIM-style filter for A2A retrievable accounts (e.g. \"AccountName eq 'admin'\")")
+    String filter;
+
+    @Option(names = {"--retrieve-password"}, defaultValue = "false",
+        description = "Retrieve a password via A2A (requires -c or -t, and --api-key)")
+    boolean retrievePassword;
+
+    @Option(names = {"--set-password"}, defaultValue = "false",
+        description = "Set a password via A2A (requires -c or -t, --api-key, and --new-password via stdin)")
+    boolean setPassword;
+
+    @Option(names = {"--api-key"},
+        description = "A2A API key for credential retrieval or set operations")
+    String apiKey;
+
     @Option(names = {"--sps"}, defaultValue = "false",
         description = "Connect to Safeguard for Privileged Sessions (SPS) instead of SPP")
     boolean sps;
