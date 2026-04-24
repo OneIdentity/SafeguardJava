@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
+import com.oneidentity.safeguard.safeguardjava.IA2ARetrievableAccount;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardSessionsConnection;
 import com.oneidentity.safeguard.safeguardjava.Safeguard;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -61,6 +63,12 @@ public class SafeguardJavaClient {
         try {
             if (opts.sps) {
                 handleSpsRequest(opts);
+                System.exit(0);
+                return;
+            }
+
+            if (opts.retrievableAccounts) {
+                handleRetrievableAccounts(opts);
                 System.exit(0);
                 return;
             }
@@ -167,6 +175,40 @@ public class SafeguardJavaClient {
             return "Download written to " + opts.file;
         } else {
             throw new IllegalArgumentException("Streaming is not supported for HTTP method: " + opts.method);
+        }
+    }
+
+    private static void handleRetrievableAccounts(ToolOptions opts) throws Exception {
+        char[] password = null;
+        if (opts.readPassword) {
+            System.err.print("Password: ");
+            password = new Scanner(System.in).nextLine().toCharArray();
+        }
+
+        ISafeguardA2AContext a2aContext;
+        if (opts.certificateFile != null) {
+            System.err.println("Creating A2A context for " + opts.appliance + " with certificate file " + opts.certificateFile);
+            a2aContext = Safeguard.A2A.getContext(opts.appliance, opts.certificateFile, password, null, opts.insecure);
+        } else if (opts.thumbprint != null) {
+            System.err.println("Creating A2A context for " + opts.appliance + " with thumbprint " + opts.thumbprint);
+            a2aContext = Safeguard.A2A.getContext(opts.appliance, opts.thumbprint, null, opts.insecure);
+        } else {
+            throw new IllegalArgumentException(
+                    "--retrievable-accounts requires a certificate (-c or -t).");
+        }
+
+        try {
+            List<IA2ARetrievableAccount> accounts;
+            if (opts.filter != null && opts.filter.length() > 0) {
+                System.err.println("Retrieving accounts with filter: " + opts.filter);
+                accounts = a2aContext.getRetrievableAccounts(opts.filter);
+            } else {
+                System.err.println("Retrieving all accounts");
+                accounts = a2aContext.getRetrievableAccounts();
+            }
+            System.out.println(mapper.writeValueAsString(accounts));
+        } finally {
+            a2aContext.dispose();
         }
     }
 
