@@ -516,6 +516,88 @@ function Invoke-SgJSafeguardSessions {
     return Invoke-SgJSafeguardTool -Arguments $toolArgs -StdinLine $Context.SpsPassword -ParseJson $ParseJson
 }
 
+function Invoke-SgJSafeguardA2a {
+    <#
+    .SYNOPSIS
+        Convenience wrapper for A2A operations via SafeguardJavaTool.
+    .DESCRIPTION
+        Creates an A2A context using a client certificate and performs one of:
+        listing retrievable accounts (with optional SCIM filter), retrieving
+        a password, or setting a password.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter()]
+        [PSCustomObject]$Context,
+
+        [Parameter(Mandatory)]
+        [string]$CertificateFile,
+
+        [Parameter()]
+        [string]$CertificatePassword,
+
+        [Parameter()]
+        [string]$Filter,
+
+        [Parameter()]
+        [string]$ApiKey,
+
+        [Parameter()]
+        [switch]$RetrievePassword,
+
+        [Parameter()]
+        [switch]$SetPassword,
+
+        [Parameter()]
+        [string]$NewPassword,
+
+        [Parameter()]
+        [bool]$ParseJson = $true
+    )
+
+    if (-not $Context) { $Context = Get-SgJTestContext }
+
+    $stdinLines = @()
+
+    if ($RetrievePassword) {
+        if (-not $ApiKey) { throw "Invoke-SgJSafeguardA2a: -ApiKey is required for -RetrievePassword" }
+        $toolArgs = "-a $($Context.Appliance) -x --retrieve-password --api-key `"$ApiKey`" -c `"$CertificateFile`""
+        if ($CertificatePassword) {
+            $toolArgs += " -p"
+            $stdinLines += $CertificatePassword
+        }
+        Write-Verbose "Invoke-SgJSafeguardA2a: retrieve-password"
+        $stdinLine = if ($stdinLines.Count -gt 0) { $stdinLines -join "`n" } else { $null }
+        return Invoke-SgJSafeguardTool -Arguments $toolArgs -StdinLine $stdinLine -ParseJson $false
+    }
+    elseif ($SetPassword) {
+        if (-not $ApiKey) { throw "Invoke-SgJSafeguardA2a: -ApiKey is required for -SetPassword" }
+        if (-not $NewPassword) { throw "Invoke-SgJSafeguardA2a: -NewPassword is required for -SetPassword" }
+        $toolArgs = "-a $($Context.Appliance) -x --set-password --api-key `"$ApiKey`" -c `"$CertificateFile`""
+        if ($CertificatePassword) {
+            $toolArgs += " -p"
+            $stdinLines += $CertificatePassword
+        }
+        $stdinLines += $NewPassword
+        Write-Verbose "Invoke-SgJSafeguardA2a: set-password"
+        $stdinLine = $stdinLines -join "`n"
+        return Invoke-SgJSafeguardTool -Arguments $toolArgs -StdinLine $stdinLine -ParseJson $false
+    }
+    else {
+        $toolArgs = "-a $($Context.Appliance) -x --retrievable-accounts -c `"$CertificateFile`""
+        if ($CertificatePassword) {
+            $toolArgs += " -p"
+            $stdinLines += $CertificatePassword
+        }
+        if ($Filter) {
+            $toolArgs += " --filter `"$Filter`""
+        }
+        Write-Verbose "Invoke-SgJSafeguardA2a: retrievable-accounts"
+        $stdinLine = if ($stdinLines.Count -gt 0) { $stdinLines -join "`n" } else { $null }
+        return Invoke-SgJSafeguardTool -Arguments $toolArgs -StdinLine $stdinLine -ParseJson $ParseJson
+    }
+}
+
 function Test-SgJSpsConfigured {
     <#
     .SYNOPSIS

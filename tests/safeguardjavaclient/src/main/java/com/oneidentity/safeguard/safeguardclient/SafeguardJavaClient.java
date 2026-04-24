@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
+import com.oneidentity.safeguard.safeguardjava.IA2ARetrievableAccount;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardSessionsConnection;
 import com.oneidentity.safeguard.safeguardjava.Safeguard;
@@ -22,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -61,6 +63,12 @@ public class SafeguardJavaClient {
         try {
             if (opts.sps) {
                 handleSpsRequest(opts);
+                System.exit(0);
+                return;
+            }
+
+            if (opts.retrievableAccounts || opts.retrievePassword || opts.setPassword) {
+                handleA2aOperation(opts);
                 System.exit(0);
                 return;
             }
@@ -167,6 +175,60 @@ public class SafeguardJavaClient {
             return "Download written to " + opts.file;
         } else {
             throw new IllegalArgumentException("Streaming is not supported for HTTP method: " + opts.method);
+        }
+    }
+
+    private static void handleA2aOperation(ToolOptions opts) throws Exception {
+        Scanner stdinScanner = new Scanner(System.in);
+
+        char[] certPassword = null;
+        if (opts.readPassword) {
+            System.err.print("Password: ");
+            certPassword = stdinScanner.nextLine().toCharArray();
+        }
+
+        ISafeguardA2AContext a2aContext;
+        if (opts.certificateFile != null) {
+            System.err.println("Creating A2A context for " + opts.appliance + " with certificate file " + opts.certificateFile);
+            a2aContext = Safeguard.A2A.getContext(opts.appliance, opts.certificateFile, certPassword, null, opts.insecure);
+        } else if (opts.thumbprint != null) {
+            System.err.println("Creating A2A context for " + opts.appliance + " with thumbprint " + opts.thumbprint);
+            a2aContext = Safeguard.A2A.getContext(opts.appliance, opts.thumbprint, null, opts.insecure);
+        } else {
+            throw new IllegalArgumentException(
+                    "A2A operations require a certificate (-c or -t).");
+        }
+
+        try {
+            if (opts.retrievableAccounts) {
+                List<IA2ARetrievableAccount> accounts;
+                if (opts.filter != null && opts.filter.length() > 0) {
+                    System.err.println("Retrieving accounts with filter: " + opts.filter);
+                    accounts = a2aContext.getRetrievableAccounts(opts.filter);
+                } else {
+                    System.err.println("Retrieving all accounts");
+                    accounts = a2aContext.getRetrievableAccounts();
+                }
+                System.out.println(mapper.writeValueAsString(accounts));
+            } else if (opts.retrievePassword) {
+                if (opts.apiKey == null || opts.apiKey.length() == 0) {
+                    throw new IllegalArgumentException("--retrieve-password requires --api-key");
+                }
+                System.err.println("Retrieving password via A2A");
+                char[] password = a2aContext.retrievePassword(opts.apiKey.toCharArray());
+                System.out.println(new String(password));
+            } else if (opts.setPassword) {
+                if (opts.apiKey == null || opts.apiKey.length() == 0) {
+                    throw new IllegalArgumentException("--set-password requires --api-key");
+                }
+                System.err.print("New password: ");
+                char[] newPassword = stdinScanner.nextLine().toCharArray();
+                System.err.println("Setting password via A2A");
+                a2aContext.SetPassword(opts.apiKey.toCharArray(), newPassword);
+                System.out.println("OK");
+            }
+        } finally {
+            a2aContext.dispose();
         }
     }
 
