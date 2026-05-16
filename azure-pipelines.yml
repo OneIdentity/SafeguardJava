@@ -6,19 +6,25 @@ variables:
 
 trigger:
   branches:
-    include: [ master, release-* ]
+    include: [ main, master, release-* ]
+  tags:
+    include: [ 'v*' ]
   paths:
     exclude:
-      - README.md
-      - AGENTS.md
+      - '**/*.md'
+      - LICENSE
+      - docs
+      - .github/CODEOWNERS
 
 pr:
   branches:
-    include: [ master, release-* ]
+    include: [ main, master, release-* ]
   paths:
     exclude:
-      - README.md
-      - AGENTS.md
+      - '**/*.md'
+      - LICENSE
+      - docs
+      - .github/CODEOWNERS
 
 jobs:
 # Job 1: PR Validation - runs only on pull requests
@@ -123,7 +129,7 @@ jobs:
       action: 'create'
       target: '$(Build.SourceVersion)'
       tagSource: 'userSpecifiedTag'
-      tag: 'release-$(version)'
+      tag: '$(ReleaseTag)'
       title: '$(version)'
       isPreRelease: $(isPrerelease)
       changeLogCompareToRelease: 'lastFullRelease'
