@@ -130,7 +130,7 @@ jobs:
       target: '$(Build.SourceVersion)'
       tagSource: 'userSpecifiedTag'
       tag: '$(ReleaseTag)'
-      title: '$(version)'
+      title: '$(ReleaseTag)'
       isPreRelease: $(isPrerelease)
       changeLogCompareToRelease: 'lastFullRelease'
       changeLogType: 'commitBased'
