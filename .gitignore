@@ -32,3 +32,6 @@ hs_err_pid*
 
 # Copilot instructions (keep local only)
 .github/copilot-instructions.md
+
+# Worktrees
+.worktrees/
