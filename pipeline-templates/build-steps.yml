@@ -10,6 +10,31 @@ parameters:
   default: false
 
 steps:
+- task: Bash@3
+  inputs:
+    targetType: 'inline'
+    script: |
+      TAG_NAME="$(Build.SourceBranchName)"
+      IS_TAG="$(isTagBuild)"
+
+      if [ "$IS_TAG" = "True" ]; then
+        if ! echo "$TAG_NAME" | grep -qE '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+          echo "##[error]Tag '$TAG_NAME' does not match expected format v<major>.<minor>.<patch>"
+          exit 1
+        fi
+        VERSION="${TAG_NAME#v}"
+        RELEASE_TAG="$TAG_NAME"
+        echo "Tag build: version=$VERSION, releaseTag=$RELEASE_TAG"
+      else
+        VERSION="$(version)"
+        RELEASE_TAG="dev/v${VERSION}"
+        echo "Dev build: version=$VERSION, releaseTag=$RELEASE_TAG"
+      fi
+
+      echo "##vso[task.setvariable variable=version]$VERSION"
+      echo "##vso[task.setvariable variable=ReleaseTag]$RELEASE_TAG"
+  displayName: 'Derive version from tag or branch'
+
 - task: Maven@4
   inputs:
     mavenPomFile: 'pom.xml'

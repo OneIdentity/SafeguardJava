@@ -1,10 +1,15 @@
 variables:
   - name: semanticVersion
     value: '8.2.0'
+  - name: isTagBuild
+    value: ${{ startsWith(variables['Build.SourceBranch'], 'refs/tags/') }}
   - name: isPrerelease
-    value: 'true'
-  - name: versionSuffix
-    ${{ if eq(variables.isPrerelease, 'true') }}:
-      value: '-SNAPSHOT'
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags/') }}:
+      value: 'false'
     ${{ else }}:
+      value: 'true'
+  - name: versionSuffix
+    ${{ if startsWith(variables['Build.SourceBranch'], 'refs/tags/') }}:
       value: ''
+    ${{ else }}:
+      value: '-SNAPSHOT'
