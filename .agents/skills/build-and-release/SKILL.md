@@ -1,5 +1,5 @@
 ---
-name: ci-cd-pipeline
+name: build-and-release
 description: >-
   Use when modifying Azure Pipelines, build templates, signing
   configuration, Maven Central publishing, GitHub Packages publishing,
@@ -7,7 +7,7 @@ description: >-
   strategy, and critical pipeline pitfalls.
 ---
 
-# CI/CD Pipeline
+# Build and Release
 
 The project uses **Azure Pipelines** (`azure-pipelines.yml`) with shared templates in
 `pipeline-templates/`.
