@@ -73,6 +73,17 @@ public class RestClient {
     /** Default timeout in milliseconds for HTTP requests (100 seconds, matching SafeguardDotNet). */
     public static final int DEFAULT_TIMEOUT_MS = 100_000;
 
+    /**
+     * Minimum TLS protocol version pinned at the SDK layer.
+     *
+     * <p>Hard-pinning to {@code TLSv1.2} avoids the {@code "TLS"} alias, which
+     * the JRE may resolve to TLS 1.0 or 1.1 on misconfigured JVMs. TLS 1.2 is
+     * the project's Java 8 baseline minimum and is widely supported by
+     * Safeguard appliances. TLS 1.3 negotiation, when supported by both peers,
+     * is still permitted by the underlying SSLContext.
+     */
+    static final String TLS_PROTOCOL = "TLSv1.2";
+
     private CloseableHttpClient client = null;
     private BasicCookieStore cookieStore = new BasicCookieStore();
 
@@ -568,7 +579,7 @@ public class RestClient {
 
         SSLContext ctx = null;
         try {
-            ctx = SSLContext.getInstance("TLS");
+            ctx = SSLContext.getInstance(TLS_PROTOCOL);
             ctx.init(customKeyManager, customTrustManager, new java.security.SecureRandom());
         } catch (java.security.GeneralSecurityException ex) {
         }

@@ -49,6 +49,15 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
 
     private static final Logger logger = LoggerFactory.getLogger(SafeguardEventListener.class);
 
+    /**
+     * Minimum TLS protocol version pinned at the SDK layer.
+     *
+     * <p>See {@code RestClient.TLS_PROTOCOL} for rationale. Both transports
+     * pin the same minimum version so the SignalR/WebSocket connection cannot
+     * fall back to TLS 1.0 / 1.1 on a misconfigured JVM.
+     */
+    static final String TLS_PROTOCOL = "TLSv1.2";
+
     private boolean disposed;
 
     private final String eventUrl;
@@ -384,7 +393,7 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
 
             // Configure the SSL Context according to options and set the
             // OkHttpClient builder SSL socket factory
-            SSLContext sslContext = SSLContext.getInstance("TLS");
+            SSLContext sslContext = SSLContext.getInstance(TLS_PROTOCOL);
             sslContext.init(km, tm, null);
             builder.sslSocketFactory(sslContext.getSocketFactory(), x509tm);
         }
