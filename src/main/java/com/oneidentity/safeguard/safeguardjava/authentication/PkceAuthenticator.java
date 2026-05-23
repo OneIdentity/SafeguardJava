@@ -6,7 +6,9 @@ import com.oneidentity.safeguard.safeguardjava.AgentBasedLoginUtils;
 import com.oneidentity.safeguard.safeguardjava.Utils;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
+import com.oneidentity.safeguard.safeguardjava.exceptions.ResponseTooLargeException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
+import com.oneidentity.safeguard.safeguardjava.restclient.BoundedResponseReader;
 import com.oneidentity.safeguard.safeguardjava.restclient.RestClient;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -30,10 +32,8 @@ import org.apache.hc.client5.http.ssl.NoopHostnameVerifier;
 import org.apache.hc.client5.http.ssl.SSLConnectionSocketFactory;
 import org.apache.hc.core5.http.ContentType;
 import org.apache.hc.core5.http.HttpHeaders;
-import org.apache.hc.core5.http.ParseException;
 import org.apache.hc.core5.http.config.Registry;
 import org.apache.hc.core5.http.config.RegistryBuilder;
-import org.apache.hc.core5.http.io.entity.EntityUtils;
 import org.apache.hc.core5.http.io.entity.StringEntity;
 
 /**
@@ -349,7 +349,10 @@ public class PkceAuthenticator extends AuthenticatorBase {
             CloseableHttpResponse response = httpClient.execute(post);
             String body = "";
             if (response.getEntity() != null) {
-                body = EntityUtils.toString(response.getEntity());
+                body = BoundedResponseReader.readBodyAsString(response.getEntity());
+                if (body == null) {
+                    body = "";
+                }
             }
 
             int statusCode = response.getCode();
@@ -363,7 +366,7 @@ public class PkceAuthenticator extends AuthenticatorBase {
             return body;
         } catch (SafeguardForJavaException e) {
             throw e;
-        } catch (ParseException | IOException e) {
+        } catch (IOException e) {
             throw new SafeguardForJavaException("Failed to communicate with rSTS login controller", e);
         }
     }
