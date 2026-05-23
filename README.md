@@ -254,6 +254,39 @@ public class CertificateValidator implements HostnameVerifier {
 
 ```
 
+### TLS Certificate Verification and the `ignoreSsl` Flag
+
+Every `Safeguard.connect` / `Safeguard.A2A.GetContext` overload accepts an
+`ignoreSsl` (`boolean`) parameter. The SDK pins the minimum TLS version to
+**TLS 1.2** in all transports (REST and SignalR), regardless of this flag —
+weak TLS versions are never negotiated. What `ignoreSsl` controls is
+**X.509 certificate chain validation**, not the TLS version and not hostname
+verification on its own.
+
+| Setting | Chain validation | Hostname verification | Recommended use |
+|---|---|---|---|
+| `ignoreSsl = false` (default) | JVM default truststore | JVM default | **Production.** Trust the appliance via the JVM `cacerts` truststore or a custom truststore. |
+| `ignoreSsl = false` + `HostnameVerifier validationCallback` | Caller-supplied callback decides | Caller-supplied | Production with a self-signed or internal-CA appliance whose cert chain is known. |
+| `ignoreSsl = true` | **All certificates accepted** | `NoopHostnameVerifier` (any host) | **Development only.** Acceptable for local self-signed test appliances. Never enable in production — it accepts any server certificate, including one presented by an attacker performing a man-in-the-middle. |
+
+**How to do it right in production:**
+
+1. Import the appliance's CA certificate into the JVM truststore
+   (`$JAVA_HOME/lib/security/cacerts`) or into a custom truststore passed via
+   `-Djavax.net.ssl.trustStore=...`. The default-trust path then validates
+   the chain automatically and `ignoreSsl=false` is sufficient.
+2. If you cannot modify the truststore, pass a `HostnameVerifier`
+   implementation (the `validationCallback` parameter) that pins the
+   expected certificate or SPKI fingerprint. Keep `ignoreSsl=false`.
+3. Only fall back to `ignoreSsl=true` for ephemeral dev/test environments
+   where the appliance presents a self-signed certificate you cannot easily
+   add to the truststore. Document the usage and remove it before shipping.
+
+The SDK does **not** emit a runtime warning when `ignoreSsl=true` because
+the flag is an explicit opt-in — by the time a caller passes `true`, the
+trade-off has already been accepted. The responsibility for production
+hardening lies with the integrating application.
+
 ### Installation
 
 SafeguardJava is available from [Maven Central](https://central.sonatype.com/artifact/com.oneidentity.safeguard/safeguardjava)

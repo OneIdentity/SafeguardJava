@@ -87,6 +87,26 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         this.disconnectHandler = new DefaultDisconnectHandler();
     }
 
+    /**
+     * Creates an event listener authenticated by a previously obtained
+     * access token.
+     *
+     * <p><b>Security note on {@code ignoreSsl}.</b> Passing {@code true}
+     * disables X.509 certificate chain validation and substitutes a
+     * permissive trust manager that accepts any server certificate. This
+     * is intended for development against self-signed test appliances
+     * only; it leaves the SignalR/WebSocket connection vulnerable to
+     * man-in-the-middle attacks and must not be enabled in production.
+     * The minimum TLS protocol version remains pinned to {@code TLSv1.2}
+     * regardless of this flag — see {@link #TLS_PROTOCOL}.
+     *
+     * @param eventUrl SignalR notification hub URL
+     * @param accessToken bearer access token
+     * @param ignoreSsl when {@code true}, disables certificate chain
+     *                  validation; <b>development only</b>
+     * @param validationCallback optional custom hostname verifier; only
+     *                           consulted when {@code ignoreSsl=false}
+     */
     public SafeguardEventListener(String eventUrl, char[] accessToken, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException {
         this(eventUrl, ignoreSsl, validationCallback);
         if (accessToken == null)

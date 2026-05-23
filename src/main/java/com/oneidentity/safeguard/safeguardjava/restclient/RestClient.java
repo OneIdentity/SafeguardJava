@@ -99,6 +99,33 @@ public class RestClient {
         client = createClientBuilder(connectionAddr, ignoreSsl, validationCallback).build();
     }
 
+    /**
+     * Creates a REST client.
+     *
+     * <p><b>Security note on {@code ignoreSsl}.</b> Passing {@code true}
+     * disables X.509 certificate chain validation and substitutes a
+     * permissive trust manager that accepts any server certificate, and a
+     * {@code NoopHostnameVerifier} that accepts any hostname. This is
+     * intended for development against self-signed test appliances only;
+     * it leaves the connection vulnerable to man-in-the-middle attacks
+     * and must not be enabled in production. The minimum TLS protocol
+     * version remains pinned to {@code TLSv1.2} regardless of this flag —
+     * see {@link #TLS_PROTOCOL}.
+     *
+     * <p>For production with a self-signed or internal-CA appliance,
+     * prefer importing the appliance certificate into the JVM truststore
+     * (leaving {@code ignoreSsl=false}) or supplying a custom
+     * {@link HostnameVerifier} via {@code validationCallback} that pins
+     * the expected certificate.
+     *
+     * @param connectionAddr base URL of the Safeguard appliance
+     * @param userName basic-auth user name
+     * @param password basic-auth password (cleared by caller)
+     * @param ignoreSsl when {@code true}, disables certificate chain and
+     *                  hostname validation; <b>development only</b>
+     * @param validationCallback optional custom hostname verifier; only
+     *                           consulted when {@code ignoreSsl=false}
+     */
     public RestClient(String connectionAddr, String userName, char[] password, boolean ignoreSsl, HostnameVerifier validationCallback) {
 
 
