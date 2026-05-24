@@ -1,0 +1,44 @@
+# Dependabot configuration for SafeguardJava.
+#
+# Ecosystems covered:
+#   * maven           -- Java dependencies declared in pom.xml.
+#   * github-actions  -- workflow file dependencies.
+#
+# Major-version bumps are excluded; they require human review and a
+# separate planning cycle (see security-fix-plan-SafeguardJava.md).
+#
+# GitHub Private Vulnerability Disclosure (PVD) should be enabled in
+# the repository's Security tab; that toggle is not file-driven.
+version: 2
+updates:
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "security"
+    groups:
+      java-patch-and-minor:
+        update-types:
+          - "patch"
+          - "minor"
+    ignore:
+      - dependency-name: "*"
+        update-types:
+          - "version-update:semver-major"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"
+    groups:
+      actions-patch-and-minor:
+        update-types:
+          - "patch"
+          - "minor"
