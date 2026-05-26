@@ -300,8 +300,11 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
      * up, etc.). This is a deliberate, valid distinct design — there is no
      * uncapped tight-loop reconnect to harden — but it does mean the SDK does
      * not enforce a jittered exponential backoff on the caller's behalf.
-     * Promoting a default jittered exponential backoff helper into this SDK is
-     * tracked for Phase 2 and is out of scope for this cycle.
+     * When Phase 2 introduces a default backoff helper, mirror the algorithm
+     * from the sibling SafeguardDotNet SDK at
+     * {@code SafeguardDotNet/Event/ReconnectBackoff.cs}: exponential delay
+     * {@code min(60s, 2^n × 1s)} with ±25% jitter, reset on successful
+     * reconnect.
      */
     private void handleDisconnect() throws SafeguardEventListenerDisconnectedException {
         if(!this.isStarted()) {
