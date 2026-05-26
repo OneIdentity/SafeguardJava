@@ -13,7 +13,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <revision>8.2.0-SNAPSHOT</revision>
+        <revision>8.3.0-SNAPSHOT</revision>
         <gpgkeyname>keyname</gpgkeyname>
     </properties>
 
