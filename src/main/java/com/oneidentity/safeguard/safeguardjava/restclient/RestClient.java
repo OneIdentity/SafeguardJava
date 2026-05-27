@@ -73,6 +73,17 @@ public class RestClient {
     /** Default timeout in milliseconds for HTTP requests (100 seconds, matching SafeguardDotNet). */
     public static final int DEFAULT_TIMEOUT_MS = 100_000;
 
+    /**
+     * Minimum TLS protocol version pinned at the SDK layer.
+     *
+     * <p>Hard-pinning to {@code TLSv1.2} avoids the {@code "TLS"} alias, which
+     * the JRE may resolve to TLS 1.0 or 1.1 on misconfigured JVMs. TLS 1.2 is
+     * the project's Java 8 baseline minimum and is widely supported by
+     * Safeguard appliances. TLS 1.3 negotiation, when supported by both peers,
+     * is still permitted by the underlying SSLContext.
+     */
+    static final String TLS_PROTOCOL = "TLSv1.2";
+
     private CloseableHttpClient client = null;
     private BasicCookieStore cookieStore = new BasicCookieStore();
 
@@ -88,6 +99,33 @@ public class RestClient {
         client = createClientBuilder(connectionAddr, ignoreSsl, validationCallback).build();
     }
 
+    /**
+     * Creates a REST client.
+     *
+     * <p><b>Security note on {@code ignoreSsl}.</b> Passing {@code true}
+     * disables X.509 certificate chain validation and substitutes a
+     * permissive trust manager that accepts any server certificate, and a
+     * {@code NoopHostnameVerifier} that accepts any hostname. This is
+     * intended for development against self-signed test appliances only;
+     * it leaves the connection vulnerable to man-in-the-middle attacks
+     * and must not be enabled in production. The minimum TLS protocol
+     * version remains pinned to {@code TLSv1.2} regardless of this flag —
+     * see {@link #TLS_PROTOCOL}.
+     *
+     * <p>For production with a self-signed or internal-CA appliance,
+     * prefer importing the appliance certificate into the JVM truststore
+     * (leaving {@code ignoreSsl=false}) or supplying a custom
+     * {@link HostnameVerifier} via {@code validationCallback} that pins
+     * the expected certificate.
+     *
+     * @param connectionAddr base URL of the Safeguard appliance
+     * @param userName basic-auth user name
+     * @param password basic-auth password (cleared by caller)
+     * @param ignoreSsl when {@code true}, disables certificate chain and
+     *                  hostname validation; <b>development only</b>
+     * @param validationCallback optional custom hostname verifier; only
+     *                           consulted when {@code ignoreSsl=false}
+     */
     public RestClient(String connectionAddr, String userName, char[] password, boolean ignoreSsl, HostnameVerifier validationCallback) {
 
 
@@ -568,7 +606,7 @@ public class RestClient {
 
         SSLContext ctx = null;
         try {
-            ctx = SSLContext.getInstance("TLS");
+            ctx = SSLContext.getInstance(TLS_PROTOCOL);
             ctx.init(customKeyManager, customTrustManager, new java.security.SecureRandom());
         } catch (java.security.GeneralSecurityException ex) {
         }

@@ -49,6 +49,15 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
 
     private static final Logger logger = LoggerFactory.getLogger(SafeguardEventListener.class);
 
+    /**
+     * Minimum TLS protocol version pinned at the SDK layer.
+     *
+     * <p>See {@code RestClient.TLS_PROTOCOL} for rationale. Both transports
+     * pin the same minimum version so the SignalR/WebSocket connection cannot
+     * fall back to TLS 1.0 / 1.1 on a misconfigured JVM.
+     */
+    static final String TLS_PROTOCOL = "TLSv1.2";
+
     private boolean disposed;
 
     private final String eventUrl;
@@ -78,6 +87,26 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         this.disconnectHandler = new DefaultDisconnectHandler();
     }
 
+    /**
+     * Creates an event listener authenticated by a previously obtained
+     * access token.
+     *
+     * <p><b>Security note on {@code ignoreSsl}.</b> Passing {@code true}
+     * disables X.509 certificate chain validation and substitutes a
+     * permissive trust manager that accepts any server certificate. This
+     * is intended for development against self-signed test appliances
+     * only; it leaves the SignalR/WebSocket connection vulnerable to
+     * man-in-the-middle attacks and must not be enabled in production.
+     * The minimum TLS protocol version remains pinned to {@code TLSv1.2}
+     * regardless of this flag — see {@link #TLS_PROTOCOL}.
+     *
+     * @param eventUrl SignalR notification hub URL
+     * @param accessToken bearer access token
+     * @param ignoreSsl when {@code true}, disables certificate chain
+     *                  validation; <b>development only</b>
+     * @param validationCallback optional custom hostname verifier; only
+     *                           consulted when {@code ignoreSsl=false}
+     */
     public SafeguardEventListener(String eventUrl, char[] accessToken, boolean ignoreSsl, HostnameVerifier validationCallback) throws ArgumentException {
         this(eventUrl, ignoreSsl, validationCallback);
         if (accessToken == null)
@@ -384,7 +413,7 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
 
             // Configure the SSL Context according to options and set the
             // OkHttpClient builder SSL socket factory
-            SSLContext sslContext = SSLContext.getInstance("TLS");
+            SSLContext sslContext = SSLContext.getInstance(TLS_PROTOCOL);
             sslContext.init(km, tm, null);
             builder.sslSocketFactory(sslContext.getSocketFactory(), x509tm);
         }
