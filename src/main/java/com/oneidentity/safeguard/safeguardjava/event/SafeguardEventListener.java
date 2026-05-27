@@ -288,24 +288,6 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
         eventHandlerRegistry.handleEvent(eventObject);
     }
 
-    /**
-     * Handle a SignalR disconnect.
-     *
-     * <p><b>Reconnect design note (security review FP-SafeguardJava-005, audit):</b>
-     * Unlike the sibling SafeguardDotNet event listener, this Java implementation
-     * has no native reconnect loop. On disconnect we delegate to
-     * {@code disconnectHandler.func()}; the {@link DefaultDisconnectHandler}
-     * raises {@link SafeguardEventListenerDisconnectedException} so the caller
-     * picks the reconnect strategy (immediate retry, exponential backoff, give
-     * up, etc.). This is a deliberate, valid distinct design — there is no
-     * uncapped tight-loop reconnect to harden — but it does mean the SDK does
-     * not enforce a jittered exponential backoff on the caller's behalf.
-     * When Phase 2 introduces a default backoff helper, mirror the algorithm
-     * from the sibling SafeguardDotNet SDK at
-     * {@code SafeguardDotNet/Event/ReconnectBackoff.cs}: exponential delay
-     * {@code min(60s, 2^n × 1s)} with ±25% jitter, reset on successful
-     * reconnect.
-     */
     private void handleDisconnect() throws SafeguardEventListenerDisconnectedException {
         if(!this.isStarted()) {
             return;

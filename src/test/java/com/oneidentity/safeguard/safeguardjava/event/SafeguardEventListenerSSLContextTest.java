@@ -7,7 +7,7 @@ import javax.net.ssl.SSLContext;
 import org.junit.Test;
 
 /**
- * Regression test for FP-SafeguardJava-001 (W2 — TLS version pinning).
+ * Regression test: TLS version pinning.
  *
  * <p>Mirror of {@code RestClientSSLContextTest} for the SignalR event
  * listener path: ensures the listener's HTTP client builder is wired with

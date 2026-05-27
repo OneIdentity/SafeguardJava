@@ -10,7 +10,7 @@ import javax.net.ssl.SSLContext;
 import org.junit.Test;
 
 /**
- * Regression test for FP-SafeguardJava-001 (W2 — TLS version pinning).
+ * Regression test: TLS version pinning.
  *
  * <p>Ensures that {@link RestClient} requests an explicit {@code TLSv1.2}
  * {@link SSLContext} rather than the generic {@code "TLS"} protocol string.
