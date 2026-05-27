@@ -80,6 +80,9 @@ provides an opportunity for reacting programmatically to any data modification
 in Safeguard. Events are also supported for access request workflow and for
 A2A password changes.
 
+> **Note:** The event listener feature requires **Java 9 or later** at runtime
+> due to the SignalR client dependency. All other SDK features work on Java 8+.
+
 ## Getting Started
 
 ### PKCE Authentication (Recommended)
@@ -323,6 +326,7 @@ available for direct download from [GitHub Releases](https://github.com/OneIdent
 ### Building SafeguardJava
 
 Building SafeguardJava requires Java JDK 8 or greater and Maven 3.0.5 or greater.
+The event listener feature requires Java 9+ at runtime (see note above).
 
 ```bash
 mvn clean package
