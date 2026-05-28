@@ -13,7 +13,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <revision>8.2.1-SNAPSHOT</revision>
+        <revision>8.2.2-SNAPSHOT</revision>
         <gpgkeyname>keyname</gpgkeyname>
     </properties>
 
@@ -89,6 +89,7 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <release>8</release>
                 </configuration>
             </plugin>
             <plugin>
