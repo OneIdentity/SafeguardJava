@@ -3,6 +3,8 @@ package com.oneidentity.safeguard.safeguardjava;
 import com.oneidentity.safeguard.safeguardjava.authentication.AccessTokenAuthenticator;
 import com.oneidentity.safeguard.safeguardjava.authentication.AnonymousAuthenticator;
 import com.oneidentity.safeguard.safeguardjava.authentication.CertificateAuthenticator;
+import com.oneidentity.safeguard.safeguardjava.authentication.DeviceCodeAuthenticator;
+import com.oneidentity.safeguard.safeguardjava.authentication.DeviceCodeLoginParameters;
 import com.oneidentity.safeguard.safeguardjava.authentication.IAuthenticationMechanism;
 import com.oneidentity.safeguard.safeguardjava.authentication.PasswordAuthenticator;
 import com.oneidentity.safeguard.safeguardjava.authentication.PkceAuthenticator;
@@ -232,6 +234,95 @@ public final class Safeguard {
 
         return getConnection(new PkceAuthenticator(networkAddress, provider, username, password,
                 secondaryPassword, version, sslIgnore, null));
+    }
+
+    /**
+     *  Connect to Safeguard API using the OAuth 2.0 Device Authorization Grant
+     *  (Device Code flow, RFC 8628).
+     *  <p>
+     *  This method is intended for headless or no-browser callers (containers,
+     *  SSH sessions, CI jobs, IoT or constrained devices). The SDK never opens a
+     *  browser; instead the caller-provided {@code displayCallback} is invoked
+     *  once with the verification URL and user code, the user authenticates in
+     *  their own browser on any device, and the SDK polls until success,
+     *  denial, expiry, or cancellation. The display callback receives display
+     *  values only and never the raw {@code device_code}. The
+     *  {@code pollingIntervalSeconds} parameter is automatically increased when
+     *  the appliance returns {@code slow_down}; cancellation is caller-driven and
+     *  the deadline is the appliance {@code expires_in} value.
+     *  <p>
+     *  The Device Code grant must be enabled on the appliance under
+     *  Settings -&gt; OAuth 2.0 Grant Types (API setting
+     *  {@code Settings/Allowed OAuth2 Grant Types} must include {@code DeviceCode});
+     *  otherwise a clear error is thrown.
+     *
+     *  @param networkAddress Network address of Safeguard appliance.
+     *  @param displayCallback Required callback used to display the verification URL and user code.
+     *  @param parameters Optional Device Code parameters (scope, client id, polling interval, cancel hook); may be null.
+     *  @param apiVersion Target API version to use.
+     *  @param ignoreSsl Ignore server certificate validation.
+     *  @return Reusable Safeguard API connection.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws ArgumentException Invalid argument.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     */
+    public static ISafeguardConnection connectDeviceCode(String networkAddress,
+            IDeviceCodeDisplayCallback displayCallback, DeviceCodeLoginParameters parameters,
+            Integer apiVersion, Boolean ignoreSsl)
+            throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        boolean sslIgnore = false;
+        if (ignoreSsl != null) {
+            sslIgnore = ignoreSsl;
+        }
+
+        return getConnection(new DeviceCodeAuthenticator(networkAddress, displayCallback, parameters, version,
+                sslIgnore, null));
+    }
+
+    /**
+     *  Connect to Safeguard API using the OAuth 2.0 Device Authorization Grant
+     *  (Device Code flow, RFC 8628).
+     *  <p>
+     *  This method is intended for headless or no-browser callers. The SDK never
+     *  opens a browser; the caller-provided {@code displayCallback} is invoked
+     *  once with the verification URL and user code, and the SDK polls until
+     *  success, denial, expiry, or cancellation. The display callback receives
+     *  display values only and never the raw {@code device_code}. The
+     *  {@code pollingIntervalSeconds} parameter is automatically increased when
+     *  the appliance returns {@code slow_down}; cancellation is caller-driven and
+     *  the deadline is the appliance {@code expires_in} value.
+     *  <p>
+     *  The Device Code grant must be enabled on the appliance under
+     *  Settings -&gt; OAuth 2.0 Grant Types (API setting
+     *  {@code Settings/Allowed OAuth2 Grant Types} must include {@code DeviceCode});
+     *  otherwise a clear error is thrown.
+     *
+     *  @param networkAddress Network address of Safeguard appliance.
+     *  @param displayCallback Required callback used to display the verification URL and user code.
+     *  @param parameters Optional Device Code parameters (scope, client id, polling interval, cancel hook); may be null.
+     *  @param validationCallback Callback function to be executed during SSL certificate validation.
+     *  @param apiVersion Target API version to use.
+     *  @return Reusable Safeguard API connection.
+     *  @throws ObjectDisposedException Object has already been disposed.
+     *  @throws ArgumentException Invalid argument.
+     *  @throws SafeguardForJavaException General Safeguard for Java exception.
+     */
+    public static ISafeguardConnection connectDeviceCode(String networkAddress,
+            IDeviceCodeDisplayCallback displayCallback, DeviceCodeLoginParameters parameters,
+            HostnameVerifier validationCallback, Integer apiVersion)
+            throws ObjectDisposedException, ArgumentException, SafeguardForJavaException {
+        int version = DEFAULTAPIVERSION;
+        if (apiVersion != null) {
+            version = apiVersion;
+        }
+
+        return getConnection(new DeviceCodeAuthenticator(networkAddress, displayCallback, parameters, version,
+                false, validationCallback));
     }
 
     /**
@@ -875,6 +966,83 @@ public final class Safeguard {
 
             return new PersistentSafeguardEventListener(getConnection(
                     new PasswordAuthenticator(networkAddress, provider, username, password, version, false, validationCallback)));
+        }
+
+        /**
+         *  Get a persistent event listener using the OAuth 2.0 Device
+         *  Authorization Grant (Device Code flow, RFC 8628) for authentication.
+         *  <p>
+         *  The SDK never opens a browser; the caller-provided
+         *  {@code displayCallback} is invoked once with the verification URL and
+         *  user code, and the SDK polls until the user authorizes. The display
+         *  callback receives display values only and never the raw
+         *  {@code device_code}. The Device Code grant must be enabled on the
+         *  appliance under Settings -&gt; OAuth 2.0 Grant Types.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param displayCallback Required callback used to display the verification URL and user code.
+         *  @param parameters Optional Device Code parameters; may be null.
+         *  @param apiVersion Target API version to use.
+         *  @param ignoreSsl Ignore server certificate validation.
+         *
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java exception.
+         *  @throws ArgumentException Invalid argument.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress,
+                IDeviceCodeDisplayCallback displayCallback, DeviceCodeLoginParameters parameters,
+                Integer apiVersion, Boolean ignoreSsl)
+                throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
+
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            boolean sslIgnore = false;
+            if (ignoreSsl != null) {
+                sslIgnore = ignoreSsl;
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(
+                    new DeviceCodeAuthenticator(networkAddress, displayCallback, parameters, version, sslIgnore, null)));
+        }
+
+        /**
+         *  Get a persistent event listener using the OAuth 2.0 Device
+         *  Authorization Grant (Device Code flow, RFC 8628) for authentication.
+         *  <p>
+         *  The SDK never opens a browser; the caller-provided
+         *  {@code displayCallback} is invoked once with the verification URL and
+         *  user code, and the SDK polls until the user authorizes. The display
+         *  callback receives display values only and never the raw
+         *  {@code device_code}. The Device Code grant must be enabled on the
+         *  appliance under Settings -&gt; OAuth 2.0 Grant Types.
+         *
+         *  @param networkAddress Network address of Safeguard appliance.
+         *  @param displayCallback Required callback used to display the verification URL and user code.
+         *  @param parameters Optional Device Code parameters; may be null.
+         *  @param validationCallback Callback function to be executed during SSL certificate validation.
+         *  @param apiVersion Target API version to use.
+         *
+         *  @return New persistent Safeguard event listener.
+         *  @throws ObjectDisposedException Object has already been disposed.
+         *  @throws SafeguardForJavaException General Safeguard for Java exception.
+         *  @throws ArgumentException Invalid argument.
+         */
+        public static ISafeguardEventListener getPersistentEventListener(String networkAddress,
+                IDeviceCodeDisplayCallback displayCallback, DeviceCodeLoginParameters parameters,
+                HostnameVerifier validationCallback, Integer apiVersion)
+                throws ObjectDisposedException, SafeguardForJavaException, ArgumentException {
+
+            int version = DEFAULTAPIVERSION;
+            if (apiVersion != null) {
+                version = apiVersion;
+            }
+
+            return new PersistentSafeguardEventListener(getConnection(
+                    new DeviceCodeAuthenticator(networkAddress, displayCallback, parameters, version, false, validationCallback)));
         }
 
         /**
