@@ -135,6 +135,47 @@ System.out.println(connection.invokeMethod(Service.Core, Method.Get, "Me", null,
 connection.dispose();
 ```
 
+### Device Code Authentication
+
+Device Code (OAuth 2.0 Device Authorization Grant, RFC 8628) is designed for
+**headless or no-browser callers** such as containers, SSH sessions, CI jobs, and
+IoT or otherwise constrained devices. The SDK never opens a browser. Instead, the
+caller displays a verification URL and a user code through a required callback, the
+user authenticates in their own browser on any device, and the SDK polls until the
+login succeeds, is denied, expires, or is cancelled.
+
+```Java
+ISafeguardConnection connection = Safeguard.connectDeviceCode(
+        "safeguard.sample.corp",
+        info -> {
+            // Sample display behavior — the library never prints or opens a browser.
+            String url = info.getVerificationUriComplete() != null
+                    ? info.getVerificationUriComplete() : info.getVerificationUri();
+            System.out.println("To sign in, visit " + url + " and enter code " + info.getUserCode());
+        },
+        null,   // optional DeviceCodeLoginParameters (scope, client id, polling interval, cancel hook)
+        null,   // apiVersion
+        true);  // ignoreSsl
+System.out.println(connection.invokeMethod(Service.Core, Method.Get, "Me", null, null, null));
+connection.dispose();
+```
+
+The display callback receives only display values (`userCode`, `verificationUri`,
+`verificationUriComplete`, `expiresIn`, and `interval`); the internal `device_code`
+is never exposed. The polling interval is automatically increased when the appliance
+asks the client to slow down, cancellation is caller-driven through
+`DeviceCodeLoginParameters.setIsCancelled(...)`, and the deadline is always the
+appliance's `expires_in` value.
+
+> **Appliance prerequisite:** the Device Code grant must be enabled on the appliance
+> under **Settings → OAuth 2.0 Grant Types** (the API setting
+> `Settings/Allowed OAuth2 Grant Types` must include `DeviceCode`). When it is
+> disabled, the appliance returns the marker
+> `OAuth2 device code grant type is not allowed.` and the SDK throws a clear error
+> instructing an administrator to enable it.
+
+A runnable example is in [Samples/DeviceCodeConnect](Samples/DeviceCodeConnect/).
+
 Calling the simple 'Me' endpoint provides information about the currently logged
 on user.
 

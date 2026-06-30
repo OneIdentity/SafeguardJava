@@ -15,6 +15,7 @@ Each sample is a self-contained Maven project that can be built and run independ
 |--------|-------------|
 | [PasswordConnect](PasswordConnect/) | Connect using username and password, call the API |
 | [CertificateConnect](CertificateConnect/) | Connect using a PKCS12 client certificate file |
+| [DeviceCodeConnect](DeviceCodeConnect/) | Connect using the OAuth 2.0 Device Code flow (headless, no browser) |
 | [A2ARetrievalExample](A2ARetrievalExample/) | Retrieve a credential via Application-to-Application (A2A) |
 | [EventListenerExample](EventListenerExample/) | Subscribe to real-time Safeguard events via SignalR |
 
