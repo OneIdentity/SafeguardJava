@@ -1,7 +1,7 @@
 # Dependabot configuration for SafeguardJava.
 #
 # Ecosystems covered:
-#   * maven           -- Java dependencies declared in pom.xml.
+#   * maven           -- Java dependencies declared in pom.xml (root SDK, test client, and samples).
 #   * github-actions  -- workflow file dependencies.
 #
 # Major-version bumps are excluded; they require human review and a
@@ -12,7 +12,10 @@
 version: 2
 updates:
   - package-ecosystem: "maven"
-    directory: "/"
+    directories:
+      - "/"
+      - "/tests/*"
+      - "/Samples/*"
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 10
