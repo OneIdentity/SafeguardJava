@@ -6,10 +6,13 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardA2AContext;
 import com.oneidentity.safeguard.safeguardjava.IA2ARetrievableAccount;
+import com.oneidentity.safeguard.safeguardjava.IDeviceCodeDisplayCallback;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardSessionsConnection;
 import com.oneidentity.safeguard.safeguardjava.Safeguard;
 import com.oneidentity.safeguard.safeguardjava.SafeguardForPrivilegedSessions;
+import com.oneidentity.safeguard.safeguardjava.authentication.DeviceCodeLoginParameters;
+import com.oneidentity.safeguard.safeguardjava.data.DeviceCodeInfo;
 import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
 import com.oneidentity.safeguard.safeguardjava.data.Method;
 import com.oneidentity.safeguard.safeguardjava.data.Service;
@@ -26,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class SafeguardJavaClient {
 
@@ -69,6 +73,12 @@ public class SafeguardJavaClient {
 
             if (opts.retrievableAccounts || opts.retrievePassword || opts.setPassword) {
                 handleA2aOperation(opts);
+                System.exit(0);
+                return;
+            }
+
+            if (opts.deviceCode) {
+                handleDeviceCode(opts);
                 System.exit(0);
                 return;
             }
@@ -261,6 +271,55 @@ public class SafeguardJavaClient {
         } else {
             String result = spsConnection.invokeMethod(method, opts.relativeUrl, opts.body);
             System.out.println(result);
+        }
+    }
+
+    private static void handleDeviceCode(ToolOptions opts) throws Exception {
+        final AtomicReference<DeviceCodeInfo> captured = new AtomicReference<>();
+
+        DeviceCodeLoginParameters params = new DeviceCodeLoginParameters();
+        if (opts.identityProvider != null && !opts.identityProvider.trim().isEmpty()) {
+            params.setScope("rsts:sts:primaryproviderid:" + opts.identityProvider);
+        }
+        // Without a human to approve, cancel as soon as the verification values are received.
+        params.setIsCancelled(() -> captured.get() != null);
+
+        IDeviceCodeDisplayCallback displayCallback = info -> {
+            captured.set(info);
+            System.err.println("To sign in, visit "
+                    + (info.getVerificationUriComplete() != null
+                            ? info.getVerificationUriComplete() : info.getVerificationUri())
+                    + " and enter code " + info.getUserCode());
+        };
+
+        System.err.println("Connecting to " + opts.appliance + " via Device Code flow");
+        try {
+            ISafeguardConnection connection = Safeguard.connectDeviceCode(
+                    opts.appliance, displayCallback, params, (Integer) null, opts.insecure);
+            // A human approved within the deadline.
+            String me = connection.invokeMethod(Service.Core, Method.Get, "Me", null, null, null, null);
+            ObjectNode json = mapper.createObjectNode();
+            json.put("Approved", true);
+            json.set("Me", mapper.readTree(me));
+            System.out.println(mapper.writeValueAsString(json));
+            connection.dispose();
+        } catch (Exception ex) {
+            DeviceCodeInfo info = captured.get();
+            if (info != null) {
+                // Expected no-human path: report the display values that were received.
+                ObjectNode json = mapper.createObjectNode();
+                ObjectNode display = json.putObject("DeviceCodeDisplay");
+                display.put("UserCode", info.getUserCode());
+                display.put("VerificationUri", info.getVerificationUri());
+                if (info.getVerificationUriComplete() != null) {
+                    display.put("VerificationUriComplete", info.getVerificationUriComplete());
+                }
+                display.put("ExpiresIn", info.getExpiresIn());
+                System.out.println(mapper.writeValueAsString(json));
+                return;
+            }
+            // No display values means the request failed (e.g. grant disabled); surface the error.
+            throw ex;
         }
     }
 

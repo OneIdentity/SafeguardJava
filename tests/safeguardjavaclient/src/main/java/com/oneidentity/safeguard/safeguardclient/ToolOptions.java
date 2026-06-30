@@ -91,6 +91,10 @@ public class ToolOptions {
         description = "Use PKCE (Proof Key for Code Exchange) authentication instead of password grant")
     boolean pkce;
 
+    @Option(names = {"--device-code"}, defaultValue = "false",
+        description = "Use the OAuth 2.0 Device Code flow; displays the verification URL/code as JSON and exits")
+    boolean deviceCode;
+
     @Option(names = {"-R", "--resource-owner"}, arity = "1",
         description = "Enable (true) or disable (false) the resource owner password grant type and exit")
     Boolean resourceOwner;
