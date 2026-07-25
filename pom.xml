@@ -131,7 +131,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>flatten-maven-plugin</artifactId>
-                <version>1.7.3</version>
+                <version>1.8.0</version>
                 <configuration>
                     <updatePomFile>true</updatePomFile>
                     <flattenMode>ossrh</flattenMode>
@@ -175,7 +175,7 @@
             <plugin>
                 <groupId>com.github.spotbugs</groupId>
                 <artifactId>spotbugs-maven-plugin</artifactId>
-                <version>4.10.2.0</version>
+                <version>4.10.3.0</version>
                 <configuration>
                     <effort>Max</effort>
                     <threshold>Medium</threshold>
