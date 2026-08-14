@@ -51,6 +51,7 @@ See `testing-guide` for setup and workflow details.
 - expect `ArgumentException`, `SafeguardForJavaException`, and `ObjectDisposedException`
 - preserve Java 8 compatibility and standard Java naming
 - do not recommend `ignoreSsl=true` for production without a warning
+- default TLS is **1.2 only** across all transports; TLS 1.3 is opt-in via `Safeguard.setMin/MaxTlsVersion(TlsVersion)` or `safeguard.tls.min/maxVersion` system properties. JSSE has no client post-handshake auth, so TLS 1.3 cert/A2A auth requires the appliance Cert SNI hostname
 - keep repository text files on **LF** line endings, especially on Windows
 
 ## CI/CD

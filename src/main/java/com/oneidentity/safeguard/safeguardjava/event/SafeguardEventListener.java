@@ -6,6 +6,7 @@ import com.microsoft.signalr.HttpHubConnectionBuilder;
 import com.microsoft.signalr.HubConnectionBuilder;
 import com.microsoft.signalr.Action1;
 import com.microsoft.signalr.OnClosedCallback;
+import com.oneidentity.safeguard.safeguardjava.TlsConfiguration;
 import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
 import com.oneidentity.safeguard.safeguardjava.data.SafeguardEventListenerState;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
@@ -34,7 +35,9 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
 
+import okhttp3.ConnectionSpec;
 import okhttp3.Protocol;
+import okhttp3.TlsVersion;
 import okhttp3.OkHttpClient.Builder;
 
 class DefaultDisconnectHandler implements IDisconnectHandler {
@@ -50,13 +53,17 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
     private static final Logger logger = LoggerFactory.getLogger(SafeguardEventListener.class);
 
     /**
-     * Minimum TLS protocol version pinned at the SDK layer.
+     * JSSE {@link SSLContext} algorithm used for the SignalR/WebSocket
+     * transport.
      *
-     * <p>See {@code RestClient.TLS_PROTOCOL} for rationale. Both transports
-     * pin the same minimum version so the SignalR/WebSocket connection cannot
-     * fall back to TLS 1.0 / 1.1 on a misconfigured JVM.
+     * <p>The generic {@code "TLS"} algorithm is requested so the context can
+     * negotiate the highest protocol the JVM supports. The <em>enabled</em>
+     * versions are constrained explicitly via an OkHttp {@link okhttp3.ConnectionSpec}
+     * built from {@link TlsConfiguration#resolveEnabledProtocolNames()} (default
+     * {@code TLSv1.2} only), so this transport tracks the same TLS policy as the
+     * REST clients.
      */
-    static final String TLS_PROTOCOL = "TLSv1.2";
+    static final String SSLCONTEXT_PROTOCOL = "TLS";
 
     private boolean disposed;
 
@@ -413,9 +420,21 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
 
             // Configure the SSL Context according to options and set the
             // OkHttpClient builder SSL socket factory
-            SSLContext sslContext = SSLContext.getInstance(TLS_PROTOCOL);
+            SSLContext sslContext = SSLContext.getInstance(SSLCONTEXT_PROTOCOL);
             sslContext.init(km, tm, null);
             builder.sslSocketFactory(sslContext.getSocketFactory(), x509tm);
+
+            // Constrain the enabled TLS versions to the SDK-resolved set
+            // (default TLSv1.2 only; opt-in TLS 1.3 via TlsConfiguration) so the
+            // event transport matches the REST clients' TLS policy.
+            List<TlsVersion> enabledTlsVersions = new ArrayList<>();
+            for (String protocolName : TlsConfiguration.resolveEnabledProtocolNames()) {
+                enabledTlsVersions.add(TlsVersion.forJavaName(protocolName));
+            }
+            ConnectionSpec tlsSpec = new ConnectionSpec.Builder(ConnectionSpec.MODERN_TLS)
+                    .tlsVersions(enabledTlsVersions.toArray(new TlsVersion[0]))
+                    .build();
+            builder.connectionSpecs(Arrays.asList(tlsSpec));
         }
         catch(NoSuchAlgorithmException ex) {
             logger.error(ex.getMessage());
