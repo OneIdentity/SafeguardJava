@@ -137,6 +137,17 @@ If you expect a long-running process, wrap the connection with `Safeguard.Persis
 `PersistentSafeguardConnection` checks `getAccessTokenLifetimeRemaining()` before each
 `invokeMethod*` call and refreshes expired tokens automatically.
 
+### TLS version (default 1.2, opt-in 1.3)
+
+All connections negotiate **TLS 1.2 only** by default. Password/token auth can safely
+use TLS 1.3 on the Standard binding; certificate/A2A auth over TLS 1.3 requires the
+appliance **Cert SNI hostname** because JSSE cannot present a client certificate
+post-handshake. Opt into 1.3 process-wide **before** calling `connect(...)`:
+`Safeguard.setMaxTlsVersion(TlsVersion.TLSv1_3)` /
+`Safeguard.setMinTlsVersion(TlsVersion.TLSv1_3)`, or the
+`safeguard.tls.min/maxVersion` system properties. See the README "TLS Protocol
+Versions" section and the `a2a-workflow` skill for the full rationale.
+
 ### Management service calls
 
 `Service.Management` is only valid on a management connection:

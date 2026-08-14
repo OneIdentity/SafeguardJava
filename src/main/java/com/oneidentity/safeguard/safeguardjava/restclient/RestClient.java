@@ -2,6 +2,7 @@ package com.oneidentity.safeguard.safeguardjava.restclient;
 
 import static com.oneidentity.safeguard.safeguardjava.CertificateUtilities.WINDOWSKEYSTORE;
 import com.oneidentity.safeguard.safeguardjava.IProgressCallback;
+import com.oneidentity.safeguard.safeguardjava.TlsConfiguration;
 import com.oneidentity.safeguard.safeguardjava.data.CertificateContext;
 import com.oneidentity.safeguard.safeguardjava.data.JsonObject;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
@@ -74,15 +75,16 @@ public class RestClient {
     public static final int DEFAULT_TIMEOUT_MS = 100_000;
 
     /**
-     * Minimum TLS protocol version pinned at the SDK layer.
+     * JSSE {@link SSLContext} algorithm used for all Safeguard REST transports.
      *
-     * <p>Hard-pinning to {@code TLSv1.2} avoids the {@code "TLS"} alias, which
-     * the JRE may resolve to TLS 1.0 or 1.1 on misconfigured JVMs. TLS 1.2 is
-     * the project's Java 8 baseline minimum and is widely supported by
-     * Safeguard appliances. TLS 1.3 negotiation, when supported by both peers,
-     * is still permitted by the underlying SSLContext.
+     * <p>The generic {@code "TLS"} algorithm is requested so the context is
+     * capable of the highest protocol the JVM supports. The <em>enabled</em>
+     * protocol versions are then constrained explicitly at the socket-factory
+     * layer via {@link TlsConfiguration#resolveEnabledProtocolNames()}, which
+     * defaults to {@code TLSv1.2} only. This avoids relying on JVM defaults
+     * (which may permit TLS 1.0/1.1) while still allowing opt-in TLS 1.3.
      */
-    static final String TLS_PROTOCOL = "TLSv1.2";
+    static final String SSLCONTEXT_PROTOCOL = "TLS";
 
     private CloseableHttpClient client = null;
     private BasicCookieStore cookieStore = new BasicCookieStore();
@@ -108,9 +110,10 @@ public class RestClient {
      * {@code NoopHostnameVerifier} that accepts any hostname. This is
      * intended for development against self-signed test appliances only;
      * it leaves the connection vulnerable to man-in-the-middle attacks
-     * and must not be enabled in production. The minimum TLS protocol
-     * version remains pinned to {@code TLSv1.2} regardless of this flag —
-     * see {@link #TLS_PROTOCOL}.
+     * and must not be enabled in production. The enabled TLS protocol
+     * versions are unaffected by this flag and default to {@code TLSv1.2}
+     * only &mdash; see
+     * {@link TlsConfiguration#resolveEnabledProtocolNames()}.
      *
      * <p>For production with a self-signed or internal-CA appliance,
      * prefer importing the appliance certificate into the JVM truststore
@@ -158,12 +161,12 @@ public class RestClient {
         SSLConnectionSocketFactory sslsf = null;
         if (ignoreSsl) {
             this.validationCallback = null;
-            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null, null), NoopHostnameVerifier.INSTANCE);
+            sslsf = buildSocketFactory(getSSLContext(null, null, null, null), NoopHostnameVerifier.INSTANCE);
         } else if (validationCallback != null) {
             this.validationCallback = validationCallback;
-            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null, null), validationCallback);
+            sslsf = buildSocketFactory(getSSLContext(null, null, null, null), validationCallback);
         } else {
-            sslsf = new SSLConnectionSocketFactory(getSSLContext(null, null, null, null));
+            sslsf = buildSocketFactory(getSSLContext(null, null, null, null), null);
         }
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslsf).build();
         BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
@@ -527,11 +530,11 @@ public class RestClient {
 
             SSLConnectionSocketFactory sslsf = null;
             if (ignoreSsl) {
-                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext), NoopHostnameVerifier.INSTANCE);
+                sslsf = buildSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext), NoopHostnameVerifier.INSTANCE);
             } else if (validationCallback != null) {
-                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext), validationCallback);
+                sslsf = buildSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext), validationCallback);
             } else {
-                sslsf = new SSLConnectionSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext));
+                sslsf = buildSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext), null);
             }
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslsf).build();
             BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
@@ -572,6 +575,20 @@ public class RestClient {
         return context;
     }
 
+    /**
+     * Builds an {@link SSLConnectionSocketFactory} whose enabled TLS protocol
+     * versions are constrained to the SDK-resolved set (default {@code TLSv1.2}
+     * only; opt-in TLS 1.3 via {@link TlsConfiguration}).
+     *
+     * @param ctx the initialized {@link SSLContext}.
+     * @param verifier the hostname verifier to use, or {@code null} to fall back
+     *                 to Apache HttpClient's default verifier.
+     * @return a socket factory pinned to the resolved protocol versions.
+     */
+    private SSLConnectionSocketFactory buildSocketFactory(SSLContext ctx, HostnameVerifier verifier) {
+        return new SSLConnectionSocketFactory(ctx, TlsConfiguration.resolveEnabledProtocolNames(), null, verifier);
+    }
+
     private SSLContext getSSLContext(KeyStore keyStorePath, char[] keyStorePassword, String alias, CertificateContext certificateContext) {
 
         TrustManager[] customTrustManager = null;
@@ -606,7 +623,7 @@ public class RestClient {
 
         SSLContext ctx = null;
         try {
-            ctx = SSLContext.getInstance(TLS_PROTOCOL);
+            ctx = SSLContext.getInstance(SSLCONTEXT_PROTOCOL);
             ctx.init(customKeyManager, customTrustManager, new java.security.SecureRandom());
         } catch (java.security.GeneralSecurityException ex) {
         }
