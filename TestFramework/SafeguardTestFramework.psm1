@@ -1176,9 +1176,21 @@ function Build-SgJTestProjects {
         throw "SDK build failed: $result"
     }
 
+    # Read the SDK's CI-friendly <revision> so the tool links exactly what was
+    # just built, regardless of what version the SDK pom is currently at.
+    $sdkRevision = $null
+    $rootPom = Get-Content "$($Context.RepoRoot)/pom.xml" -Raw
+    if ($rootPom -match '<revision>\s*([^<]+?)\s*</revision>') {
+        $sdkRevision = $Matches[1].Trim()
+    }
+
     # Build and package the test tool
     Write-Host "  Building test tool..." -ForegroundColor DarkGray
-    $result = & $mvn -f "$($Context.ToolDir)/pom.xml" clean package -q 2>&1
+    $toolArgs = @('-f', "$($Context.ToolDir)/pom.xml", 'clean', 'package', '-q')
+    if ($sdkRevision) {
+        $toolArgs += "-Drevision=$sdkRevision"
+    }
+    $result = & $mvn @toolArgs 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "Test tool build failed: $result"
     }

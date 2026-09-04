@@ -11,6 +11,11 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <!-- Links the in-tree SDK build. The test harness overrides this with
+             -Drevision=<value read from the SDK pom> so the tool always tests
+             exactly what was just built; this default matches the SDK's
+             <revision> for standalone (mvn -f) builds. -->
+        <revision>8.4.0-SNAPSHOT</revision>
     </properties>
 
     <dependencies>
@@ -29,7 +34,7 @@
         <dependency>
             <groupId>com.oneidentity.safeguard</groupId>
             <artifactId>safeguardjava</artifactId>
-            <version>8.4.0-SNAPSHOT</version>
+            <version>${revision}</version>
         </dependency>
 
         <dependency>
