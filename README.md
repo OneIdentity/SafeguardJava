@@ -407,7 +407,7 @@ available for direct download from [GitHub Releases](https://github.com/OneIdent
 <dependency>
     <groupId>com.oneidentity.safeguard</groupId>
     <artifactId>safeguardjava</artifactId>
-    <version>7.5.0</version>
+    <version>8.4.0</version>
 </dependency>
 ```
 
@@ -424,7 +424,7 @@ available for direct download from [GitHub Releases](https://github.com/OneIdent
 <dependency>
     <groupId>com.oneidentity.safeguard</groupId>
     <artifactId>safeguardjava</artifactId>
-    <version>7.5.0</version>
+    <version>8.4.0</version>
 </dependency>
 ```
 
