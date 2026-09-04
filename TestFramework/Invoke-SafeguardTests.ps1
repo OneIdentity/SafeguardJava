@@ -48,6 +48,11 @@
 .PARAMETER TestPrefix
     Prefix for test objects created on the appliance. Default: "SgJTest".
 
+.PARAMETER CertSniHost
+    Appliance Cert SNI hostname. When supplied, enables the certificate-auth-over-
+    TLS-1.3 test (JSSE cannot present a client certificate post-handshake, so cert
+    auth over TLS 1.3 requires the appliance Cert SNI binding). Skipped when unset.
+
 .PARAMETER MavenCmd
     Path to the Maven command. Defaults to searching PATH then common locations.
 
@@ -100,6 +105,9 @@ param(
 
     [Parameter()]
     [string]$TestPrefix = "SgJTest",
+
+    [Parameter()]
+    [string]$CertSniHost,
 
     [Parameter()]
     [string]$MavenCmd
@@ -233,6 +241,9 @@ if ($Pkce) {
 if ($SpsAppliance) {
     Write-Host "  SPS:        $SpsAppliance" -ForegroundColor White
 }
+if ($CertSniHost) {
+    Write-Host "  Cert SNI:   $CertSniHost" -ForegroundColor White
+}
 Write-Host ("=" * 66) -ForegroundColor Cyan
 
 $context = New-SgJTestContext `
@@ -243,6 +254,7 @@ $context = New-SgJTestContext `
     -SpsUserName $SpsUserName `
     -SpsPassword $SpsPassword `
     -TestPrefix $TestPrefix `
+    -CertSniHost $CertSniHost `
     -MavenCmd $MavenCmd `
     -Pkce:$Pkce
 
