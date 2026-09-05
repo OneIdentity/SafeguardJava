@@ -528,13 +528,20 @@ public class RestClient {
                 logger.error("Exception occurred", ex);
             }
 
+            // aliases stays null if the key store failed to load above; fall back to
+            // the first available alias only when one exists to avoid a null/empty deref.
+            String resolvedAlias = certificateAlias;
+            if (resolvedAlias == null && aliases != null && !aliases.isEmpty()) {
+                resolvedAlias = aliases.get(0);
+            }
+
             SSLConnectionSocketFactory sslsf = null;
             if (ignoreSsl) {
-                sslsf = buildSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext), NoopHostnameVerifier.INSTANCE);
+                sslsf = buildSocketFactory(getSSLContext(clientKs, keyPass, resolvedAlias, certificateContext), NoopHostnameVerifier.INSTANCE);
             } else if (validationCallback != null) {
-                sslsf = buildSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext), validationCallback);
+                sslsf = buildSocketFactory(getSSLContext(clientKs, keyPass, resolvedAlias, certificateContext), validationCallback);
             } else {
-                sslsf = buildSocketFactory(getSSLContext(clientKs, keyPass, certificateAlias == null ? aliases.get(0) : certificateAlias, certificateContext), null);
+                sslsf = buildSocketFactory(getSSLContext(clientKs, keyPass, resolvedAlias, certificateContext), null);
             }
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory> create().register("https", sslsf).build();
             BasicHttpClientConnectionManager connectionManager = new BasicHttpClientConnectionManager(socketFactoryRegistry);
@@ -611,7 +618,7 @@ public class RestClient {
             }};
         }
 
-        if ((keyStorePath != null && keyStorePassword != null && alias != null) || (keyStorePath != null && certificateContext.isWindowsKeyStore())) {
+        if ((keyStorePath != null && keyStorePassword != null && alias != null) || (keyStorePath != null && certificateContext != null && certificateContext.isWindowsKeyStore())) {
             try {
                 KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance("SunX509");
                 keyManagerFactory.init(keyStorePath, keyStorePassword);
