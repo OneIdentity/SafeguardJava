@@ -105,7 +105,7 @@ public class SafeguardEventListener implements ISafeguardEventListener, AutoClos
      * only; it leaves the SignalR/WebSocket connection vulnerable to
      * man-in-the-middle attacks and must not be enabled in production.
      * The minimum TLS protocol version remains pinned to {@code TLSv1.2}
-     * regardless of this flag — see {@link #TLS_PROTOCOL}.
+     * regardless of this flag — see {@link TlsConfiguration#resolveEnabledProtocolNames()}.
      *
      * @param eventUrl SignalR notification hub URL
      * @param accessToken bearer access token
