@@ -301,11 +301,12 @@ public class CertificateValidator implements HostnameVerifier {
 ### TLS Certificate Verification and the `ignoreSsl` Flag
 
 Every `Safeguard.connect` / `Safeguard.A2A.GetContext` overload accepts an
-`ignoreSsl` (`boolean`) parameter. The SDK pins the minimum TLS version to
-**TLS 1.2** in all transports (REST and SignalR), regardless of this flag —
-weak TLS versions are never negotiated. What `ignoreSsl` controls is
-**X.509 certificate chain validation**, not the TLS version and not hostname
-verification on its own.
+`ignoreSsl` (`boolean`) parameter. By default the SDK negotiates **TLS 1.2**
+in all transports (REST and SignalR); weaker versions (TLS 1.0/1.1) are never
+enabled, and TLS 1.3 is available as an opt-in (see
+[TLS Protocol Versions](#tls-protocol-versions-tls-13-support) below). What
+`ignoreSsl` controls is **X.509 certificate chain validation**, not the TLS
+version and not hostname verification on its own.
 
 | Setting | Chain validation | Hostname verification | Recommended use |
 |---|---|---|---|
@@ -331,6 +332,69 @@ the flag is an explicit opt-in — by the time a caller passes `true`, the
 trade-off has already been accepted. The responsibility for production
 hardening lies with the integrating application.
 
+### TLS Protocol Versions (TLS 1.3 Support)
+
+Safeguard 9.0 (Windows 11 base OS) enables **TLS 1.3**. By default SafeguardJava
+negotiates **TLS 1.2 only** across every transport (REST and SignalR). This is a
+deliberate default, not just legacy behavior:
+
+> **⚠️ Java limitation — no TLS 1.3 post-handshake client authentication.**
+> Java's TLS engine (JSSE) **does not** present a client certificate in response
+> to a TLS 1.3 post-handshake `CertificateRequest` (RFC 8446 §4.6.2). This has
+> been verified on JDK 11 and JDK 21 and is a limitation of the Java platform
+> itself, **not** of this SDK — there is no SafeguardJava setting or JVM flag that
+> makes it work. As a direct consequence, **certificate-based and A2A
+> authentication cannot use TLS 1.3 on the appliance Standard binding**; they must
+> either run over TLS 1.2 (the default) or connect to the appliance **Cert SNI
+> hostname** (see below). Password/token authentication is unaffected.
+
+- **JSSE cannot present a client certificate post-handshake.** On TLS 1.3 with
+  the appliance **Standard binding**, the server requests the client certificate
+  *after* the handshake (post-handshake authentication, RFC 8446 §4.6.2). Java's
+  JSSE never answers that request, so certificate/A2A authentication fails on a
+  TLS 1.3 connection (`60094 Authorization is denied`) while succeeding on
+  TLS 1.2. Keeping the default at TLS 1.2 keeps cert-auth working out of the box.
+- **Password/token authentication** carries no client certificate and can use
+  TLS 1.3 on the Standard binding without issue.
+- **The only route to TLS 1.3 certificate/A2A auth** with this SDK is to connect
+  to the appliance **Cert SNI hostname**, where the certificate is requested
+  *in-handshake* (no post-handshake step). Password auth can also use it.
+- Requests use **HTTP/1.1** (HTTP/2 disallows the post-handshake
+  `CertificateRequest`); this is unchanged.
+
+You can raise (or pin) the allowed versions with an opt-in minimum/maximum bound.
+The setting is process-wide and read when each connection or listener is created,
+so configure it **before** calling `Safeguard.connect(...)`:
+
+```java
+import com.oneidentity.safeguard.safeguardjava.Safeguard;
+import com.oneidentity.safeguard.safeguardjava.TlsVersion;
+
+// Allow TLS 1.3 in addition to 1.2 (e.g. password/token auth on the Standard
+// binding, or cert-auth against the Cert SNI hostname):
+Safeguard.setMaxTlsVersion(TlsVersion.TLSv1_3);
+
+// Require TLS 1.3 only:
+Safeguard.setMinTlsVersion(TlsVersion.TLSv1_3);
+
+// Restore the default (TLS 1.2 only):
+Safeguard.setMaxTlsVersion(null);
+```
+
+For an interim rollout with no code change, the same bounds can be supplied as
+JVM system properties (programmatic settings take precedence):
+
+```
+-Dsafeguard.tls.minVersion=TLSv1.2 -Dsafeguard.tls.maxVersion=TLSv1.3
+```
+
+| Configuration | Enabled versions |
+|---|---|
+| Default (both unset) | `TLSv1.2` |
+| `setMaxTlsVersion(TLSv1_3)` | `TLSv1.2`, `TLSv1.3` |
+| `setMinTlsVersion(TLSv1_3)` | `TLSv1.3` |
+| `setMin/MaxTlsVersion(TLSv1_2)` | `TLSv1.2` |
+
 ### Installation
 
 SafeguardJava is available from [Maven Central](https://central.sonatype.com/artifact/com.oneidentity.safeguard/safeguardjava)
@@ -343,7 +407,7 @@ available for direct download from [GitHub Releases](https://github.com/OneIdent
 <dependency>
     <groupId>com.oneidentity.safeguard</groupId>
     <artifactId>safeguardjava</artifactId>
-    <version>7.5.0</version>
+    <version>8.4.0</version>
 </dependency>
 ```
 
@@ -360,7 +424,7 @@ available for direct download from [GitHub Releases](https://github.com/OneIdent
 <dependency>
     <groupId>com.oneidentity.safeguard</groupId>
     <artifactId>safeguardjava</artifactId>
-    <version>7.5.0</version>
+    <version>8.4.0</version>
 </dependency>
 ```
 

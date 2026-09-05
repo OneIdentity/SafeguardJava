@@ -81,6 +81,26 @@ ISafeguardA2AContext fromKeystore = Safeguard.A2A.getContext(
 Windows thumbprint overloads require `SunMSCAPI` to be available. The SDK throws a
 `SafeguardForJavaException` on non-Windows platforms or when the provider is missing.
 
+### TLS 1.3, the Cert SNI hostname, and the JSSE post-handshake limitation
+
+A2A is certificate-authenticated, so TLS version matters. SafeguardJava negotiates
+**TLS 1.2 only by default**. On Safeguard 9.0 (which enables TLS 1.3), A2A/cert-auth
+over TLS 1.3 fails on the **Standard binding** with `60094 Authorization is denied`,
+because the server requests the client certificate *post-handshake* (RFC 8446
+§4.6.2) and Java's JSSE never presents a certificate in response. This is a Java
+**platform** limitation (verified on JDK 11 and JDK 21), not an SDK bug — no
+SafeguardJava setting or JVM flag makes post-handshake client auth work. TLS 1.2
+keeps working because the certificate request happens differently.
+
+- **Default (TLS 1.2):** A2A works against 9.0 with no extra configuration.
+- **TLS 1.3 A2A/cert-auth:** connect to the appliance **Cert SNI hostname**, where
+  the certificate is requested *in-handshake*. Then opt into 1.3:
+  `Safeguard.setMaxTlsVersion(TlsVersion.TLSv1_3)` (or
+  `setMinTlsVersion(TlsVersion.TLSv1_3)` to require it), or the
+  `safeguard.tls.min/maxVersion` system properties. Configure this **before**
+  calling `getContext(...)`; it is process-wide.
+- Requests stay on **HTTP/1.1** (HTTP/2 disallows the post-handshake request).
+
 ## 3. Credential retrieval (programmatic access)
 
 ### Enumerate retrievable accounts
@@ -266,4 +286,5 @@ Troubleshooting checklist:
 4. use `getRetrievableAccounts()` to prove what the certificate can actually see
 5. switch from a transient listener to a persistent listener if outages matter
 6. avoid `ignoreSsl=true` outside lab scenarios
-7. clear API keys, passwords, and retrieved secrets from memory when finished
+7. on Safeguard 9.0, if cert-auth returns `60094 Authorization is denied` only when TLS 1.3 is negotiated, use the Cert SNI hostname for 1.3 or keep the default TLS 1.2 (JSSE cannot present a client cert post-handshake)
+8. clear API keys, passwords, and retrieved secrets from memory when finished

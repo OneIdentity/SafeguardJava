@@ -55,6 +55,9 @@ function New-SgJTestContext {
         [string]$MavenCmd,
 
         [Parameter()]
+        [string]$CertSniHost,
+
+        [Parameter()]
         [switch]$Pkce
     )
 
@@ -65,6 +68,9 @@ function New-SgJTestContext {
         Appliance       = $Appliance
         AdminUserName   = $AdminUserName
         AdminPassword   = $AdminPassword
+
+        # Appliance Cert SNI hostname (optional; enables cert-auth-over-TLS-1.3 tests)
+        CertSniHost     = $CertSniHost
 
         # SPS connection info
         SpsAppliance    = $SpsAppliance
@@ -366,12 +372,24 @@ function Invoke-SgJSafeguardApi {
         [hashtable]$Parameters,
 
         [Parameter()]
+        [ValidateSet("1.2", "1.3")]
+        [string]$MinTlsVersion,
+
+        [Parameter()]
+        [ValidateSet("1.2", "1.3")]
+        [string]$MaxTlsVersion,
+
+        [Parameter()]
+        [string]$ApplianceOverride,
+
+        [Parameter()]
         [bool]$ParseJson = $true
     )
 
     if (-not $Context) { $Context = Get-SgJTestContext }
 
-    $toolArgs = "-a $($Context.Appliance) -x -s $Service -m $Method -U `"$RelativeUrl`""
+    $applianceHost = if ($ApplianceOverride) { $ApplianceOverride } else { $Context.Appliance }
+    $toolArgs = "-a $applianceHost -x -s $Service -m $Method -U `"$RelativeUrl`""
 
     $stdinLine = $null
 
@@ -420,6 +438,9 @@ function Invoke-SgJSafeguardApi {
         $paramPairs = ($Parameters.GetEnumerator() | ForEach-Object { "$($_.Key)=$($_.Value)" }) -join ","
         $toolArgs += " -P `"$paramPairs`""
     }
+
+    if ($MinTlsVersion) { $toolArgs += " --min-tls $MinTlsVersion" }
+    if ($MaxTlsVersion) { $toolArgs += " --max-tls $MaxTlsVersion" }
 
     Write-Verbose "Invoke-SgJSafeguardApi: $toolArgs"
 
@@ -1155,12 +1176,73 @@ function Build-SgJTestProjects {
         throw "SDK build failed: $result"
     }
 
+    # Read the SDK's CI-friendly <revision> so the tool links exactly what was
+    # just built, regardless of what version the SDK pom is currently at.
+    $sdkRevision = $null
+    $rootPom = Get-Content "$($Context.RepoRoot)/pom.xml" -Raw
+    if ($rootPom -match '<revision>\s*([^<]+?)\s*</revision>') {
+        $sdkRevision = $Matches[1].Trim()
+    }
+
     # Build and package the test tool
     Write-Host "  Building test tool..." -ForegroundColor DarkGray
-    $result = & $mvn -f "$($Context.ToolDir)/pom.xml" clean package -q 2>&1
+    $toolArgs = @('-f', "$($Context.ToolDir)/pom.xml", 'clean', 'package', '-q')
+    if ($sdkRevision) {
+        $toolArgs += "-Drevision=$sdkRevision"
+    }
+    $result = & $mvn @toolArgs 2>&1
     if ($LASTEXITCODE -ne 0) {
         throw "Test tool build failed: $result"
     }
+}
+
+function Test-SgJApplianceTls13 {
+    <#
+    .SYNOPSIS
+        Returns $true if the appliance negotiates TLS 1.3, $false otherwise.
+
+    .DESCRIPTION
+        Performs a raw TLS 1.3-only handshake against the appliance so callers can
+        assert the SDK's behavior against the server's real capability. SPP 8.x tops
+        out at TLS 1.2; SPP 9.0+ negotiates TLS 1.3. Certificate validation is skipped
+        because only the negotiated protocol version matters here.
+
+    .PARAMETER ApplianceHost
+        Appliance hostname or IP address.
+
+    .PARAMETER Port
+        HTTPS port. Defaults to 443.
+
+    .EXAMPLE
+        if (Test-SgJApplianceTls13 -ApplianceHost $ctx.Appliance) { ... }
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, Position = 0)]
+        [string]$ApplianceHost,
+
+        [Parameter()]
+        [int]$Port = 443
+    )
+
+    $tcp = [System.Net.Sockets.TcpClient]::new()
+    try {
+        $tcp.Connect($ApplianceHost, $Port)
+        $noValidation = [System.Net.Security.RemoteCertificateValidationCallback] { param($s, $c, $ch, $e) $true }
+        $ssl = [System.Net.Security.SslStream]::new($tcp.GetStream(), $false, $noValidation)
+        try {
+            $authOpts = [System.Net.Security.SslClientAuthenticationOptions]::new()
+            $authOpts.TargetHost = $ApplianceHost
+            $authOpts.EnabledSslProtocols = [System.Security.Authentication.SslProtocols]::Tls13
+            $ssl.AuthenticateAsClient($authOpts)
+            return ($ssl.SslProtocol -eq [System.Security.Authentication.SslProtocols]::Tls13)
+        }
+        finally { $ssl.Dispose() }
+    }
+    catch {
+        return $false
+    }
+    finally { $tcp.Dispose() }
 }
 
 # ============================================================================
@@ -1207,4 +1289,5 @@ Export-ModuleMember -Function @(
 
     # Build
     'Build-SgJTestProjects'
+    'Test-SgJApplianceTls13'
 )

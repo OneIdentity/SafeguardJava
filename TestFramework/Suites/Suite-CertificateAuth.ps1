@@ -80,6 +80,7 @@
         if ($Context.SuiteData["Skipped"]) {
             Test-SgJSkip "Auth as cert user from PFX file" "Test certificates not found"
             Test-SgJSkip "Cert user identity matches expected name" "Test certificates not found"
+            Test-SgJSkip "Auth as cert user over TLS 1.3 (Cert SNI)" "Test certificates not found"
             return
         }
 
@@ -109,6 +110,29 @@
                 -Service Core -Method Get -RelativeUrl "Me" `
                 -CertificateFile $Context.UserPfx -CertificatePassword "a" -Full
             $result.StatusCode -eq 200
+        }
+
+        # Certificate authentication over TLS 1.3. JSSE cannot present a client
+        # certificate in response to a TLS 1.3 post-handshake CertificateRequest, so
+        # cert auth over TLS 1.3 only succeeds against the appliance Cert SNI binding,
+        # where the certificate is requested in-handshake. Requires an admin-configured
+        # Cert SNI hostname; skipped unless -CertSniHost is supplied.
+        if (-not $Context.CertSniHost) {
+            Test-SgJSkip "Auth as cert user over TLS 1.3 (Cert SNI)" `
+                "No -CertSniHost specified"
+        }
+        elseif (-not (Test-SgJApplianceTls13 -ApplianceHost $Context.CertSniHost)) {
+            Test-SgJSkip "Auth as cert user over TLS 1.3 (Cert SNI)" `
+                "Cert SNI host $($Context.CertSniHost) does not negotiate TLS 1.3"
+        }
+        else {
+            Test-SgJAssert "Auth as cert user over TLS 1.3 (Cert SNI)" {
+                $result = Invoke-SgJSafeguardApi -Context $Context `
+                    -Service Core -Method Get -RelativeUrl "Me" `
+                    -CertificateFile $Context.UserPfx -CertificatePassword "a" `
+                    -ApplianceOverride $Context.CertSniHost -MinTlsVersion 1.3
+                $null -ne $result -and $result.Name -eq $Context.SuiteData["CertUserName"]
+            }
         }
     }
 

@@ -11,6 +11,7 @@ import com.oneidentity.safeguard.safeguardjava.ISafeguardConnection;
 import com.oneidentity.safeguard.safeguardjava.ISafeguardSessionsConnection;
 import com.oneidentity.safeguard.safeguardjava.Safeguard;
 import com.oneidentity.safeguard.safeguardjava.SafeguardForPrivilegedSessions;
+import com.oneidentity.safeguard.safeguardjava.TlsVersion;
 import com.oneidentity.safeguard.safeguardjava.authentication.DeviceCodeLoginParameters;
 import com.oneidentity.safeguard.safeguardjava.data.DeviceCodeInfo;
 import com.oneidentity.safeguard.safeguardjava.data.FullResponse;
@@ -61,6 +62,14 @@ public class SafeguardJavaClient {
 
         if (opts.interactive) {
             runInteractive();
+            return;
+        }
+
+        try {
+            applyTlsOptions(opts);
+        } catch (IllegalArgumentException ex) {
+            System.err.println("Error: " + ex.getMessage());
+            System.exit(1);
             return;
         }
 
@@ -165,6 +174,23 @@ public class SafeguardJavaClient {
                 ex.printStackTrace(System.err);
             }
             System.exit(1);
+        }
+    }
+
+    private static void applyTlsOptions(ToolOptions opts) {
+        if (opts.minTls != null && !opts.minTls.trim().isEmpty()) {
+            TlsVersion min = TlsVersion.fromString(opts.minTls);
+            if (min == null) {
+                throw new IllegalArgumentException("Invalid --min-tls value '" + opts.minTls + "' (expected 1.2 or 1.3)");
+            }
+            Safeguard.setMinTlsVersion(min);
+        }
+        if (opts.maxTls != null && !opts.maxTls.trim().isEmpty()) {
+            TlsVersion max = TlsVersion.fromString(opts.maxTls);
+            if (max == null) {
+                throw new IllegalArgumentException("Invalid --max-tls value '" + opts.maxTls + "' (expected 1.2 or 1.3)");
+            }
+            Safeguard.setMaxTlsVersion(max);
         }
     }
 

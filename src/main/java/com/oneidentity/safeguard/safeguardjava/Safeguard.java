@@ -35,6 +35,67 @@ public final class Safeguard {
     }
 
     /**
+     *  Set the minimum TLS protocol version SafeguardJava is allowed to
+     *  negotiate on all subsequently created connections and event listeners.
+     *
+     *  <p>This is an opt-in, process-wide setting. When left unset (and no
+     *  {@code safeguard.tls.minVersion} system property is present), the SDK
+     *  negotiates <b>TLS 1.2 only</b> &mdash; the historical default that keeps
+     *  certificate/A2A authentication working on the appliance Standard binding
+     *  (JSSE cannot present a client certificate post-handshake, so TLS 1.3
+     *  cert-auth is only possible via the appliance Cert SNI hostname).
+     *
+     *  <p>Password/token authentication can safely negotiate TLS 1.3 on the
+     *  Standard binding. To require TLS 1.3, call
+     *  {@code setMinTlsVersion(TlsVersion.TLSv1_3)}.
+     *
+     *  @param minTlsVersion Minimum TLS version, or {@code null} to clear.
+     *  @throws IllegalArgumentException If it is higher than a configured maximum.
+     */
+    public static void setMinTlsVersion(TlsVersion minTlsVersion) {
+        TlsConfiguration.setMinTlsVersion(minTlsVersion);
+    }
+
+    /**
+     *  Get the programmatically configured minimum TLS protocol version.
+     *
+     *  @return Configured minimum, or {@code null} when unset (does not reflect
+     *          the {@code safeguard.tls.minVersion} system-property fallback).
+     */
+    public static TlsVersion getMinTlsVersion() {
+        return TlsConfiguration.getMinTlsVersion();
+    }
+
+    /**
+     *  Set the maximum TLS protocol version SafeguardJava is allowed to
+     *  negotiate on all subsequently created connections and event listeners.
+     *
+     *  <p>This is an opt-in, process-wide setting. When left unset (and no
+     *  {@code safeguard.tls.maxVersion} system property is present), the SDK
+     *  negotiates <b>TLS 1.2 only</b>. Raise it to
+     *  {@code TlsVersion.TLSv1_3} to allow TLS 1.3. Note that certificate/A2A
+     *  authentication over TLS 1.3 requires connecting to the appliance Cert SNI
+     *  hostname, because JSSE cannot present a client certificate in response to
+     *  a TLS 1.3 post-handshake {@code CertificateRequest}.
+     *
+     *  @param maxTlsVersion Maximum TLS version, or {@code null} to clear.
+     *  @throws IllegalArgumentException If it is lower than a configured minimum.
+     */
+    public static void setMaxTlsVersion(TlsVersion maxTlsVersion) {
+        TlsConfiguration.setMaxTlsVersion(maxTlsVersion);
+    }
+
+    /**
+     *  Get the programmatically configured maximum TLS protocol version.
+     *
+     *  @return Configured maximum, or {@code null} when unset (does not reflect
+     *          the {@code safeguard.tls.maxVersion} system-property fallback).
+     */
+    public static TlsVersion getMaxTlsVersion() {
+        return TlsConfiguration.getMaxTlsVersion();
+    }
+
+    /**
      *  Connect to Safeguard API using an API access token.
      *
      *  @param networkAddress Network address of Safeguard appliance.

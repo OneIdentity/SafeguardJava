@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.oneidentity.safeguard.safeguardjava.AgentBasedLoginUtils;
 import com.oneidentity.safeguard.safeguardjava.Utils;
+import com.oneidentity.safeguard.safeguardjava.TlsConfiguration;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ArgumentException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.ObjectDisposedException;
 import com.oneidentity.safeguard.safeguardjava.exceptions.SafeguardForJavaException;
@@ -371,6 +372,7 @@ public class PkceAuthenticator extends AuthenticatorBase {
     private CloseableHttpClient createPkceHttpClient(String appliance, String csrfToken) {
         try {
             SSLConnectionSocketFactory sslsf;
+            String[] enabledProtocols = TlsConfiguration.resolveEnabledProtocolNames();
             if (isIgnoreSsl()) {
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(null, new TrustManager[]{new X509TrustManager() {
@@ -378,7 +380,7 @@ public class PkceAuthenticator extends AuthenticatorBase {
                     public void checkClientTrusted(X509Certificate[] certs, String authType) { }
                     public void checkServerTrusted(X509Certificate[] certs, String authType) { }
                 }}, new java.security.SecureRandom());
-                sslsf = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
+                sslsf = new SSLConnectionSocketFactory(sslContext, enabledProtocols, null, NoopHostnameVerifier.INSTANCE);
             } else if (getValidationCallback() != null) {
                 SSLContext sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(null, new TrustManager[]{new X509TrustManager() {
@@ -386,9 +388,9 @@ public class PkceAuthenticator extends AuthenticatorBase {
                     public void checkClientTrusted(X509Certificate[] certs, String authType) { }
                     public void checkServerTrusted(X509Certificate[] certs, String authType) { }
                 }}, new java.security.SecureRandom());
-                sslsf = new SSLConnectionSocketFactory(sslContext, getValidationCallback());
+                sslsf = new SSLConnectionSocketFactory(sslContext, enabledProtocols, null, getValidationCallback());
             } else {
-                sslsf = new SSLConnectionSocketFactory(SSLContext.getDefault());
+                sslsf = new SSLConnectionSocketFactory(SSLContext.getDefault(), enabledProtocols, null, (HostnameVerifier) null);
             }
 
             Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()

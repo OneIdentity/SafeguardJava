@@ -134,4 +134,12 @@ public class ToolOptions {
     @Option(names = {"--interactive"}, defaultValue = "false",
         description = "Run in interactive menu mode (legacy)")
     boolean interactive;
+
+    @Option(names = {"--min-tls"},
+        description = "Minimum TLS version to negotiate: 1.2 or 1.3")
+    String minTls;
+
+    @Option(names = {"--max-tls"},
+        description = "Maximum TLS version to negotiate: 1.2 or 1.3")
+    String maxTls;
 }
