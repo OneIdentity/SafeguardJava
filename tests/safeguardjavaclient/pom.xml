@@ -15,7 +15,7 @@
              -Drevision=<value read from the SDK pom> so the tool always tests
              exactly what was just built; this default matches the SDK's
              <revision> for standalone (mvn -f) builds. -->
-        <revision>8.4.0-SNAPSHOT</revision>
+        <revision>8.4.0</revision>
     </properties>
 
     <dependencies>
